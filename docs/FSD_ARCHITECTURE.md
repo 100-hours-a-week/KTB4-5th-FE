@@ -37,9 +37,15 @@ Next.js의 `app` 디렉터리와 FSD의 App 레이어는 이름이 충돌한다.
 │   │   └── login/page.tsx
 │   ├── (protected)/
 │   │   ├── layout.tsx
-│   │   └── (tabs)/
-│   │       ├── page.tsx
-│   │       └── refrigerator/page.tsx
+│   │   ├── (tabs)/
+│   │   │   ├── page.tsx
+│   │   │   └── refrigerator/page.tsx
+│   │   └── (flow)/
+│   │       └── refrigerator/
+│   │           ├── register/page.tsx
+│   │           └── ingredients/[ingredientId]/
+│   │               ├── page.tsx
+│   │               └── edit/page.tsx
 │   ├── api/**/route.ts
 │   ├── layout.tsx
 │   ├── loading.tsx
@@ -115,10 +121,12 @@ import { IngredientCard } from "@/entities/ingredient/ui/ingredient-card";
 - 두 곳 이상에서 사용하는 화면 URL은 `src/shared/routes`에 모은다. 동적
   세그먼트는 문자열을 각 사용처에서 직접 조합하지 않고 생성 함수로 제공한다.
 - 화면 URL은 항상 `/`로 시작하고, 루트(`/`) 외에는 끝에 `/`를 붙이지 않는다.
-  `(protected)`, `(tabs)` 같은 Route Group 이름은 실제 URL에 포함하지 않는다.
+  `(protected)`, `(tabs)`, `(flow)` 같은 Route Group 이름은 실제 URL에 포함하지
+  않는다.
 - 동적 세그먼트 값은 URL에 넣기 전에 `encodeURIComponent`로 인코딩한다.
 - `router.push`, `router.replace`, `redirect`, `<Link href>`는 같은 route 상수나
-  생성 함수를 사용한다. `"/ingredients/" + id` 같은 중복 조합을 만들지 않는다.
+  생성 함수를 사용한다. `"/refrigerator/ingredients/" + id` 같은 중복 조합을
+  만들지 않는다.
 - 백엔드 API 경로는 `shared/routes`에 넣지 않는다. 해당 요청 함수가 속한
   Entity 또는 Feature의 `api/`에서 소유하고, UI 컴포넌트가 API URL을 직접
   작성하지 않는다.
@@ -131,10 +139,12 @@ import { IngredientCard } from "@/entities/ingredient/ui/ingredient-card";
 // src/shared/routes/index.ts
 export const routes = {
   home: "/",
-  ingredients: "/ingredients",
-  registerIngredient: "/ingredients/register",
+  refrigerator: "/refrigerator",
+  registerIngredient: "/refrigerator/register",
   ingredientDetail: (ingredientId: string) =>
-    `/ingredients/${encodeURIComponent(ingredientId)}`,
+    `/refrigerator/ingredients/${encodeURIComponent(ingredientId)}`,
+  ingredientEdit: (ingredientId: string) =>
+    `/refrigerator/ingredients/${encodeURIComponent(ingredientId)}/edit`,
 } as const;
 ```
 
@@ -362,7 +372,10 @@ import type { Ingredient } from "@/entities/ingredient";
 
 ### 라우팅 규약
 
-- `(auth)`, `(protected)`, `(tabs)`는 URL이 아닌 라우팅·레이아웃 그룹이다.
+- `(auth)`, `(protected)`, `(tabs)`, `(flow)`는 URL이 아닌 라우팅·레이아웃
+  그룹이다.
+- `(tabs)`는 하단 탭을 유지하는 화면, `(flow)`는 등록·상세·수정처럼 탭에서
+  진입한 뒤 독립적으로 진행하는 화면 흐름을 묶는다.
 - 서로 다른 Route Group에서 같은 실제 URL을 만들지 않는다.
 - Next.js 16의 `params`와 `searchParams`는 Promise이므로 현재 설치 문서를
   확인하고 서버 경계에서 해제한다.

@@ -3,8 +3,9 @@ export const routes = {
   login: "/login",
   refrigerator: "/refrigerator",
   notifications: "/notifications",
-  ingredients: "/ingredients",
-  registerIngredient: "/ingredients/register",
+  registerIngredient: "/refrigerator/register",
   ingredientDetail: (ingredientId: string) =>
-    `/ingredients/${encodeURIComponent(ingredientId)}`,
+    `/refrigerator/ingredients/${encodeURIComponent(ingredientId)}`,
+  ingredientEdit: (ingredientId: string) =>
+    `/refrigerator/ingredients/${encodeURIComponent(ingredientId)}/edit`,
 } as const;
