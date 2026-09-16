@@ -1,3 +1,11 @@
+---
+name: 이슈 템플릿
+about: 이슈 등록 시 사용하는 기본 템플릿
+title: ''
+labels: ''
+assignees: ''
+---
+
 ## 🍒 IssueName
 
 > 이슈 명을 작성해주세요.
