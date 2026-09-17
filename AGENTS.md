@@ -8,10 +8,15 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 
 <!-- END:nextjs-agent-rules -->
 
-# Project architecture
+# Project documentation
 
 Before adding, moving, or reviewing application code, read and follow
 [`docs/FSD_ARCHITECTURE.md`](docs/FSD_ARCHITECTURE.md).
+
+- When creating or reviewing reusable UI components, read and follow
+  [`docs/COMMON_COMPONENT_RULES.md`](docs/COMMON_COMPONENT_RULES.md).
+- When implementing or reviewing service-wide behavior and UI policies, read and
+  follow [`docs/SERVICE_COMMON_RULES.md`](docs/SERVICE_COMMON_RULES.md).
 
 - New application code must follow the documented Feature-Sliced Design layers,
   import direction, and public API rules.
