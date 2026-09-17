@@ -1,7 +1,10 @@
+import { AppShell } from "@/widgets/app-shell";
+import { RouteHeader } from "@/widgets/route-header";
+
 export default function FlowLayout({ children }: LayoutProps<"/">) {
   return (
-    <div className="route-shell route-shell-flow" data-route-group="flow">
+    <AppShell header={<RouteHeader mode="flow" />} navigationVisible={false}>
       {children}
-    </div>
+    </AppShell>
   );
 }

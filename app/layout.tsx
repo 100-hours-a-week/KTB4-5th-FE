@@ -1,7 +1,9 @@
 import type { Metadata, Viewport } from "next";
 import { Suspense } from "react";
 
+import { NavigationHistoryTracker } from "@/_app/providers/navigation-history-tracker";
 import { QueryProvider } from "@/_app/providers/query-provider";
+import { siteConfig } from "@/shared/config";
 import "@/_app/styles/globals.css";
 
 export const metadata: Metadata = {
@@ -51,6 +53,9 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
     <html lang="ko">
       <body>
           <QueryProvider>
+            <Suspense fallback={null}>
+              <NavigationHistoryTracker />
+            </Suspense>
             <div className="app-viewport memo-paper">{children}</div>
           </QueryProvider>
       </body>
