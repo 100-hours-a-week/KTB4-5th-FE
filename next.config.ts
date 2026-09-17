@@ -1,7 +1,8 @@
+import { withSerwist } from "@serwist/turbopack";
 import type { NextConfig } from "next";
 
-const nextConfig: NextConfig = {
+const nextConfig = withSerwist({
   /* config options here */
-};
+} satisfies NextConfig);
 
 export default nextConfig;

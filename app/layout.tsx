@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 
 import { QueryProvider } from "@/_app/providers/query-provider";
+import { SerwistProvider } from "@/_app/providers/serwist-provider";
 import "@/_app/styles/globals.css";
 
 const geistSans = Geist({
@@ -36,7 +37,9 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col">
-        <QueryProvider>{children}</QueryProvider>
+        <SerwistProvider>
+          <QueryProvider>{children}</QueryProvider>
+        </SerwistProvider>
       </body>
     </html>
   );

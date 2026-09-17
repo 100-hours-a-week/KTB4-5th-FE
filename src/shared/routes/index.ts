@@ -1,6 +1,7 @@
 export const routes = {
   home: "/",
   login: "/login",
+  offline: "/~offline",
   refrigerator: "/refrigerator",
   notifications: "/notifications",
   registerIngredient: "/refrigerator/register",
