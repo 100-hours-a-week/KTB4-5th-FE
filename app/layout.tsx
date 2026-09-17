@@ -1,34 +1,54 @@
 import type { Metadata, Viewport } from "next";
-import { Noto_Sans_KR } from "next/font/google";
+import { Suspense } from "react";
 
 import { QueryProvider } from "@/_app/providers/query-provider";
 import "@/_app/styles/globals.css";
 
-const notoSansKr = Noto_Sans_KR({
-  variable: "--font-noto-sans-kr",
-  weight: ["400", "700", "900"],
-  subsets: ["latin"],
-  display: "swap",
-});
-
 export const metadata: Metadata = {
-  title: "다먹자",
-  description: "냉장고 식재료 관리 서비스",
-  applicationName: "다먹자",
+  applicationName: siteConfig.name,
+  title: {
+    default: siteConfig.defaultTitle,
+    template: siteConfig.titleTemplate,
+  },
+  description: siteConfig.description,
   appleWebApp: {
     capable: true,
-    title: "다먹자",
+    title: siteConfig.defaultTitle,
     statusBarStyle: "default",
+  },
+  formatDetection: {
+    telephone: false,
+  },
+  openGraph: {
+    type: "website",
+    siteName: siteConfig.name,
+    title: {
+      default: siteConfig.defaultTitle,
+      template: siteConfig.titleTemplate,
+    },
+    description: siteConfig.description,
+    locale: "ko_KR",
+  },
+  twitter: {
+    card: "summary",
+    title: {
+      default: siteConfig.defaultTitle,
+      template: siteConfig.titleTemplate,
+    },
+    description: siteConfig.description,
   },
 };
 
 export const viewport: Viewport = {
-  themeColor: "#ffffff",
+  width: "device-width",
+  initialScale: 1,
+  viewportFit: "cover",
+  themeColor: "#f7f5f2",
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
-    <html lang="ko" className={notoSansKr.variable}>
+    <html lang="ko">
       <body>
           <QueryProvider>
             <div className="app-viewport memo-paper">{children}</div>
