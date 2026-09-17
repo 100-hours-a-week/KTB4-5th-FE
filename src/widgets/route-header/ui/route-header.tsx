@@ -15,7 +15,6 @@ import {
   getRouteHeaderPolicy,
   type RouteHeaderMode,
 } from "../model/route-header-policy";
-import styles from "./route-header.module.css";
 
 type RouteHeaderProps = {
   mode: RouteHeaderMode;
@@ -60,7 +59,7 @@ export function RouteHeader({
       title={policy.title}
       leading={
         <button
-          className={styles.backButton}
+          className="grid size-[var(--tap-min)] place-items-center border-0 bg-transparent p-0 text-app-text hover:text-app-primary"
           type="button"
           onClick={navigateBack}
           aria-label="이전 화면으로 이동"

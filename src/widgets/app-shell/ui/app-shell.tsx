@@ -1,7 +1,5 @@
 import type { ReactNode } from "react";
 
-import styles from "./app-shell.module.css";
-
 type AppShellProps = {
   header?: ReactNode;
   children: ReactNode;
@@ -16,9 +14,11 @@ export function AppShell({
   navigationVisible = true,
 }: AppShellProps) {
   return (
-    <div className={styles.root}>
+    <div className="flex min-h-[100dvh] min-w-0 flex-1 flex-col overflow-hidden">
       {header}
-      <div className={styles.content}>{children}</div>
+      <div className="flex min-h-0 min-w-0 flex-1 overflow-hidden [&>*]:min-w-0">
+        {children}
+      </div>
       {navigationVisible ? navigation : null}
     </div>
   );

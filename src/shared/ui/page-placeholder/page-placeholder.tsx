@@ -1,7 +1,5 @@
 import type { ReactNode } from "react";
 
-import styles from "./page-placeholder.module.css";
-
 type PagePlaceholderProps = {
   screenId: string;
   title: string;
@@ -18,12 +16,14 @@ export function PagePlaceholder({
   children,
 }: PagePlaceholderProps) {
   return (
-    <main className={styles.root}>
-      <section className="section">
-        <p className="kicker">{screenId}</p>
-        {showTitle ? <h2 className={styles.title}>{title}</h2> : null}
+    <main className="flex min-h-0 min-w-0 flex-1 overflow-y-auto pb-[calc(var(--space-6)+var(--safe-bottom))] [-webkit-overflow-scrolling:touch]">
+      <section className="border-b-[var(--rule)] border-app-divider p-app-4">
+        <p className="text-[11px] uppercase tracking-[0.1em] text-app-accent">
+          {screenId}
+        </p>
+        {showTitle ? <h2 className="mb-app-3 text-app-text">{title}</h2> : null}
         <p>{description}</p>
-        <p className="meta">FSD v1 scaffold</p>
+        <p className="text-[11.5px] text-app-neutral-600">FSD v1 scaffold</p>
         {children}
       </section>
     </main>

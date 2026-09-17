@@ -4,15 +4,16 @@ import { Lineicons } from "@lineiconshq/react-lineicons";
 import { routes } from "@/shared/routes";
 import { AppLink } from "@/shared/ui/app-link";
 
-import styles from "./notification-bell.module.css";
-
 type NotificationBellProps = {
   unreadCount?: number;
 };
 
 export function NotificationBell({}: NotificationBellProps) {
   return (
-    <AppLink className={styles.root} href={routes.notifications}>
+    <AppLink
+      className="relative grid size-[var(--tap-min)] place-items-center text-app-text no-underline hover:text-app-primary"
+      href={routes.notifications}
+    >
       <Lineicons
         icon={Bell1Outlined}
         size={23}

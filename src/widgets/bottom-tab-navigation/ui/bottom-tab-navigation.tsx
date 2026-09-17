@@ -13,8 +13,6 @@ import { usePathname } from "next/navigation";
 import { routes } from "@/shared/routes";
 import { AppLink } from "@/shared/ui/app-link";
 
-import styles from "./bottom-tab-navigation.module.css";
-
 function isActiveRoute(pathname: string, href: string) {
   if (href === routes.home) {
     return pathname === href;
@@ -27,11 +25,15 @@ export function BottomTabNavigation() {
   const pathname = usePathname();
 
   return (
-    <nav className={styles.root} aria-label="주요 메뉴">
-      <ul className={styles.list}>
+    <nav
+      data-app-bottom-navigation
+      className="relative z-20 flex-none border-t-[var(--rule)] border-app-divider bg-[color-mix(in_srgb,var(--color-bg)_96%,transparent)] pr-[var(--safe-right)] pb-[var(--safe-bottom)] pl-[var(--safe-left)] backdrop-blur-[12px] [@media(prefers-reduced-transparency:reduce)]:bg-app-bg [@media(prefers-reduced-transparency:reduce)]:backdrop-blur-none"
+      aria-label="주요 메뉴"
+    >
+      <ul className="grid min-h-[var(--tabbar-h)] grid-cols-5 items-end">
         <li>
           <AppLink
-            className={styles.link}
+            className="flex min-h-[var(--tabbar-h)] min-w-0 flex-col items-center justify-center gap-[3px] border-t-[3px] border-transparent px-[2px] pt-[7px] pb-[6px] text-center text-[11px] font-bold leading-none text-app-neutral-600 no-underline transition-colors duration-[140ms] ease-linear hover:text-app-text [aria-current=page]:border-t-app-primary [aria-current=page]:text-app-primary"
             href={routes.home}
             aria-current={
               isActiveRoute(pathname, routes.home) ? "page" : undefined
@@ -49,7 +51,7 @@ export function BottomTabNavigation() {
         </li>
         <li>
           <AppLink
-            className={styles.link}
+            className="flex min-h-[var(--tabbar-h)] min-w-0 flex-col items-center justify-center gap-[3px] border-t-[3px] border-transparent px-[2px] pt-[7px] pb-[6px] text-center text-[11px] font-bold leading-none text-app-neutral-600 no-underline transition-colors duration-[140ms] ease-linear hover:text-app-text [aria-current=page]:border-t-app-primary [aria-current=page]:text-app-primary"
             href={routes.refrigerator}
             aria-current={
               isActiveRoute(pathname, routes.refrigerator) ? "page" : undefined
@@ -65,12 +67,15 @@ export function BottomTabNavigation() {
             <span>냉장고</span>
           </AppLink>
         </li>
-        <li className={styles.createItem}>
+        <li className="self-stretch">
           <AppLink
-            className={styles.createLink}
+            className="group relative flex min-h-[var(--tabbar-h)] min-w-0 flex-col items-center justify-center gap-[3px] px-[2px] pt-[7px] pb-[6px] text-center text-[11px] font-bold leading-none text-app-text no-underline transition-colors duration-[140ms] ease-linear"
             href={routes.registerIngredient}
           >
-            <span className={styles.createIcon} aria-hidden="true">
+            <span
+              className="-mt-6 grid size-12 place-items-center rounded-app-md border-[var(--rule)] border-app-ink bg-app-primary text-white shadow-app-md transition-colors duration-[140ms] ease-linear group-hover:bg-[color-mix(in_srgb,var(--color-primary)_88%,var(--color-ink))] group-active:translate-y-px"
+              aria-hidden="true"
+            >
               <Lineicons
                 icon={PlusOutlined}
                 size={26}
@@ -83,7 +88,7 @@ export function BottomTabNavigation() {
         </li>
         <li>
           <AppLink
-            className={styles.link}
+            className="flex min-h-[var(--tabbar-h)] min-w-0 flex-col items-center justify-center gap-[3px] border-t-[3px] border-transparent px-[2px] pt-[7px] pb-[6px] text-center text-[11px] font-bold leading-none text-app-neutral-600 no-underline transition-colors duration-[140ms] ease-linear hover:text-app-text [aria-current=page]:border-t-app-primary [aria-current=page]:text-app-primary"
             href={routes.recommendations}
             aria-current={
               isActiveRoute(pathname, routes.recommendations)
@@ -103,7 +108,7 @@ export function BottomTabNavigation() {
         </li>
         <li>
           <AppLink
-            className={styles.link}
+            className="flex min-h-[var(--tabbar-h)] min-w-0 flex-col items-center justify-center gap-[3px] border-t-[3px] border-transparent px-[2px] pt-[7px] pb-[6px] text-center text-[11px] font-bold leading-none text-app-neutral-600 no-underline transition-colors duration-[140ms] ease-linear hover:text-app-text [aria-current=page]:border-t-app-primary [aria-current=page]:text-app-primary"
             href={routes.me}
             aria-current={
               isActiveRoute(pathname, routes.me) ? "page" : undefined
