@@ -36,11 +36,12 @@ Next.js의 `app` 디렉터리와 FSD의 App 레이어는 이름이 충돌한다.
 │   ├── (auth)/
 │   │   └── login/page.tsx
 │   ├── (protected)/
-│   │   ├── layout.tsx
 │   │   ├── (tabs)/
+│   │   │   ├── layout.tsx
 │   │   │   ├── page.tsx
 │   │   │   └── refrigerator/page.tsx
 │   │   └── (flow)/
+│   │       ├── layout.tsx
 │   │       └── refrigerator/
 │   │           ├── register/page.tsx
 │   │           └── ingredients/[ingredientId]/
@@ -139,11 +140,10 @@ import { IngredientCard } from "@/entities/ingredient/ui/ingredient-card";
 // src/shared/routes/index.ts
 export const routes = {
   home: "/",
-  refrigerator: "/refrigerator",
   registerIngredient: "/refrigerator/register",
   ingredientDetail: (ingredientId: string) =>
     `/refrigerator/ingredients/${encodeURIComponent(ingredientId)}`,
-  ingredientEdit: (ingredientId: string) =>
+  editIngredient: (ingredientId: string) =>
     `/refrigerator/ingredients/${encodeURIComponent(ingredientId)}/edit`,
 } as const;
 ```
@@ -372,10 +372,8 @@ import type { Ingredient } from "@/entities/ingredient";
 
 ### 라우팅 규약
 
-- `(auth)`, `(protected)`, `(tabs)`, `(flow)`는 URL이 아닌 라우팅·레이아웃
-  그룹이다.
-- `(tabs)`는 하단 탭을 유지하는 화면, `(flow)`는 등록·상세·수정처럼 탭에서
-  진입한 뒤 독립적으로 진행하는 화면 흐름을 묶는다.
+- `(auth)`, `(protected)`, `(tabs)`, `(flow)`는 URL이 아닌 라우팅·레이아웃 그룹이다.
+- `(tabs)` 레이아웃은 하단 탭이 유지되는 화면 셸을, `(flow)` 레이아웃은 등록·상세·수정처럼 독립적으로 진행되는 화면 셸을 소유한다.
 - 서로 다른 Route Group에서 같은 실제 URL을 만들지 않는다.
 - Next.js 16의 `params`와 `searchParams`는 Promise이므로 현재 설치 문서를
   확인하고 서버 경계에서 해제한다.
@@ -383,6 +381,23 @@ import type { Ingredient } from "@/entities/ingredient";
   사용하고, 더 작은 데이터 경계는 가까운 `Suspense`와 오류 UI를 사용한다.
 - Route Handler가 필요하면 `app/api/**/route.ts`는 HTTP export만 담당하고,
   구현은 `src/_app/api-routes` 또는 적절한 하위 계층으로 위임한다.
+
+### 모바일 앱 셸 규약
+
+- `app/layout.tsx`는 모든 화면에 적용되는 viewport metadata와 최상위
+  `.app-viewport`만 조립한다.
+- `.app-viewport`는 360px 화면설계서에서도 가로 스크롤 없이 동작해야 하며,
+  화면 폭에 맞춰 늘어나되 `--app-max-width`를 넘지 않는다.
+- 전역 메모지 배경은 `.app-viewport.memo-paper`에서 한 번만 그린다. Page와
+  Route Group layout이 같은 배경을 반복해 줄무늬의 기준선을 다시 시작하지
+  않는다.
+- `100vh` 대신 동적 브라우저 UI를 반영하는 `100dvh`를 사용한다.
+- 노치와 홈 인디케이터 여백은 `viewport-fit=cover`와
+  `env(safe-area-inset-*)`로 처리한다. 확대를 막는 viewport 옵션은 사용하지
+  않는다.
+- Route Group layout은 구조만 소유한다. 실제 Header와 BottomTabBar가 구현되면
+  해당 Widget을 가장 가까운 layout에서 조립하며, 개별 Page나
+  `PagePlaceholder`가 전역 viewport를 다시 결정하지 않는다.
 
 ## 6. TanStack Query 배치와 Next.js 충돌 방지
 

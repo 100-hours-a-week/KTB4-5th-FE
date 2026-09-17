@@ -1,15 +1,14 @@
 import { PagePlaceholder } from "@/shared/ui/page-placeholder";
 
-type IngredientEditPageProps = {
+type EditIngredientPageProps = {
   ingredientId: string;
 };
 
-export function IngredientEditPage({ ingredientId }: IngredientEditPageProps) {
+export function EditIngredientPage({ ingredientId }: EditIngredientPageProps) {
   return (
     <PagePlaceholder
-      screenId="STOCK-002 · v1"
+      screenId="STOCK-002 · edit"
       title="재고 수정"
-      showTitle={false}
       description={`재료 ${ingredientId}의 수량, 단위와 유통기한을 수정할 페이지입니다.`}
     />
   );

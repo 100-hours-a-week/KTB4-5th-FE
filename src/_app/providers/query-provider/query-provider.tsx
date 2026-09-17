@@ -10,7 +10,8 @@ import type { ReactNode } from "react";
 const queryClientConfig: QueryClientConfig = {
   defaultOptions: {
     queries: {
-      staleTime: 60_000,
+      // TODO: 도메인별 최신성 정책이 확정되면 각 Query Option Factory에서 재정의한다.
+      staleTime: 0,
     },
   },
 };
