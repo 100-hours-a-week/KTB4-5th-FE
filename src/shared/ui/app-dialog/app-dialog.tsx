@@ -131,10 +131,10 @@ export function AppDialog({
       onClick={handleBackdropClick}
     >
       <span
-        className="pointer-events-none absolute top-0 left-6 z-[1] h-5 w-[58px] bg-[color-mix(in_srgb,var(--color-primary)_80%,transparent)] [transform:rotate(-2deg)]"
+        className="pointer-events-none absolute top-0 left-6 z-[1] h-5 w-[58px] bg-[color-mix(in_srgb,var(--color-highlight)_80%,transparent)]"
         aria-hidden="true"
       />
-      <div className="relative max-h-[calc(100dvh_-_var(--safe-top)_-_var(--safe-bottom)_-_43px)] overflow-y-auto rounded-[4px] bg-white p-5 shadow-[0_4px_16px_color-mix(in_srgb,var(--color-ink)_16%,transparent)] [transform:rotate(-0.5deg)]">
+      <div className="relative max-h-[calc(100dvh_-_var(--safe-top)_-_var(--safe-bottom)_-_43px)] overflow-y-auto rounded-[4px] bg-white p-5 shadow-[0_4px_16px_color-mix(in_srgb,var(--color-ink)_16%,transparent)]">
         <h2
           id={titleId}
           className="m-[5px_0_0] font-app-heading text-[19px] font-black leading-[1.35] tracking-normal"

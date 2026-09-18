@@ -28,7 +28,7 @@ export function AppToast({ message, variant, action }: AppToastOptions) {
   return (
     <div
       role={isSuccess ? "status" : "alert"}
-      className={`flex w-full items-center justify-between gap-app-3 rounded-[4px] px-app-4 py-[14px] font-app-body shadow-[0_3px_10px_color-mix(in_srgb,var(--color-ink)_25%,transparent)] [transform:rotate(-0.4deg)] ${
+      className={`flex w-full items-center justify-between gap-app-3 rounded-[4px] px-app-4 py-[14px] font-app-body shadow-[0_3px_10px_color-mix(in_srgb,var(--color-ink)_25%,transparent)] ${
         isSuccess
           ? "bg-app-ink text-app-canvas"
           : "bg-app-primary text-app-canvas"
