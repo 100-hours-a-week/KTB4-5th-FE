@@ -1,14 +1,19 @@
-import { PagePlaceholder } from "@/shared/ui/page-placeholder";
-import { HomeDialogPreview } from "./home-dialog-preview";
+import { getHomeSummary, STOCK_TYPE_LIMIT } from "../model/home-summary";
+import { HomeAttentionSection } from "./home-attention-section";
+import { HomeCapacitySummary } from "./home-capacity-summary";
+import { HomeRecommendationNotice } from "./home-recommendation-notice";
 
 export function HomePage() {
+  const summary = getHomeSummary();
+
   return (
-    <PagePlaceholder
-      screenId="MAIN-001 · v1"
-      title="홈"
-      description="현재 냉장고의 재고와 유통기한 요약을 표시할 페이지입니다."
-    >
-      <HomeDialogPreview />
-    </PagePlaceholder>
+    <main className="flex min-h-0 min-w-0 flex-1 flex-col overflow-y-auto pb-[calc(var(--space-6)+var(--safe-bottom))] [-webkit-overflow-scrolling:touch]">
+      <HomeCapacitySummary
+        stockTypeCount={summary.stockTypeCount}
+        stockTypeLimit={STOCK_TYPE_LIMIT}
+      />
+      <HomeAttentionSection items={summary.attentionItems} />
+      <HomeRecommendationNotice />
+    </main>
   );
 }
