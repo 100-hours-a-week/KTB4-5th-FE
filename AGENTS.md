@@ -24,5 +24,8 @@ Before adding, moving, or reviewing application code, read and follow
   code in the FSD structure under `src/`.
 - Respect the Server/Client module boundary and the separate ownership of the
   Next.js server cache and TanStack Query browser cache.
+- Send API-specific request DTOs directly. Handle successful responses as
+  `ApiResponse<T>` (`code`, `message`, `data`), and handle failures using RFC
+  9457 Problem Details with the service `code` (`DOMAIN-HTTP-NNN`).
 - Use only the approved project stack unless the user explicitly approves a
   change.
