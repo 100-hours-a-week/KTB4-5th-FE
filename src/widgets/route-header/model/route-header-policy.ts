@@ -14,10 +14,17 @@ export type RouteHeaderPolicy =
       backFallbackHref: string;
     };
 
-function getTabHeaderPolicy(): RouteHeaderPolicy {
+const tabHeaderTitles: Record<string, string> = {
+  [routes.home]: "홈",
+  [routes.refrigerator]: "냉장고",
+  [routes.recommendations]: "추천",
+  [routes.me]: "MY",
+};
+
+function getTabHeaderPolicy(pathname: string): RouteHeaderPolicy {
   return {
     kind: "tabs",
-    title: "다먹자",
+    title: tabHeaderTitles[pathname] ?? "다먹자",
     showNotifications: true,
   };
 }
@@ -72,5 +79,7 @@ export function getRouteHeaderPolicy(
   pathname: string,
   mode: RouteHeaderMode,
 ): RouteHeaderPolicy {
-  return mode === "tabs" ? getTabHeaderPolicy() : getFlowHeaderPolicy(pathname);
+  return mode === "tabs"
+    ? getTabHeaderPolicy(pathname)
+    : getFlowHeaderPolicy(pathname);
 }
