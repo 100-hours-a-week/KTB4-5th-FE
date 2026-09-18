@@ -1,3 +1,5 @@
+import { Chip } from "@/shared/ui/chip";
+
 import { LoginBackButton } from "./login-back-button";
 
 export function LoginNotiOnboarding() {
@@ -22,9 +24,9 @@ export function LoginNotiOnboarding() {
             <strong className="text-[17px] font-black">
               매일 오전 8시 알림
             </strong>
-            <span className="shrink-0 bg-app-primary px-[9px] py-[3px] text-[11px] font-bold text-white">
+            <Chip tone="primary" className="shrink-0">
               하루 1회
-            </span>
+            </Chip>
           </div>
           <p className="mb-0 mt-1 text-sm text-app-neutral-700">
             가입하면 자동으로 켜져요
