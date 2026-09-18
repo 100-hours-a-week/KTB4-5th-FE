@@ -18,16 +18,18 @@ import {
 
 type RouteHeaderProps = {
   mode: RouteHeaderMode;
+  homeTitle?: string;
   unreadNotificationCount?: number;
 };
 
 export function RouteHeader({
   mode,
+  homeTitle,
   unreadNotificationCount,
 }: RouteHeaderProps) {
   const pathname = usePathname();
   const router = useRouter();
-  const policy = getRouteHeaderPolicy(pathname, mode);
+  const policy = getRouteHeaderPolicy(pathname, mode, { home: homeTitle });
 
   if (policy.kind === "tabs") {
     return (
