@@ -27,13 +27,13 @@ export function BottomTabNavigation() {
   return (
     <nav
       data-app-bottom-navigation
-      className="relative z-20 flex-none border-t-[var(--rule)] border-app-divider bg-[color-mix(in_srgb,var(--color-bg)_96%,transparent)] pr-[var(--safe-right)] pb-[var(--safe-bottom)] pl-[var(--safe-left)] backdrop-blur-[12px] [@media(prefers-reduced-transparency:reduce)]:bg-app-bg [@media(prefers-reduced-transparency:reduce)]:backdrop-blur-none"
+      className="relative z-20 flex-none border-t-[var(--rule)] border-app-divider bg-white pr-[var(--safe-right)] pb-[var(--safe-bottom)] pl-[var(--safe-left)]"
       aria-label="주요 메뉴"
     >
       <ul className="grid min-h-[var(--tabbar-h)] grid-cols-5 items-end">
         <li>
           <AppLink
-            className="flex min-h-[var(--tabbar-h)] min-w-0 flex-col items-center justify-center gap-[3px] border-t-[3px] border-transparent px-[2px] pt-[7px] pb-[6px] text-center text-[11px] font-bold leading-none text-app-neutral-600 no-underline transition-colors duration-[140ms] ease-linear hover:text-app-text [aria-current=page]:border-t-app-primary [aria-current=page]:text-app-primary"
+            className="flex min-h-[var(--tabbar-h)] min-w-0 flex-col items-center justify-center gap-[3px] border-t-[3px] border-transparent px-[2px] pt-[7px] pb-[6px] text-center text-[11px] font-bold leading-none text-app-neutral-600 no-underline transition-colors duration-[140ms] ease-linear hover:text-app-text aria-[current=page]:border-t-app-primary aria-[current=page]:text-app-primary"
             href={routes.home}
             aria-current={
               isActiveRoute(pathname, routes.home) ? "page" : undefined
@@ -51,7 +51,7 @@ export function BottomTabNavigation() {
         </li>
         <li>
           <AppLink
-            className="flex min-h-[var(--tabbar-h)] min-w-0 flex-col items-center justify-center gap-[3px] border-t-[3px] border-transparent px-[2px] pt-[7px] pb-[6px] text-center text-[11px] font-bold leading-none text-app-neutral-600 no-underline transition-colors duration-[140ms] ease-linear hover:text-app-text [aria-current=page]:border-t-app-primary [aria-current=page]:text-app-primary"
+            className="flex min-h-[var(--tabbar-h)] min-w-0 flex-col items-center justify-center gap-[3px] border-t-[3px] border-transparent px-[2px] pt-[7px] pb-[6px] text-center text-[11px] font-bold leading-none text-app-neutral-600 no-underline transition-colors duration-[140ms] ease-linear hover:text-app-text aria-[current=page]:border-t-app-primary aria-[current=page]:text-app-primary"
             href={routes.refrigerator}
             aria-current={
               isActiveRoute(pathname, routes.refrigerator) ? "page" : undefined
@@ -88,7 +88,7 @@ export function BottomTabNavigation() {
         </li>
         <li>
           <AppLink
-            className="flex min-h-[var(--tabbar-h)] min-w-0 flex-col items-center justify-center gap-[3px] border-t-[3px] border-transparent px-[2px] pt-[7px] pb-[6px] text-center text-[11px] font-bold leading-none text-app-neutral-600 no-underline transition-colors duration-[140ms] ease-linear hover:text-app-text [aria-current=page]:border-t-app-primary [aria-current=page]:text-app-primary"
+            className="flex min-h-[var(--tabbar-h)] min-w-0 flex-col items-center justify-center gap-[3px] border-t-[3px] border-transparent px-[2px] pt-[7px] pb-[6px] text-center text-[11px] font-bold leading-none text-app-neutral-600 no-underline transition-colors duration-[140ms] ease-linear hover:text-app-text aria-[current=page]:border-t-app-primary aria-[current=page]:text-app-primary"
             href={routes.recommendations}
             aria-current={
               isActiveRoute(pathname, routes.recommendations)
@@ -108,7 +108,7 @@ export function BottomTabNavigation() {
         </li>
         <li>
           <AppLink
-            className="flex min-h-[var(--tabbar-h)] min-w-0 flex-col items-center justify-center gap-[3px] border-t-[3px] border-transparent px-[2px] pt-[7px] pb-[6px] text-center text-[11px] font-bold leading-none text-app-neutral-600 no-underline transition-colors duration-[140ms] ease-linear hover:text-app-text [aria-current=page]:border-t-app-primary [aria-current=page]:text-app-primary"
+            className="flex min-h-[var(--tabbar-h)] min-w-0 flex-col items-center justify-center gap-[3px] border-t-[3px] border-transparent px-[2px] pt-[7px] pb-[6px] text-center text-[11px] font-bold leading-none text-app-neutral-600 no-underline transition-colors duration-[140ms] ease-linear hover:text-app-text aria-[current=page]:border-t-app-primary aria-[current=page]:text-app-primary"
             href={routes.me}
             aria-current={
               isActiveRoute(pathname, routes.me) ? "page" : undefined
