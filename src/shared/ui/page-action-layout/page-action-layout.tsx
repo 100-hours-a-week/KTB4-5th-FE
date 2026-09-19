@@ -9,7 +9,7 @@ type PageActionLayoutProps = {
 };
 
 const toneClasses = {
-  canvas: { page: "text-app-ink", footer: "bg-app-canvas" },
+  canvas: { page: "text-app-ink", footer: "" },
   ink: { page: "bg-app-ink text-app-canvas", footer: "bg-app-ink" },
 } satisfies Record<
   NonNullable<PageActionLayoutProps["tone"]>,

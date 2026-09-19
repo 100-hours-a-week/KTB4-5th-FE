@@ -15,7 +15,6 @@ export type HomeSummary = {
 };
 
 export const HOME_ATTENTION_LIMIT = 3;
-export const STOCK_TYPE_LIMIT = 100;
 
 // 홈 mock 데이터
 export function getHomeSummary(): HomeSummary {

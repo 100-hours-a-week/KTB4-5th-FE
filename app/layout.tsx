@@ -58,7 +58,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
           <Suspense fallback={null}>
             <NavigationHistoryTracker />
           </Suspense>
-          <div className="isolate mx-auto flex min-h-[100dvh] w-[min(100%,var(--app-max-width))] overflow-x-clip bg-app-bg [background-image:repeating-linear-gradient(0deg,transparent_0_25px,rgb(26_26_30_/_4.5%)_25px_26px)]">
+          <div className="isolate mx-auto flex min-h-[100dvh] w-[min(100%,var(--app-max-width))] overflow-x-clip bg-app-bg [background-image:repeating-linear-gradient(180deg,transparent_0_25px,rgb(26_26_30_/_4.5%)_25px_26px)]">
             {children}
           </div>
         </QueryProvider>
