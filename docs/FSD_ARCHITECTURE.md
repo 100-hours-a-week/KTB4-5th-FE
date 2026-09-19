@@ -53,7 +53,7 @@ Next.js의 `app` 디렉터리와 FSD의 App 레이어는 이름이 충돌한다.
 │   ├── error.tsx
 │   ├── not-found.tsx
 │   └── manifest.ts
-├── public/
+├── public/                    # 고정 URL이 필요한 파일만 (PWA manifest 아이콘 등)
 └── src/
     ├── _app/                    # 앱 초기화와 전역 조립
     │   ├── providers/
@@ -68,6 +68,7 @@ Next.js의 `app` 디렉터리와 FSD의 App 레이어는 이름이 충돌한다.
     ├── entities/                # 비즈니스 개체와 서버 데이터
     └── shared/                  # 도메인에 독립적인 기반 코드
         ├── api/
+        ├── assets/              # 화면에서 import하는 이미지 (logo, illustrations)
         ├── config/
         ├── lib/
         ├── routes/
@@ -82,13 +83,14 @@ Next.js의 `app` 디렉터리와 FSD의 App 레이어는 이름이 충돌한다.
 파일 시스템 경로, 화면 URL, API URL, 정적 자산 URL은 서로 다른 경로다.
 문자열 모양이 비슷하더라도 같은 규칙으로 섞어 사용하지 않는다.
 
-| 경로 종류                 | 작성 위치와 형식                                                     | 예시                                    |
-| ------------------------- | -------------------------------------------------------------------- | --------------------------------------- |
-| 다른 FSD 슬라이스 import  | `@/`로 시작하는 슬라이스 Public API                                  | `@/entities/ingredient`                 |
-| 같은 슬라이스 내부 import | 현재 파일 기준 상대 경로                                             | `../lib/map-ingredient-response`        |
-| 애플리케이션 화면 URL     | `src/shared/routes`의 상수 또는 생성 함수                            | `routes.ingredientDetail(ingredientId)` |
-| 백엔드 API URL            | 데이터를 소유한 `entities/*/api` 또는 행위를 소유한 `features/*/api` | `/api/fridges/${fridgeId}/ingredients`  |
-| `public/` 정적 자산 URL   | `/`로 시작하는 URL 경로                                              | `/icons/refrigerator.svg`               |
+| 경로 종류                 | 작성 위치와 형식                                                     | 예시                                      |
+| ------------------------- | -------------------------------------------------------------------- | ----------------------------------------- |
+| 다른 FSD 슬라이스 import  | `@/`로 시작하는 슬라이스 Public API                                  | `@/entities/ingredient`                   |
+| 같은 슬라이스 내부 import | 현재 파일 기준 상대 경로                                             | `../lib/map-ingredient-response`          |
+| 애플리케이션 화면 URL     | `src/shared/routes`의 상수 또는 생성 함수                            | `routes.ingredientDetail(ingredientId)`   |
+| 백엔드 API URL            | 데이터를 소유한 `entities/*/api` 또는 행위를 소유한 `features/*/api` | `/api/v1/fridges/${fridgeId}/ingredients` |
+| 화면에서 쓰는 이미지      | `src/shared/assets`에서 정적 import                                  | `@/shared/assets/logo/logo-stacked.png`   |
+| `public/` 정적 자산 URL   | `/`로 시작하는 URL 경로                                              | `/icons/icon-192x192.png`                 |
 
 #### import 경로
 
@@ -131,10 +133,19 @@ import { IngredientCard } from "@/entities/ingredient/ui/ingredient-card";
 - 백엔드 API 경로는 `shared/routes`에 넣지 않는다. 해당 요청 함수가 속한
   Entity 또는 Feature의 `api/`에서 소유하고, UI 컴포넌트가 API URL을 직접
   작성하지 않는다.
-- 백엔드 origin은 검증된 환경 설정과 공통 fetch client가 담당한다. 요청마다
-  origin을 하드코딩하지 않으며, path는 `/`로 시작하는 상대 API 경로로 넘긴다.
-- `public/`은 URL에 포함하지 않는다. `public/icons/refrigerator.svg` 파일은
-  코드에서 `/icons/refrigerator.svg`로 참조한다.
+- 브라우저 API 요청은 같은 출처의 `/api/v1`로 보낸다. 공통 fetch client가
+  `/api/v1`을 붙이므로 각 요청 함수는 `/fridges/...`처럼 `/`로 시작하는
+  엔드포인트 경로를 넘긴다. 브라우저 요청에 origin을 하드코딩하지 않는다.
+- 화면에서 쓰는 이미지는 `src/shared/assets`에 두고 정적 import해 `next/image`에
+  넘긴다. 경로 오타가 빌드 오류로 드러나고, 크기가 자동으로 채워지며, 파일명에
+  내용 해시가 붙어 교체 시 캐시가 꼬이지 않는다. 특정 화면 전용 이미지는 해당
+  슬라이스의 `assets/`에 둔다.
+- `public/`에는 manifest 아이콘처럼 외부에서 고정 URL로 요청하는 파일만 둔다.
+  파비콘은 `app/icon.png` 파일 규칙을 사용한다.
+- `public/`은 URL에 포함하지 않는다. `public/icons/icon-192x192.png` 파일은
+  코드에서 `/icons/icon-192x192.png`로 참조한다.
+- 이미지 원본은 표시 크기의 2~3배 이내로 줄여서 커밋하고 파일명은 kebab-case로
+  쓴다.
 
 ```ts
 // src/shared/routes/index.ts
@@ -243,7 +254,8 @@ Entity 슬라이스끼리는 직접 import하지 않는다. 실제 데이터 관
 - `api/`: 공통 fetch client, HTTP 오류, 인증 헤더 처리
 - `ui/`: Button, Input, Sheet처럼 비즈니스 로직 없는 UI kit
 - `lib/`: 날짜, 문자열 등 하나의 명확한 목적을 가진 라이브러리
-- `config/`: 검증된 환경 변수와 전역 설정
+- `config/`: 검증된 환경 변수와 전역 설정, 여러 화면이 공유하는 서비스 정책 값
+  (예: `STOCK_TYPE_LIMIT`)
 - `routes/`: URL 생성 함수와 route 상수
 
 `components`, `hooks`, `utils`, `types` 같은 의미가 불분명한 최상위 폴더를
@@ -560,7 +572,8 @@ src/
     사용했는가?
 11. 화면 URL을 여러 곳에서 사용한다면 `shared/routes` 생성 함수로 통일했는가?
 12. UI가 API URL을 직접 작성하거나 화면 URL과 API URL을 한곳에 섞지 않았는가?
-13. `public/` 자산을 `/...` URL로 참조했는가?
+13. 화면 이미지는 `shared/assets`에서 import하고, `public/` 자산은 `/...` URL로
+    참조했는가?
 14. 타입을 범용 폴더에 모으지 않고 실제 소유 슬라이스와 세그먼트에 두었는가?
 15. 외부에 공개하는 타입은 Public API에서 `export type`으로 노출했는가?
 16. Server/Client entry가 섞이지 않았는가?

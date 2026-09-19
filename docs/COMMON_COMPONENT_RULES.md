@@ -120,16 +120,16 @@ Notion 원문의 분류 이름을 그대로 디렉터리로 만들지 않고 현
 
 ## 5. 공통 계층과 도메인 계층의 소유권
 
-| 영역                   | 공통 계층이 소유                                                                | 도메인·화면이 소유                               |
-| ---------------------- | ------------------------------------------------------------------------------- | ------------------------------------------------ |
-| App Shell·Navigation   | 공통 배치, 활성 표현, 접근성, overlay 중 조작 차단                              | 이동 목적지, 진입 조건, 재고 한도 같은 업무 조건 |
-| Dialog·Bottom Sheet    | focus trap, backdrop, scroll lock, 버튼·action 영역 배치, 제한된 dismiss 정책   | 제목·설명·버튼 문구, mutation, 성공·실패 처리    |
-| Toast                  | 하단 위치, 3초 timer, 동시에 한 개, 중복 갱신, 성공·실패 variant, Sonner 어댑터 | 노출 시점과 메시지, 선택적 action의 실행         |
-| 비동기 상태 UI         | 공통 정렬, 접근성, 재시도 중 중복 클릭 방지                                     | Query 실행과 상태 판정, 문구·아이콘·복구 action  |
-| Header                 | 제목, leading·actions slot의 배치와 접근성                                      | 뒤로가기 정책, 알림 조회, 각 action의 실행 결과  |
-| FormField              | label·hint·error 연결과 접근성 ID                                               | 입력값, 검증 schema, 서버 오류 매핑              |
-| Badge·Chip·CardSurface | 색상·간격·선택·강조 표현                                                        | D-day 계산, 필터 적용, 카드 클릭 결과            |
-| 전역 fallback          | 재사용 가능한 로딩·오류·빈 상태 표현                                            | 오류 코드 해석, 화면 문구, 복구 action과 재조회  |
+| 영역                         | 공통 계층이 소유                                                                | 도메인·화면이 소유                               |
+| ---------------------------- | ------------------------------------------------------------------------------- | ------------------------------------------------ |
+| App Shell·Navigation         | 공통 배치, 활성 표현, 접근성, overlay 중 조작 차단                              | 이동 목적지, 진입 조건, 재고 한도 같은 업무 조건 |
+| Dialog·Bottom Sheet          | focus trap, backdrop, scroll lock, 버튼·action 영역 배치, 제한된 dismiss 정책   | 제목·설명·버튼 문구, mutation, 성공·실패 처리    |
+| Toast                        | 하단 위치, 3초 timer, 동시에 한 개, 중복 갱신, 성공·실패 variant, Sonner 어댑터 | 노출 시점과 메시지, 선택적 action의 실행         |
+| 비동기 상태 UI               | 공통 정렬, 접근성, 재시도 중 중복 클릭 방지                                     | Query 실행과 상태 판정, 문구·아이콘·복구 action  |
+| Header                       | 제목, leading·actions slot의 배치와 접근성                                      | 뒤로가기 정책, 알림 조회, 각 action의 실행 결과  |
+| FormField                    | label·hint·error 연결과 접근성 ID                                               | 입력값, 검증 schema, 서버 오류 매핑              |
+| Badge·FilterChip·CardSurface | 색상·간격·선택·강조 표현                                                        | D-day 계산, 필터 적용, 카드 클릭 결과            |
+| 전역 fallback                | 재사용 가능한 로딩·오류·빈 상태 표현                                            | 오류 코드 해석, 화면 문구, 복구 action과 재조회  |
 
 공통 컴포넌트가 화면별 정책을 직접 판단하지 않도록 이미 계산된 표현 값을
 전달한다.
@@ -206,7 +206,7 @@ slot은 예외를 숨기는 만능 `children` 통로가 아니라 **사용처가
   `"use client"`를 선언한다.
 - 공통 컴포넌트 하나가 Client Component라는 이유로 Page나 Layout 전체를
   Client Component로 바꾸지 않는다.
-- `AppDialog`, `AppBottomSheet`, 상호작용 가능한 `Chip`, Toast 어댑터처럼
+- `AppDialog`, `AppBottomSheet`, `FilterChip`, Toast 어댑터처럼
   브라우저 동작이 필요한 컴포넌트만 Client 경계를 가진다.
 - 열릴 때 등록한 keyboard listener, focus trap, body scroll lock은 닫힘 또는
   unmount 때 반드시 정리한다.
@@ -216,21 +216,26 @@ slot은 예외를 숨기는 만능 `children` 통로가 아니라 **사용처가
 
 ## 9. 컴포넌트별 현재 판정
 
-| 대상                           | 현재 판정                         | 구현 위치와 핵심 계약                                                                                                  |
-| ------------------------------ | --------------------------------- | ---------------------------------------------------------------------------------------------------------------------- |
-| `AppShell`                     | 공통 Widget                       | `src/widgets/app-shell`; `header`, `children`, `navigation`, `navigationVisible`을 조합하고 업무 데이터는 받지 않는다. |
-| `BottomTabBar`                 | 공통 Widget, 세부 정책 보류       | `src/widgets/bottom-tab-navigation`; 활성 탭은 route에서 파생하고 진입 조건은 외부에서 계산한다.                       |
-| `AppHeader`                    | 공통 기반 + 도메인 조합           | `src/shared/ui/app-header`; `title`, `leading`, `actions`만 소유한다.                                                  |
-| `AppLink`                      | 공통 navigation primitive         | `src/shared/ui/app-link`; 내부 SPA 링크의 `push`·`replace` intent를 `onNavigate`에서 자동 기록한다.                    |
-| `AppDialog`                    | 공통 behavior frame + 도메인 조합 | `src/shared/ui/app-dialog`; focus, backdrop, scroll, 버튼 순서, dismiss 계약을 소유한다.                               |
-| `AppBottomSheet`               | 공통 behavior frame + 도메인 조합 | `src/shared/ui/app-bottom-sheet`; drag handle, focus, scroll, dismiss, action 영역을 소유한다.                         |
-| `AsyncViewState` 계열          | 공통 frame + 도메인 slot          | `src/shared/ui/async-view-state`; Query 객체가 아니라 `status`, 문구, illustration, action, pending 값만 받는다.       |
-| `AppToast`                     | 공통 어댑터                       | Sonner를 공통 계약으로 감싸고 Toaster는 `src/_app/providers`에서 한 번 조립한다.                                       |
-| `NotificationBell`             | 알림 도메인 컴포넌트              | `src/entities/notification/ui` 또는 규모에 따라 상위 조합; 공통 `AppHeader`, `IconButton`, `Badge`를 사용한다.         |
-| `Button`, `IconButton`         | 공통 primitive                    | `src/shared/ui`; 시각 위계, disabled·loading 표현, button semantics만 담당한다.                                        |
-| `FormField`                    | 공통 primitive                    | `src/shared/ui`; label·hint·error 연결을 담당하고 검증은 도메인에 둔다.                                                |
-| `Badge`, `Chip`, `CardSurface` | 공통 primitive                    | `src/shared/ui`; 도메인 계산과 클릭 결과를 포함하지 않는다.                                                            |
-| `ExpiryDatePicker`             | 도메인 내부 유지                  | `REG-005`와 `STOCK-002`가 같은 날짜 계약인지 확인된 뒤 다시 판정한다.                                                  |
+| 대상                   | 현재 판정                         | 구현 위치와 핵심 계약                                                                                                                             |
+| ---------------------- | --------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `AppShell`             | 공통 Widget                       | `src/widgets/app-shell`; `header`, `children`, `navigation`, `navigationVisible`을 조합하고 업무 데이터는 받지 않는다.                            |
+| `BottomTabBar`         | 공통 Widget, 세부 정책 보류       | `src/widgets/bottom-tab-navigation`; 활성 탭은 route에서 파생하고 진입 조건은 외부에서 계산한다.                                                  |
+| `AppHeader`            | 공통 기반 + 도메인 조합           | `src/shared/ui/app-header`; `title`, `leading`, `actions`만 소유한다.                                                                             |
+| `AppLink`              | 공통 navigation primitive         | `src/shared/ui/app-link`; 내부 SPA 링크의 `push`·`replace` intent를 `onNavigate`에서 자동 기록한다.                                               |
+| `LinkCard`             | 공통 primitive                    | `src/shared/ui/link-card`; 눌러서 이동하는 목록 카드의 표면과 제목·보조문구·오른쪽 슬롯 배치만 담당한다. 문구 생성과 이동 대상은 사용처가 갖는다. |
+| `AppDialog`            | 공통 behavior frame + 도메인 조합 | `src/shared/ui/app-dialog`; focus, backdrop, scroll, 버튼 순서, dismiss 계약을 소유한다.                                                          |
+| `AppBottomSheet`       | 공통 behavior frame + 도메인 조합 | `src/shared/ui/app-bottom-sheet`; drag handle, focus, scroll, dismiss, action 영역을 소유한다.                                                    |
+| `AsyncViewState` 계열  | 공통 frame + 도메인 slot          | `src/shared/ui/async-view-state`; Query 객체가 아니라 `status`, 문구, action, pending 값만 받는다. 일러스트는 `status`로 정해진다.                |
+| `AppToast`             | 공통 어댑터                       | Sonner를 공통 계약으로 감싸고 Toaster는 `src/_app/providers`에서 한 번 조립한다.                                                                  |
+| `NotificationBell`     | 알림 도메인 컴포넌트              | `src/entities/notification/ui` 또는 규모에 따라 상위 조합; 공통 `AppHeader`, `IconButton`, `Badge`를 사용한다.                                    |
+| `Button`, `IconButton` | 공통 primitive                    | `src/shared/ui`; 시각 위계, disabled·loading 표현, button semantics만 담당한다.                                                                   |
+| `SettingsCard`         | 공통 primitive                    | `src/shared/ui/settings-card`; 제목·보조문구·오른쪽 보조 텍스트·chevron의 클릭형 카드 표현만 담당한다.                                            |
+| `FormField`            | 공통 primitive                    | `src/shared/ui`; label·hint·error 연결을 담당하고 검증은 도메인에 둔다.                                                                           |
+| `Badge`                | 공통 primitive                    | `src/shared/ui/badge`; 읽기 전용 라벨 표현만 소유하고 tone 판정과 문구 생성은 사용처가 갖는다.                                                    |
+| `FilterChip`           | 공통 primitive                    | `src/shared/ui/filter-chip`; 선택 표현과 44px 터치 영역만 소유하고 무엇을 조회할지는 사용처가 갖는다.                                             |
+| `AsyncViewState`       | 공통 frame + 도메인 slot          | `src/shared/ui/async-view-state`; SERVICE_COMMON_RULES 4의 상태 골격과 상태별 일러스트를 소유하고 문구·액션은 사용처가 갖는다.                    |
+| `Badge`, `CardSurface` | 공통 primitive                    | `src/shared/ui`; 도메인 계산과 클릭 결과를 포함하지 않는다.                                                                                       |
+| `ExpiryDatePicker`     | 도메인 내부 유지                  | `REG-005`와 `STOCK-002`가 같은 날짜 계약인지 확인된 뒤 다시 판정한다.                                                                             |
 
 ### `AppShell` 현재 구현
 
@@ -508,10 +513,13 @@ Query 캐시” 절을 따른다.
 `app-dialog.module.css`, Public API는 `index.ts`에 둔다.
 
 - 구조는 `title`, `description`, `secondaryAction`, `primaryAction`으로 고정한다.
-- 버튼은 화면설계서처럼 `[보조 행동][주 행동]` 순서로 항상 두 개를 표시한다.
+- 버튼은 화면설계서처럼 `[보조 행동][주 행동]` 순서로 표시한다.
+- `secondaryAction`을 생략하면 주 행동 하나만 표시하는 단일 버튼 모달이 된다.
+  선택지가 없는 안내에만 쓰고, 되돌릴 수 없는 처리에는 쓰지 않는다.
 - 버튼 문구와 실행 결과, pending에 따른 `disabled` 값은 사용하는 Feature나
   Page가 결정한다.
-- 바깥 영역 클릭과 ESC는 기본적으로 `secondaryAction`과 같은 의미다. 중요한
+- 바깥 영역 클릭과 ESC는 기본적으로 `secondaryAction`과 같은 의미다. 단일 버튼
+  모달에서는 주 행동이 닫기를 겸한다. 중요한
   처리 중 닫기를 막아야 하면 `dismissBehavior="none"`을 사용한다.
 - native `dialog`가 focus trap과 뒤쪽 콘텐츠 비활성화를 담당하고,
   `AppDialog`는 열림 중 문서 scroll lock과 닫힌 뒤 focus 복구를 담당한다.
@@ -555,8 +563,71 @@ showAppToast({
 - `LoadingState`, `EmptyState`, `ErrorState`, `RetryButton`,
   `PaginationState`의 공통 배치와 접근성을 제공할 수 있다.
 - Query 성공 여부나 빈 배열의 의미는 사용하는 도메인이 판단한다.
-- 빈 상태 문구, 아이콘, 복구 action은 화면별 명세가 소유한다.
+- 빈 상태 문구와 복구 action은 화면별 명세가 소유한다. 일러스트는 상태별로
+  공용 컴포넌트가 고정한다.
 - `useQuery` 반환 객체 전체를 넘기지 않고 화면 표시용 값으로 변환한다.
+
+### Chip 계열 사용 원칙
+
+Chip 모양을 가진 컴포넌트는 하나로 묶지 않고 **사용자 조작 가능 여부와 사용
+목적**으로 나눈다. 모양이 같다는 이유로 합치면 읽기 전용 라벨에 클릭 계약이
+새는 것을 막을 수 없다.
+
+| 컴포넌트     | 사용자 조작 | 사용 목적                     | 예시                         | 구현 위치                   |
+| ------------ | ----------- | ----------------------------- | ---------------------------- | --------------------------- |
+| `Badge`      | 불가        | 정보를 읽기 전용으로 표시     | 냉장·냉동, 만료·임박·여유    | `src/shared/ui/badge`       |
+| `FilterChip` | 가능        | 목록 필터 또는 수량 조건 선택 | 전체·냉장·냉동, 1개·5개·전체 | `src/shared/ui/filter-chip` |
+| `ActionChip` | 가능        | 버튼 세트 중 하나를 선택      | 등록·수정 폼의 카테고리 선택 | 사용처가 생길 때 구현한다   |
+
+- 세 컴포넌트 모두 tone 판정, 문구 생성, 날짜 계산, 조회 조건 결정을 내부에
+  두지 않는다. 사용처가 결과만 내려준다.
+- `ActionChip`은 아직 사용하는 화면이 없으므로 만들지 않는다. 등록·수정 폼에서
+  카테고리 선택이 구현될 때 같은 원칙으로 추가한다.
+
+#### `Badge` v1 공개 계약
+
+구현은 `src/shared/ui/badge/badge.tsx`, Public API는 같은 디렉터리의
+`index.ts`에 둔다. 상태를 갖지 않으므로 Server Component로 렌더링한다.
+
+- Props는 `children`, `tone`, `size`, `className`으로 제한한다.
+- `tone`은 `solid`, `muted`, `outline`, `primary`, `highlight`만 허용하고
+  기본값은 `muted`다.
+- `size`는 `sm`(11px 라벨)과 `md`를 허용한다. `md`는
+  [서비스 공용 규칙 2.2](./SERVICE_COMMON_RULES.md)의 상태 뱃지 규격인
+  `51 × 30`, radius `9999`, `12px Bold`다.
+- 어떤 tone과 size를 쓸지는 사용처가 정하고 `Badge`는 도메인을 모른다.
+
+```tsx
+import { Badge } from "@/shared/ui/badge";
+
+<Badge tone="primary" className="shrink-0">
+  하루 1회
+</Badge>;
+```
+
+#### `FilterChip` v1 공개 계약
+
+구현은 `src/shared/ui/filter-chip/filter-chip.tsx`에 둔다. `onClick`을 받으므로
+Client Component 트리 안에서만 사용한다.
+
+- Props는 `children`, `selected`, `tone`, `disabled`, `onClick`, `className`으로
+  제한한다. 개수와 해제 표시(`✕`)는 칩에 붙이지 않는다.
+- 선택 표현은 `채움 + 흰 글자`, 미선택은 `테두리`로 고정한다.
+- `tone`은 선택 상태의 채움 색이며 `ink`와 `primary`만 허용한다. 어떤 조건에
+  어떤 tone을 쓸지는 사용처가 정하고 칩은 도메인을 모른다.
+- 버튼이 `44 × 44` 터치 영역을 유지하고 안쪽 `span`이 칩 모양을 그린다.
+- 단일 선택인지 다중 선택인지, 어떤 조회가 나가는지는 사용처가 결정한다.
+
+```tsx
+import { FilterChip } from "@/shared/ui/filter-chip";
+
+<FilterChip
+  selected={filter === "EXPIRED"}
+  onClick={() => onFilterChange(filter === "EXPIRED" ? null : "EXPIRED")}
+>
+  만료
+</FilterChip>;
+```
 
 ## 10. 보류 중인 결정
 
