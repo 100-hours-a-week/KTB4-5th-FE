@@ -24,7 +24,9 @@ export function IngredientFilterSection({
     >
       <FilterChip
         selected={filter === null}
-        onClick={() => onFilterChange(null)}
+        onClick={() => {
+          if (filter !== null) onFilterChange(null);
+        }}
       >
         전체
       </FilterChip>
@@ -33,7 +35,9 @@ export function IngredientFilterSection({
           key={value}
           selected={filter === value}
           tone={value === "EXPIRED" ? "primary" : "ink"}
-          onClick={() => onFilterChange(filter === value ? null : value)}
+          onClick={() => {
+            if (filter !== value) onFilterChange(value);
+          }}
         >
           {INGREDIENT_LIST_FILTER_LABELS[value]}
         </FilterChip>

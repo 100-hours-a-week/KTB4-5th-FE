@@ -57,7 +57,7 @@ export function HomeAttentionSection({ items }: HomeAttentionSectionProps) {
                 return (
                   <li key={item.id}>
                     <LinkCard
-                      href={routes.ingredientDetail(item.id)}
+                      href={`${routes.refrigerator}?filter=${badge.status}`}
                       title={item.name}
                       description={describeExpiryHelper(item)}
                       trailing={
