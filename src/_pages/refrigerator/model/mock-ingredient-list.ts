@@ -8,6 +8,9 @@ import {
 } from "@/entities/ingredient";
 import { STOCK_TYPE_LIMIT } from "@/shared/config";
 
+// TODO: 공통 도메인의 현재 냉장고 문맥(CurrentFridgeContext)이 생기면 교체한다.
+export const MOCK_REFRIGERATOR_ID = "1";
+
 // TODO: API 연동 시 `entities/ingredient/api`의 조회 함수와 DTO mapper로 교체한다.
 export type MockIngredientList = {
   ingredientsNum: number;
@@ -162,26 +165,5 @@ export function getMockIngredientList(
     refrigeratorCapacity: STOCK_TYPE_LIMIT,
     ingredients: filtered,
     nextCursor: null,
-  };
-}
-
-/**
- * 만료 일괄 처리 진입점에 쓰는 요약이다.
- * 재고 목록 조회 응답에는 만료 수량 합계가 없어 백엔드 확인이 필요하다.
- */
-export function getMockExpiredSummary(): {
-  count: number;
-  totalQuantity: number;
-} {
-  const expired = mockIngredients.filter(
-    (ingredient) => ingredient.status === "EXPIRED",
-  );
-
-  return {
-    count: expired.length,
-    totalQuantity: expired.reduce(
-      (total, ingredient) => total + ingredient.quantity,
-      0,
-    ),
   };
 }
