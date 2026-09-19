@@ -25,7 +25,7 @@ export function PageActionLayout({
 }: PageActionLayoutProps) {
   return (
     <main
-      className={`flex h-dvh min-h-0 w-full flex-col overflow-hidden ${toneClasses[tone].page} ${pageClassName}`}
+      className={`flex h-dvh max-h-full min-h-0 w-full flex-col overflow-hidden ${toneClasses[tone].page} ${pageClassName}`}
     >
       <div className="min-h-0 flex-1 overflow-y-auto">{children}</div>
       <footer
