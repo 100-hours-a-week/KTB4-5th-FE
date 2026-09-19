@@ -1,6 +1,7 @@
-import { getApiBaseUrl } from "../config/api";
 import { ApiError } from "./api-error";
 import type { ApiProblem, ApiResponse } from "./contract";
+
+const API_BASE_PATH = "/api/v1";
 
 export type ApiRequestOptions = Omit<RequestInit, "body"> & {
   json?: unknown;
@@ -73,7 +74,7 @@ async function sendRequest(
     }
   }
 
-  const response = await fetch(`${getApiBaseUrl()}${path}`, {
+  const response = await fetch(`${API_BASE_PATH}${path}`, {
     ...init,
     headers,
     body,
