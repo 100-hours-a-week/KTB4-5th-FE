@@ -1,4 +1,6 @@
-import { getHomeSummary, STOCK_TYPE_LIMIT } from "../model/home-summary";
+import { STOCK_TYPE_LIMIT } from "@/shared/config";
+
+import { getHomeSummary } from "../model/home-summary";
 import { HomeAttentionSection } from "./home-attention-section";
 import { HomeCapacitySummary } from "./home-capacity-summary";
 import { HomeRecommendationNotice } from "./home-recommendation-notice";

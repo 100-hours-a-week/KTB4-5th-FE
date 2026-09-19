@@ -8,7 +8,7 @@ type AppHeaderProps = {
 
 export function AppHeader({ title, leading, actions }: AppHeaderProps) {
   return (
-    <header className="relative z-10 flex min-h-[calc(var(--appbar-h)+var(--safe-top))] flex-none items-center gap-app-3 border-b-[var(--rule)] border-app-divider bg-[color-mix(in_srgb,var(--color-bg)_94%,transparent)] px-[calc(var(--space-4)+var(--safe-right))] pb-app-3 pl-[calc(var(--space-4)+var(--safe-left))] pt-[calc(var(--space-3)+var(--safe-top))] backdrop-blur-[10px] [@media(prefers-reduced-transparency:reduce)]:bg-app-bg [@media(prefers-reduced-transparency:reduce)]:backdrop-blur-none">
+    <header className="relative z-10 flex min-h-[calc(var(--appbar-h)+var(--safe-top))] flex-none items-center gap-app-3 px-[calc(var(--space-4)+var(--safe-right))] pb-app-3 pl-[calc(var(--space-4)+var(--safe-left))] pt-[calc(var(--space-3)+var(--safe-top))]">
       {leading ? (
         <div className="flex flex-none items-center gap-app-2">{leading}</div>
       ) : null}

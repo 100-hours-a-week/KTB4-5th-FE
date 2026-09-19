@@ -1,5 +1,6 @@
 import Image from "next/image";
 
+import stackedLogo from "@/shared/assets/logo/logo-stacked.png";
 import { PageActionLayout } from "@/shared/ui/page-action-layout";
 
 import { LoginFlowProvider } from "../model/login-flow-provider";
@@ -10,19 +11,14 @@ import { LoginNotiOnboarding } from "./login-noti-onboarding";
 export function LoginPage() {
   return (
     <LoginFlowProvider>
-      <PageActionLayout
-        pageClassName="bg-app-canvas group-data-[login-step=notification-onboarding]:bg-app-ink group-data-[login-step=notification-onboarding]:text-app-canvas"
-        footerClassName="group-data-[login-step=notification-onboarding]:bg-app-ink"
-        action={<LoginFooterAction />}
-      >
+      <PageActionLayout action={<LoginFooterAction />}>
         <div className="block group-data-[login-step=notification-onboarding]:!hidden">
           <div className="px-5 pt-[calc(54px+var(--safe-top))] pb-5">
             <div className="text-center">
               <Image
-                src="/icons/horizontal_logo.png"
-                alt="다먹자 앱 아이콘"
-                width={200}
-                height={200}
+                src={stackedLogo}
+                alt="다먹자"
+                sizes="200px"
                 priority
                 className="mx-auto size-[200px] rounded-2xl"
               />
