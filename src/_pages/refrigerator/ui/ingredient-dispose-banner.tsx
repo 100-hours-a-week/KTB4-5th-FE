@@ -4,7 +4,7 @@ import { useState } from "react";
 
 import type { Ingredient } from "@/entities/ingredient";
 
-import { IngredientDisposeSheet } from "./ingredient-dispose-sheet";
+import { IngredientDisposeBottomSheet } from "./ingredient-dispose-sheet";
 
 type IngredientDisposeBannerProps = {
   refrigeratorId: string;
@@ -49,7 +49,7 @@ export function IngredientDisposeBanner({
         </span>
       </button>
 
-      <IngredientDisposeSheet
+      <IngredientDisposeBottomSheet
         open={isDisposeSheetOpen}
         refrigeratorId={refrigeratorId}
         ingredients={expiredIngredients}
