@@ -24,14 +24,14 @@ export function RefrigeratorPage({ queryParams }: RefrigeratorPageProps) {
     query.filter === "EXPIRED" && list.filteredCount > 0;
 
   return (
-    <main className="flex min-h-0 min-w-0 flex-1 flex-col overflow-y-auto pb-[calc(var(--space-6)+var(--safe-bottom))] [-webkit-overflow-scrolling:touch]">
+    <main className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden">
       <IngredientControlsContainer
         query={query}
         filteredCount={list.filteredCount}
         ingredientsNum={list.ingredientsNum}
       />
 
-      <section className="px-5 pt-4" aria-label="재고 목록">
+      <div className="flex-none px-5 pt-4">
         {canDisposeExpired ? (
           <div className="pb-4">
             <IngredientDisposeBanner
@@ -41,13 +41,14 @@ export function RefrigeratorPage({ queryParams }: RefrigeratorPageProps) {
             />
           </div>
         ) : null}
+        <div className="border-t border-dashed border-app-ink/20" />
+      </div>
 
-        <div className="border-t border-dashed border-app-ink/20 pt-4">
-          <IngredientListContainer
-            query={query}
-            ingredients={list.ingredients}
-          />
-        </div>
+      <section
+        className="min-h-0 flex-1 overflow-y-auto px-5 pt-4 pb-[calc(var(--space-6)+var(--safe-bottom))] [-webkit-overflow-scrolling:touch]"
+        aria-label="재고 목록"
+      >
+        <IngredientListContainer query={query} ingredients={list.ingredients} />
       </section>
     </main>
   );
