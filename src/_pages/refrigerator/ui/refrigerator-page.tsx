@@ -28,6 +28,7 @@ export function RefrigeratorPage({ queryParams }: RefrigeratorPageProps) {
       <IngredientControlsContainer
         query={query}
         filteredCount={list.filteredCount}
+        ingredientsNum={list.ingredientsNum}
       />
 
       <section className="px-5 pt-4" aria-label="재고 목록">
