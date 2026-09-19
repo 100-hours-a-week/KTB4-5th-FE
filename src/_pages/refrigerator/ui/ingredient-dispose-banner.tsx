@@ -2,26 +2,32 @@
 
 import { useState } from "react";
 
-import { AppDialog } from "@/shared/ui/app-dialog";
+import type { Ingredient } from "@/entities/ingredient";
+
+import { IngredientDisposeBottomSheet } from "./ingredient-dispose-sheet";
 
 type IngredientDisposeBannerProps = {
+  refrigeratorId: string;
   expiredCount: number;
+  expiredIngredients: Ingredient[];
 };
 
 export function IngredientDisposeBanner({
+  refrigeratorId,
   expiredCount,
+  expiredIngredients,
 }: IngredientDisposeBannerProps) {
-  const [isConfirmOpen, setIsConfirmOpen] = useState(false);
+  const [isDisposeSheetOpen, setIsDisposeSheetOpen] = useState(false);
 
-  function closeConfirm() {
-    setIsConfirmOpen(false);
+  function closeDisposeSheet() {
+    setIsDisposeSheetOpen(false);
   }
 
   return (
     <>
       <button
         type="button"
-        onClick={() => setIsConfirmOpen(true)}
+        onClick={() => setIsDisposeSheetOpen(true)}
         className="relative block w-full cursor-pointer bg-transparent p-0 pt-[11px] text-left"
       >
         <span
@@ -43,16 +49,11 @@ export function IngredientDisposeBanner({
         </span>
       </button>
 
-      <AppDialog
-        open={isConfirmOpen}
-        title={`만료 재료 ${expiredCount}종을 정리할까요?`}
-        description={`재료들을 냉장고에서 빼요.\n정리한 재료는 되돌릴 수 없어요.`}
-        secondaryAction={{ label: "취소", onClick: closeConfirm }}
-        primaryAction={{
-          label: "정리하기",
-          // TODO(API 연동): DELETE /refrigerators/{id}/ingredients/expired 호출 후 목록 무효화
-          onClick: closeConfirm,
-        }}
+      <IngredientDisposeBottomSheet
+        open={isDisposeSheetOpen}
+        refrigeratorId={refrigeratorId}
+        ingredients={expiredIngredients}
+        onClose={closeDisposeSheet}
       />
     </>
   );

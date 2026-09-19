@@ -9,6 +9,7 @@
 - 서버 상태: TanStack Query 5.102.8와 공통 `fetch` 래퍼
 - 클라이언트 상태: Zustand 5.0.14
 - 폼과 검증: React Hook Form 7.87.0과 Zod 4.5.4
+- overlay 동작: Base UI 1.8.0 (`@base-ui/react`, `src/shared/ui`에서만 import)
 - 기준: Notion `설계 1단계. 기술 검토 및 스택 선정`의 승인 스택
 - FSD의 `processes` 레이어는 사용하지 않는다.
 

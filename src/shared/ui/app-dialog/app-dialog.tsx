@@ -8,6 +8,8 @@ import {
   type SyntheticEvent,
 } from "react";
 
+import { FooterButton } from "@/shared/ui/footer-button";
+
 export type AppDialogDismissBehavior = "secondary-action" | "none";
 
 export type AppDialogAction = {
@@ -20,7 +22,7 @@ export type AppDialogProps = {
   open: boolean;
   title: string;
   description: string;
-  secondaryAction: AppDialogAction;
+  secondaryAction?: AppDialogAction;
   primaryAction: AppDialogAction;
   dismissBehavior?: AppDialogDismissBehavior;
 };
@@ -59,6 +61,8 @@ export function AppDialog({
 }: AppDialogProps) {
   const dialogRef = useRef<HTMLDialogElement>(null);
   const secondaryButtonRef = useRef<HTMLButtonElement>(null);
+  const primaryButtonRef = useRef<HTMLButtonElement>(null);
+  const backdropPointerDownRef = useRef(false);
   const returnFocusRef = useRef<HTMLElement | null>(null);
   const titleId = useId();
   const descriptionId = useId();
@@ -79,7 +83,7 @@ export function AppDialog({
       dialog.showModal();
     }
 
-    secondaryButtonRef.current?.focus();
+    (secondaryButtonRef.current ?? primaryButtonRef.current)?.focus();
     const unlockDocumentScroll = lockDocumentScroll();
 
     return () => {
@@ -93,9 +97,12 @@ export function AppDialog({
     };
   }, [open]);
 
+  // 보조 행동이 없는 단일 버튼 모달에서는 주 행동이 닫기와 같은 의미를 갖는다.
+  const dismissAction = secondaryAction ?? primaryAction;
+
   function runDismissAction() {
-    if (dismissBehavior === "secondary-action" && !secondaryAction.disabled) {
-      secondaryAction.onClick();
+    if (dismissBehavior === "secondary-action" && !dismissAction.disabled) {
+      dismissAction.onClick();
     }
   }
 
@@ -104,19 +111,31 @@ export function AppDialog({
     runDismissAction();
   }
 
-  function handleBackdropClick(event: MouseEvent<HTMLDialogElement>) {
+  function isPointerOutsideDialog(event: MouseEvent<HTMLDialogElement>) {
     if (event.target !== event.currentTarget) {
-      return;
+      return false;
     }
 
     const bounds = event.currentTarget.getBoundingClientRect();
-    const clickedOutsideDialog =
+
+    return (
       event.clientX < bounds.left ||
       event.clientX > bounds.right ||
       event.clientY < bounds.top ||
-      event.clientY > bounds.bottom;
+      event.clientY > bounds.bottom
+    );
+  }
 
-    if (clickedOutsideDialog) {
+  function handleBackdropPointerDown(event: MouseEvent<HTMLDialogElement>) {
+    backdropPointerDownRef.current = isPointerOutsideDialog(event);
+  }
+
+  function handleBackdropClick(event: MouseEvent<HTMLDialogElement>) {
+    const startedOnBackdrop = backdropPointerDownRef.current;
+
+    backdropPointerDownRef.current = false;
+
+    if (startedOnBackdrop && isPointerOutsideDialog(event)) {
       runDismissAction();
     }
   }
@@ -128,10 +147,11 @@ export function AppDialog({
       aria-labelledby={titleId}
       aria-describedby={descriptionId}
       onCancel={handleCancel}
+      onPointerDown={handleBackdropPointerDown}
       onClick={handleBackdropClick}
     >
       <span
-        className="pointer-events-none absolute top-0 left-6 z-[1] h-5 w-[58px] bg-[color-mix(in_srgb,var(--color-highlight)_80%,transparent)]"
+        className="pointer-events-none absolute top-0 left-1/2 z-[1] h-5 w-[58px] -translate-x-1/2 -rotate-3 bg-[color-mix(in_srgb,var(--color-highlight)_80%,transparent)]"
         aria-hidden="true"
       />
       <div className="relative max-h-[calc(100dvh_-_var(--safe-top)_-_var(--safe-bottom)_-_43px)] overflow-y-auto rounded-[4px] bg-white p-5 shadow-[0_4px_16px_color-mix(in_srgb,var(--color-ink)_16%,transparent)]">
@@ -148,23 +168,23 @@ export function AppDialog({
           {description}
         </p>
         <div className="mt-[18px] flex gap-[10px]">
-          <button
-            ref={secondaryButtonRef}
-            type="button"
-            className="inline-flex min-w-0 flex-1 cursor-pointer items-center justify-center rounded-[4px] border border-[color-mix(in_srgb,var(--color-ink)_18%,transparent)] bg-white py-[14px] text-center font-app-heading text-[13px] font-bold leading-[1.2] text-app-text enabled:hover:bg-app-neutral-100 enabled:active:bg-app-neutral-200 disabled:cursor-not-allowed disabled:opacity-45"
-            disabled={secondaryAction.disabled}
-            onClick={secondaryAction.onClick}
-          >
-            {secondaryAction.label}
-          </button>
-          <button
-            type="button"
-            className="inline-flex min-w-0 flex-1 cursor-pointer items-center justify-center rounded-[4px] border border-app-primary bg-app-primary py-[14px] text-center font-app-heading text-[13px] font-black leading-[1.2] text-white enabled:hover:border-[color-mix(in_srgb,var(--color-primary)_88%,var(--color-ink))] enabled:hover:bg-[color-mix(in_srgb,var(--color-primary)_88%,var(--color-ink))] enabled:active:border-[color-mix(in_srgb,var(--color-primary)_72%,var(--color-ink))] enabled:active:bg-[color-mix(in_srgb,var(--color-primary)_72%,var(--color-ink))] disabled:cursor-not-allowed disabled:opacity-45"
+          {secondaryAction ? (
+            <FooterButton
+              ref={secondaryButtonRef}
+              variant="secondary"
+              disabled={secondaryAction.disabled}
+              onClick={secondaryAction.onClick}
+            >
+              {secondaryAction.label}
+            </FooterButton>
+          ) : null}
+          <FooterButton
+            ref={primaryButtonRef}
             disabled={primaryAction.disabled}
             onClick={primaryAction.onClick}
           >
             {primaryAction.label}
-          </button>
+          </FooterButton>
         </div>
       </div>
     </dialog>

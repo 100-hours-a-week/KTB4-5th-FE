@@ -133,10 +133,6 @@ export function BottomTabNavigation() {
         open={isRecommendationNoticeOpen}
         title="추천은 다음 버전에서 만나요."
         description="지금 가진 재료로 만들 수 있는 요리를 준비하고 있어요. 먼저 냉장고와 알림을 써 보세요!"
-        secondaryAction={{
-          label: "취소",
-          onClick: () => setIsRecommendationNoticeOpen(false),
-        }}
         primaryAction={{
           label: "알겠어요",
           onClick: () => setIsRecommendationNoticeOpen(false),

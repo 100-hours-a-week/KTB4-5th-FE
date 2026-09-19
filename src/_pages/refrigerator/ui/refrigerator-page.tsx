@@ -4,8 +4,8 @@ import {
 } from "@/entities/ingredient";
 
 import {
-  getMockExpiredSummary,
   getMockIngredientList,
+  MOCK_REFRIGERATOR_ID,
 } from "../model/mock-ingredient-list";
 import { IngredientControlsContainer } from "./ingredient-controls-container";
 import { IngredientDisposeBanner } from "./ingredient-dispose-banner";
@@ -19,9 +19,9 @@ type RefrigeratorPageProps = {
 export function RefrigeratorPage({ queryParams }: RefrigeratorPageProps) {
   const query = parseIngredientListQuery(queryParams);
   const list = getMockIngredientList(query);
-  const expiredSummary = getMockExpiredSummary();
+  // 만료 필터 목록의 조회 결과를 그대로 일괄 정리 대상으로 사용한다.
   const canDisposeExpired =
-    query.filter === "EXPIRED" && expiredSummary.count > 0;
+    query.filter === "EXPIRED" && list.filteredCount > 0;
 
   return (
     <main className="flex min-h-0 min-w-0 flex-1 flex-col overflow-y-auto pb-[calc(var(--space-6)+var(--safe-bottom))] [-webkit-overflow-scrolling:touch]">
@@ -33,7 +33,11 @@ export function RefrigeratorPage({ queryParams }: RefrigeratorPageProps) {
       <section className="px-5 pt-4" aria-label="재고 목록">
         {canDisposeExpired ? (
           <div className="pb-4">
-            <IngredientDisposeBanner expiredCount={expiredSummary.count} />
+            <IngredientDisposeBanner
+              refrigeratorId={MOCK_REFRIGERATOR_ID}
+              expiredCount={list.filteredCount}
+              expiredIngredients={list.ingredients}
+            />
           </div>
         ) : null}
 
