@@ -1,6 +1,14 @@
 import Image from "next/image";
 
-import { HomeAttentionCard } from "./home-attention-card";
+import emptyIllustration from "@/shared/assets/illustrations/illustration-empty.png";
+import { routes } from "@/shared/routes";
+import { Badge } from "@/shared/ui/badge";
+import { LinkCard } from "@/shared/ui/link-card";
+
+import {
+  describeExpiryBadge,
+  describeExpiryHelper,
+} from "../lib/describe-expiry";
 import type { HomeAttentionItem } from "../model/home-summary";
 
 type HomeAttentionSectionProps = {
@@ -11,10 +19,9 @@ function HomeAttentionEmpty() {
   return (
     <div className="flex items-center gap-4 rounded-[4px] bg-white px-[18px] py-5 shadow-app-sm">
       <Image
-        src="/icons/empty_logo.png"
+        src={emptyIllustration}
         alt=""
-        width={64}
-        height={64}
+        sizes="64px"
         className="size-16 flex-none object-contain"
       />
       <div className="min-w-0">
@@ -44,11 +51,23 @@ export function HomeAttentionSection({ items }: HomeAttentionSectionProps) {
         ) : (
           <>
             <ul className="mt-5 flex flex-col gap-3">
-              {items.map((item) => (
-                <li key={item.id}>
-                  <HomeAttentionCard item={item} />
-                </li>
-              ))}
+              {items.map((item) => {
+                const badge = describeExpiryBadge(item.daysLeft);
+
+                return (
+                  <li key={item.id}>
+                    <LinkCard
+                      href={routes.ingredientDetail(item.id)}
+                      title={item.name}
+                      description={describeExpiryHelper(item)}
+                      trailing={
+                        <Badge tone={badge.tone}>{badge.statusLabel}</Badge>
+                      }
+                      trailingCaption={badge.dDayLabel}
+                    />
+                  </li>
+                );
+              })}
             </ul>
           </>
         )}

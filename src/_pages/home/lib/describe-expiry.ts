@@ -1,4 +1,10 @@
-import type { ChipTone } from "@/shared/ui/chip";
+import {
+  formatDaysUntilExpiration,
+  INGREDIENT_STATUS_BADGE_TONES,
+  INGREDIENT_STATUS_LABELS,
+  type IngredientStatus,
+} from "@/entities/ingredient";
+import type { BadgeTone } from "@/shared/ui/badge";
 
 import type { HomeAttentionItem, StorageMethod } from "../model/home-summary";
 
@@ -7,21 +13,26 @@ const storageLabels = {
   frozen: "냉동",
 } satisfies Record<StorageMethod, string>;
 
-export function describeExpiryBadge(daysLeft: number): {
-  tone: ChipTone;
-  label: string;
-} {
+/** 홈 mock은 상태 대신 남은 일수만 갖고 있어 표시 직전에 상태로 환산한다. */
+function toStatus(daysLeft: number): IngredientStatus {
   if (daysLeft < 0) {
-    return { tone: "primary", label: `${Math.abs(daysLeft)}일 지남` };
+    return "EXPIRED";
   }
 
-  if (daysLeft === 0) {
-    return { tone: "highlight", label: "오늘까지" };
-  }
+  return daysLeft <= 3 ? "EXPIRING_SOON" : "NORMAL";
+}
+
+export function describeExpiryBadge(daysLeft: number): {
+  tone: BadgeTone;
+  statusLabel: string;
+  dDayLabel: string;
+} {
+  const status = toStatus(daysLeft);
 
   return {
-    tone: daysLeft <= 3 ? "highlight" : "neutral",
-    label: `D-${daysLeft}`,
+    tone: INGREDIENT_STATUS_BADGE_TONES[status],
+    statusLabel: INGREDIENT_STATUS_LABELS[status],
+    dDayLabel: formatDaysUntilExpiration(daysLeft),
   };
 }
 

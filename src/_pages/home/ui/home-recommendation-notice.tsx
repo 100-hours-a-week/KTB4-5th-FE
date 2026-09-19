@@ -1,6 +1,7 @@
 import Image from "next/image";
 
-import { Chip } from "@/shared/ui/chip";
+import loadingIllustration from "@/shared/assets/illustrations/illustration-loading.png";
+import { Badge } from "@/shared/ui/badge";
 
 export function HomeRecommendationNotice() {
   return (
@@ -11,10 +12,9 @@ export function HomeRecommendationNotice() {
       <div className="flex items-center gap-3.5 rounded-[4px] border border-dashed border-app-neutral-300 bg-white/70 px-4 py-3.5">
         <span className="grid size-[62px] flex-none place-items-center rounded-full bg-app-warning/15">
           <Image
-            src="/icons/loading_logo.png"
+            src={loadingIllustration}
             alt=""
-            width={56}
-            height={56}
+            sizes="56px"
             className="size-[56px] object-contain opacity-90"
           />
         </span>
@@ -27,7 +27,7 @@ export function HomeRecommendationNotice() {
             >
               오늘의 추천 요리
             </h2>
-            <Chip tone="neutral">다음 버전</Chip>
+            <Badge tone="muted">다음 버전</Badge>
           </div>
           <p className="mb-0 mt-1.5 break-keep text-[13px] leading-5 text-app-ink/60">
             보유 재료로 만들 수 있는 요리 추천은 다음 버전에서 제공해요
