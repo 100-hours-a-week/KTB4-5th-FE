@@ -56,6 +56,14 @@ function getFlowHeaderPolicy(pathname: string): RouteHeaderPolicy {
     };
   }
 
+  if (pathname === routes.registerIngredientManual) {
+    return {
+      kind: "flow",
+      title: "직접 쓰기",
+      backFallbackHref: routes.registerIngredient,
+    };
+  }
+
   const ingredientEditMatch = pathname.match(
     /^\/refrigerator\/ingredients\/([^/]+)\/edit$/,
   );
