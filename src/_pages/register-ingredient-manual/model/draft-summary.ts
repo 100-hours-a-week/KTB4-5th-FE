@@ -15,6 +15,8 @@ export type DraftStockFields = {
 export type DraftSummary = {
   draftCount: number;
   batchLimit: number;
+  /** 이번에 등록하는 품목 종류 수. 기존 품목에 합산되는 종류도 세고, 같은 품목으로 묶이는 초안은 한 종으로 센다. */
+  registeredTypeCount: number;
   /** 기존 품목과 합산되지 않는, 실제로 새로 생기는 품목 종류 수. */
   newStockTypeCount: number;
   stockTypeCountAfter: number;
@@ -42,6 +44,7 @@ export function summarizeDrafts(
 ): DraftSummary {
   const existingStockKeys = new Set(capacity.existingStockKeys);
   const newStockKeys = new Set<string>();
+  const mergedStockKeys = new Set<string>();
   const mergingNames: string[] = [];
   // 키를 아직 만들 수 없는 초안은 서로 같은 품목인지 알 수 없으므로 각각 신규로 센다.
   let incompleteDraftCount = 0;
@@ -56,6 +59,7 @@ export function summarizeDrafts(
 
     if (existingStockKeys.has(stockKey)) {
       mergingNames.push(normalizeIngredientName(draft.name));
+      mergedStockKeys.add(stockKey);
       continue;
     }
 
@@ -68,6 +72,7 @@ export function summarizeDrafts(
   return {
     draftCount: drafts.length,
     batchLimit: INGREDIENT_REGISTER_BATCH_LIMIT,
+    registeredTypeCount: newStockTypeCount + mergedStockKeys.size,
     newStockTypeCount,
     stockTypeCountAfter,
     stockTypeLimit: capacity.stockTypeLimit,
