@@ -12,6 +12,7 @@
   --color-app-text: var(--color-text);
   --color-app-accent: var(--color-accent);
   --color-app-warning: var(--color-warning);
+  --color-app-fresh: var(--color-fresh);
   --color-app-divider: var(--color-divider);
   --color-app-neutral-100: var(--color-neutral-100);
   --color-app-neutral-200: var(--color-neutral-200);
@@ -67,6 +68,7 @@
   --color-primary: #e03a2b;
   --color-canvas: #f7f5f2;
   --color-highlight: #e8a33d;
+  --color-forest: #2e5e4e;
 
   /* 색 · 시맨틱 역할 */
   --color-bg: var(--color-canvas);
@@ -74,6 +76,7 @@
   --color-text: var(--color-ink);
   --color-accent: var(--color-primary);
   --color-warning: var(--color-highlight);
+  --color-fresh: var(--color-forest);
   --color-divider: color-mix(in srgb, var(--color-ink) 40%, transparent);
 
   /* 중성 램프 */

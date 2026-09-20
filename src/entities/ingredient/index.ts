@@ -25,3 +25,4 @@ export {
   INGREDIENT_STATUS_BADGE_TONES,
   INGREDIENT_STATUS_LABELS,
 } from "./lib/ingredient-labels";
+export { IngredientExpiryStamp } from "./ui/ingredient-expiry-stamp";
