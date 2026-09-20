@@ -4,6 +4,7 @@ import { Suspense } from "react";
 import { AppToastProvider } from "@/_app/providers/app-toast-provider";
 import { NavigationHistoryTracker } from "@/_app/providers/navigation-history-tracker";
 import { QueryProvider } from "@/_app/providers/query-provider";
+import { jetBrainsMono } from "@/_app/styles/fonts";
 import { siteConfig } from "@/shared/config";
 import "@/_app/styles/globals.css";
 
@@ -51,7 +52,7 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
-    <html lang="ko">
+    <html lang="ko" className={jetBrainsMono.variable}>
       <body>
         <QueryProvider>
           <AppToastProvider />
