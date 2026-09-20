@@ -1,12 +1,9 @@
 import {
-  formatDaysUntilExpiration,
   formatIngredientAmount,
-  INGREDIENT_STATUS_BADGE_TONES,
-  INGREDIENT_STATUS_LABELS,
   type Ingredient,
+  IngredientExpiryStamp,
 } from "@/entities/ingredient";
 import { routes } from "@/shared/routes";
-import { Badge } from "@/shared/ui/badge";
 import { LinkCard } from "@/shared/ui/link-card";
 
 type IngredientCardListProps = {
@@ -23,13 +20,11 @@ export function IngredientCardList({ ingredients }: IngredientCardListProps) {
             title={ingredient.name}
             description={formatIngredientAmount(ingredient)}
             trailing={
-              <Badge tone={INGREDIENT_STATUS_BADGE_TONES[ingredient.status]}>
-                {INGREDIENT_STATUS_LABELS[ingredient.status]}
-              </Badge>
+              <IngredientExpiryStamp
+                status={ingredient.status}
+                daysUntilExpiration={ingredient.daysUntilExpiration}
+              />
             }
-            trailingCaption={formatDaysUntilExpiration(
-              ingredient.daysUntilExpiration,
-            )}
           />
         </li>
       ))}

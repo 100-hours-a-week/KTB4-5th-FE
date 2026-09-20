@@ -12,7 +12,9 @@
   --color-app-text: var(--color-text);
   --color-app-accent: var(--color-accent);
   --color-app-warning: var(--color-warning);
+  --color-app-fresh: var(--color-fresh);
   --color-app-divider: var(--color-divider);
+  --color-app-paper: var(--color-paper);
   --color-app-neutral-100: var(--color-neutral-100);
   --color-app-neutral-200: var(--color-neutral-200);
   --color-app-neutral-300: var(--color-neutral-300);
@@ -67,6 +69,7 @@
   --color-primary: #e03a2b;
   --color-canvas: #f7f5f2;
   --color-highlight: #e8a33d;
+  --color-forest: #2e5e4e;
 
   /* 색 · 시맨틱 역할 */
   --color-bg: var(--color-canvas);
@@ -74,7 +77,14 @@
   --color-text: var(--color-ink);
   --color-accent: var(--color-primary);
   --color-warning: var(--color-highlight);
+  --color-fresh: var(--color-forest);
   --color-divider: color-mix(in srgb, var(--color-ink) 40%, transparent);
+  /* 손으로 남긴 메모처럼 보이는 누런 종이 면 */
+  --color-paper: color-mix(
+    in srgb,
+    var(--color-highlight) 10%,
+    var(--color-canvas)
+  );
 
   /* 중성 램프 */
   --color-neutral-100: #f8f4f4;
@@ -139,12 +149,9 @@
   --exp-safe-fg: var(--color-neutral-700);
 
   /* 타이포 */
-  --font-sans:
-    system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
-    "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
-  --font-heading: var(--font-sans);
-  --font-body: var(--font-sans);
-  --font-mono: ui-monospace, Menlo, monospace;
+  --font-mono: var(--font-jetbrains-mono), ui-monospace, Menlo, monospace;
+  --font-heading: var(--font-mono);
+  --font-body: var(--font-mono);
   --font-weight-regular: 400;
   --font-weight-bold: 700;
   --font-weight-black: 900;
