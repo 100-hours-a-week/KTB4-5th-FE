@@ -1,12 +1,10 @@
 import {
+  getMockIngredientList,
+  MOCK_REFRIGERATOR_ID,
   parseIngredientListQuery,
   type RawQueryParams,
 } from "@/entities/ingredient";
 
-import {
-  getMockIngredientList,
-  MOCK_REFRIGERATOR_ID,
-} from "../model/mock-ingredient-list";
 import { IngredientControlsContainer } from "./ingredient-controls-container";
 import { IngredientDisposeBanner } from "./ingredient-dispose-banner";
 import { IngredientListContainer } from "./ingredient-list-container";
@@ -19,7 +17,6 @@ type RefrigeratorPageProps = {
 export function RefrigeratorPage({ queryParams }: RefrigeratorPageProps) {
   const query = parseIngredientListQuery(queryParams);
   const list = getMockIngredientList(query);
-  // 만료 필터 목록의 조회 결과를 그대로 일괄 정리 대상으로 사용한다.
   const canDisposeExpired =
     query.filter === "EXPIRED" && list.filteredCount > 0;
 

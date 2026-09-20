@@ -1,5 +1,10 @@
 export { disposeExpiredIngredients } from "./api/dispose-expired-ingredients";
 export { ingredientQueries } from "./api/ingredient.queries";
+export {
+  getMockIngredientList,
+  MOCK_REFRIGERATOR_ID,
+  type MockIngredientList,
+} from "./api/mock-ingredient-list";
 export type { Ingredient, IngredientStatus } from "./model/ingredient";
 export {
   hasIngredientListCondition,
@@ -23,7 +28,6 @@ export {
   INGREDIENT_LIST_FILTER_LABELS,
   INGREDIENT_LIST_SORT_LABELS,
   INGREDIENT_QUANTITY_UNIT,
-  INGREDIENT_STATUS_BADGE_TONES,
   INGREDIENT_STATUS_LABELS,
   INGREDIENT_STORAGE_TYPE_LABELS,
   INGREDIENT_WEIGHT_UNIT_LABELS,
