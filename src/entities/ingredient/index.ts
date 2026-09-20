@@ -5,7 +5,13 @@ export {
   MOCK_REFRIGERATOR_ID,
   type MockIngredientList,
 } from "./api/mock-ingredient-list";
-export type { Ingredient, IngredientStatus } from "./model/ingredient";
+export { INGREDIENT_STORAGE_TYPES } from "./model/ingredient";
+export type {
+  Ingredient,
+  IngredientStatus,
+  IngredientStorageType,
+  IngredientWeightUnit,
+} from "./model/ingredient";
 export {
   DEFAULT_INGREDIENT_LIST_SORT,
   hasIngredientListCondition,
