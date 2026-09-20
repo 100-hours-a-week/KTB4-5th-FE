@@ -1,12 +1,36 @@
-import { PagePlaceholder } from "@/shared/ui/page-placeholder";
+import { Pencil1Outlined } from "@lineiconshq/free-icons";
+
+import { routes } from "@/shared/routes";
+
+import { getRegisterCapacity } from "../model/register-capacity";
+import { RegisterCapacityNotice } from "./register-capacity-notice";
+import { RegisterMethodCard } from "./register-method-card";
 
 export function RegisterIngredientPage() {
+  const capacity = getRegisterCapacity();
+
   return (
-    <PagePlaceholder
-      screenId="REG-004 · v1"
-      title="재고 직접 등록"
-      showTitle={false}
-      description="재료, 수량, 보관 방법과 유통기한을 직접 입력할 페이지입니다."
-    />
+    <main className="flex min-h-0 min-w-0 flex-1 flex-col overflow-y-auto px-5 pt-6 pb-[calc(var(--space-6)+var(--safe-bottom))] [-webkit-overflow-scrolling:touch]">
+      <h2
+        id="register-method-heading"
+        className="mb-5 text-[28px] text-app-ink"
+      >
+        어떻게 등록할까요?
+      </h2>
+
+      <RegisterCapacityNotice capacity={capacity} />
+
+      <ul className="mt-5" aria-labelledby="register-method-heading">
+        <li>
+          <RegisterMethodCard
+            href={routes.registerIngredientManual}
+            icon={Pencil1Outlined}
+            title="직접 쓰기"
+            description="재료 하나씩 정보를 직접 써요"
+            disabled={capacity.isLimitReached}
+          />
+        </li>
+      </ul>
+    </main>
   );
 }
