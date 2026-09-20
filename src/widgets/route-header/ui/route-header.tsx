@@ -5,6 +5,7 @@ import { Lineicons } from "@lineiconshq/react-lineicons";
 import { usePathname, useRouter } from "next/navigation";
 
 import { NotificationBell } from "@/entities/notification";
+import { runAppBackGuard } from "@/shared/lib/navigation-guard";
 import {
   markAppNavigationIntent,
   readAppNavigationDepth,
@@ -46,7 +47,7 @@ export function RouteHeader({
 
   const { backFallbackHref } = policy;
 
-  function navigateBack() {
+  function goBack() {
     if ((readAppNavigationDepth() ?? 0) > 0) {
       router.back();
       return;
@@ -54,6 +55,15 @@ export function RouteHeader({
 
     markAppNavigationIntent("replace", backFallbackHref);
     router.replace(backFallbackHref);
+  }
+
+  // 작성 중 이탈 확인처럼 화면이 판단하는 업무 조건은 가드가 이동을 가로챈다.
+  function navigateBack() {
+    if (runAppBackGuard(goBack)) {
+      return;
+    }
+
+    goBack();
   }
 
   return (

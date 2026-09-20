@@ -6,6 +6,7 @@ export const routes = {
   recommendations: "/recommendations",
   me: "/me",
   registerIngredient: "/refrigerator/register",
+  registerIngredientManual: "/refrigerator/register/manual",
   ingredientDetail: (ingredientId: string) =>
     `/refrigerator/ingredients/${encodeURIComponent(ingredientId)}`,
   ingredientEdit: (ingredientId: string) =>
