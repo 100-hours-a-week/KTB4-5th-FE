@@ -1,29 +1,29 @@
 import Image from "next/image";
 
+import {
+  formatIngredientAmount,
+  type Ingredient,
+  IngredientExpiryStamp,
+} from "@/entities/ingredient";
 import emptyIllustration from "@/shared/assets/illustrations/illustration-empty.png";
 import { routes } from "@/shared/routes";
-import { Badge } from "@/shared/ui/badge";
 import { LinkCard } from "@/shared/ui/link-card";
 
-import {
-  describeExpiryBadge,
-  describeExpiryHelper,
-} from "../lib/describe-expiry";
-import type { HomeAttentionItem } from "../model/home-summary";
-
 type HomeAttentionSectionProps = {
-  items: HomeAttentionItem[];
+  items: Ingredient[];
 };
 
 function HomeAttentionEmpty() {
   return (
     <div className="flex items-center gap-4 rounded-[4px] bg-white px-[18px] py-5 shadow-app-sm">
-      <Image
-        src={emptyIllustration}
-        alt=""
-        sizes="64px"
-        className="size-16 flex-none object-contain"
-      />
+      <span className="grid size-[62px] flex-none place-items-center rounded-full bg-app-warning/15">
+        <Image
+          src={emptyIllustration}
+          alt=""
+          sizes="64px"
+          className="size-16 flex-none object-contain"
+        />
+      </span>
       <div className="min-w-0">
         <p className="mb-0 font-app-heading text-[17px] font-black text-app-ink">
           오늘 챙길 재료가 없어요
@@ -51,23 +51,21 @@ export function HomeAttentionSection({ items }: HomeAttentionSectionProps) {
         ) : (
           <>
             <ul className="mt-5 flex flex-col gap-3">
-              {items.map((item) => {
-                const badge = describeExpiryBadge(item.daysLeft);
-
-                return (
-                  <li key={item.id}>
-                    <LinkCard
-                      href={`${routes.refrigerator}?filter=${badge.status}`}
-                      title={item.name}
-                      description={describeExpiryHelper(item)}
-                      trailing={
-                        <Badge tone={badge.tone}>{badge.statusLabel}</Badge>
-                      }
-                      trailingCaption={badge.dDayLabel}
-                    />
-                  </li>
-                );
-              })}
+              {items.map((item) => (
+                <li key={item.ingredientId}>
+                  <LinkCard
+                    href={`${routes.refrigerator}?filter=${item.status}`}
+                    title={item.name}
+                    description={formatIngredientAmount(item)}
+                    trailing={
+                      <IngredientExpiryStamp
+                        status={item.status}
+                        daysUntilExpiration={item.daysUntilExpiration}
+                      />
+                    }
+                  />
+                </li>
+              ))}
             </ul>
           </>
         )}

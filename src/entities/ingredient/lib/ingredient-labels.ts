@@ -1,5 +1,3 @@
-import type { BadgeTone } from "@/shared/ui/badge";
-
 import type {
   IngredientStatus,
   IngredientStorageType,
@@ -39,9 +37,3 @@ export const INGREDIENT_LIST_SORT_LABELS = {
   CREATED_DESC: "등록일 순",
   NAME_ASC: "이름 순",
 } satisfies Record<IngredientListSort, string>;
-
-export const INGREDIENT_STATUS_BADGE_TONES = {
-  EXPIRED: "primary",
-  EXPIRING_SOON: "highlight",
-  NORMAL: "muted",
-} satisfies Record<IngredientStatus, BadgeTone>;

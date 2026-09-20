@@ -1,50 +1,23 @@
-export type StorageMethod = "cold" | "frozen";
-
-export type HomeAttentionItem = {
-  id: string;
-  name: string;
-  quantity: number;
-  storage: StorageMethod;
-  expiryDate: string;
-  daysLeft: number;
-};
-
-export type HomeSummary = {
-  attentionItems: HomeAttentionItem[];
-  stockTypeCount: number;
-};
+import { getMockIngredientList, type Ingredient } from "@/entities/ingredient";
 
 export const HOME_ATTENTION_LIMIT = 3;
 
-// 홈 mock 데이터
+export type HomeSummary = {
+  attentionItems: Ingredient[];
+  stockTypeCount: number;
+};
+
+// TODO: API 연동 시 재고 목록 조회 결과로 교체한다.
 export function getHomeSummary(): HomeSummary {
+  const list = getMockIngredientList({
+    filter: null,
+    sort: "EXPIRATION_ASC",
+  });
+
   return {
-    attentionItems: [
-      {
-        id: "egg-1",
-        name: "달걀",
-        quantity: 10,
-        storage: "cold",
-        expiryDate: "2026-09-16",
-        daysLeft: -2,
-      },
-      {
-        id: "tofu-1",
-        name: "두부",
-        quantity: 2,
-        storage: "cold",
-        expiryDate: "2026-09-18",
-        daysLeft: 0,
-      },
-      {
-        id: "milk-1",
-        name: "우유",
-        quantity: 1,
-        storage: "cold",
-        expiryDate: "2026-09-19",
-        daysLeft: 1,
-      },
-    ],
-    stockTypeCount: 38,
+    attentionItems: list.ingredients
+      .filter((ingredient) => ingredient.status !== "NORMAL")
+      .slice(0, HOME_ATTENTION_LIMIT),
+    stockTypeCount: list.ingredientsNum,
   };
 }
