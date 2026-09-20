@@ -1,7 +1,6 @@
 import Image from "next/image";
 
 import loadingIllustration from "@/shared/assets/illustrations/illustration-loading.png";
-import { Badge } from "@/shared/ui/badge";
 
 export function HomeRecommendationNotice() {
   return (
@@ -27,7 +26,6 @@ export function HomeRecommendationNotice() {
             >
               오늘의 추천 요리
             </h2>
-            <Badge tone="muted">다음 버전</Badge>
           </div>
           <p className="mb-0 mt-1.5 break-keep text-[13px] leading-5 text-app-ink/60">
             보유 재료로 만들 수 있는 요리 추천은 다음 버전에서 제공해요
