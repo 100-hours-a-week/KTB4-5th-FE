@@ -7,6 +7,7 @@ export {
 } from "./api/mock-ingredient-list";
 export type { Ingredient, IngredientStatus } from "./model/ingredient";
 export {
+  DEFAULT_INGREDIENT_LIST_SORT,
   hasIngredientListCondition,
   INGREDIENT_LIST_FILTERS,
   INGREDIENT_LIST_SORTS,
