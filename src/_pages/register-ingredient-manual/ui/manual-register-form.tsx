@@ -19,6 +19,7 @@ import {
 import type { RegisterCapacity } from "../model/register-capacity";
 import { IngredientDraftCard } from "./ingredient-draft-card";
 import { RegisterCompleteDialog } from "./register-complete-dialog";
+import { RegisterLeaveGuard } from "./register-leave-guard";
 import { RegisterSubmitButton } from "./register-submit-button";
 import { RegisterSummaryLine } from "./register-summary-line";
 
@@ -152,6 +153,10 @@ export function ManualRegisterForm({ capacity }: ManualRegisterFormProps) {
           ) : null}
         </form>
       </PageActionLayout>
+      <RegisterLeaveGuard
+        formId={FORM_ID}
+        isRegistered={completedSummary !== null}
+      />
       <RegisterCompleteDialog summary={completedSummary} />
     </FormProvider>
   );

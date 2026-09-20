@@ -158,3 +158,20 @@ export function createEmptyDraft(): ManualIngredientDraft {
   };
 }
 
+/**
+ * 한 칸이라도 손댄 카드가 있는지 본다. 입력값이 하나도 없으면 뒤로가기에서
+ * 확인 모달 없이 바로 이동한다
+ */
+export function hasAnyDraftInput(drafts: readonly ManualIngredientDraft[]) {
+  const emptyDraft = createEmptyDraft();
+
+  return drafts.some(
+    (draft) =>
+      normalizeIngredientName(draft.name) !== "" ||
+      draft.storageType !== emptyDraft.storageType ||
+      draft.quantity !== emptyDraft.quantity ||
+      draft.weightValue !== "" ||
+      draft.weightUnit !== emptyDraft.weightUnit ||
+      draft.expirationDate !== "",
+  );
+}
