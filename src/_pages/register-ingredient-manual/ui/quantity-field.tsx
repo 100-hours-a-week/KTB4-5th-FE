@@ -2,27 +2,15 @@
 
 import { useController } from "react-hook-form";
 
-import { INGREDIENT_QUANTITY_UNIT } from "@/entities/ingredient";
-import {
-  INGREDIENT_QUANTITY_MAX,
-  INGREDIENT_QUANTITY_MIN,
-} from "@/shared/config";
+import { IngredientQuantityInput } from "@/features/ingredient-form";
 
-import { sanitizeIntegerInput } from "../lib/draft-input";
 import type { ManualRegisterFormInput } from "../model/manual-register-form-schema";
-import {
-  FIELD_INPUT_CLASS_NAME,
-  FIELD_UNIT_CLASS_NAME,
-  getFieldControlClassName,
-} from "./field-styles";
 
 type QuantityFieldProps = {
   id: string;
   index: number;
   describedBy: string;
 };
-
-const QUANTITY_MAX_LENGTH = String(INGREDIENT_QUANTITY_MAX).length;
 
 export function QuantityField({ id, index, describedBy }: QuantityFieldProps) {
   const {
@@ -33,31 +21,15 @@ export function QuantityField({ id, index, describedBy }: QuantityFieldProps) {
   });
 
   return (
-    <div className={getFieldControlClassName(Boolean(fieldState.error))}>
-      <input
-        id={id}
-        ref={ref}
-        name={name}
-        type="text"
-        // 숫자 키패드만 띄우고 소수점·부호는 입력 필터에서 막는다.
-        inputMode="numeric"
-        autoComplete="off"
-        maxLength={QUANTITY_MAX_LENGTH}
-        min={INGREDIENT_QUANTITY_MIN}
-        max={INGREDIENT_QUANTITY_MAX}
-        placeholder="0"
-        value={value}
-        onChange={(event) =>
-          onChange(
-            sanitizeIntegerInput(event.target.value, QUANTITY_MAX_LENGTH),
-          )
-        }
-        onBlur={onBlur}
-        aria-invalid={fieldState.error ? true : undefined}
-        aria-describedby={describedBy}
-        className={`${FIELD_INPUT_CLASS_NAME} text-right`}
-      />
-      <span className={FIELD_UNIT_CLASS_NAME}>{INGREDIENT_QUANTITY_UNIT}</span>
-    </div>
+    <IngredientQuantityInput
+      id={id}
+      inputRef={ref}
+      name={name}
+      value={value}
+      onValueChange={onChange}
+      onBlur={onBlur}
+      invalid={Boolean(fieldState.error)}
+      describedBy={describedBy}
+    />
   );
 }
