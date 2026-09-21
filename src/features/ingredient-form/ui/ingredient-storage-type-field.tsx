@@ -14,6 +14,7 @@ interface IngredientStorageTypeFieldProps {
   inputRef: Ref<HTMLInputElement>;
   onValueChange: (value: IngredientStorageType) => void;
   onBlur: () => void;
+  describedBy?: string;
 }
 
 const FIELD_LABEL_CLASS_NAME =
@@ -25,6 +26,7 @@ export function IngredientStorageTypeField({
   inputRef,
   onValueChange,
   onBlur,
+  describedBy,
 }: IngredientStorageTypeFieldProps) {
   return (
     <fieldset className="m-0 min-w-0 border-0 p-0">
@@ -38,6 +40,7 @@ export function IngredientStorageTypeField({
               name={name}
               value={storageType}
               checked={value === storageType}
+              aria-describedby={describedBy}
               onChange={() => onValueChange(storageType)}
               onBlur={onBlur}
               className="peer absolute inset-0 m-0 cursor-pointer opacity-0"

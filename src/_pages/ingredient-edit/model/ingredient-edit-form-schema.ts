@@ -1,6 +1,7 @@
 import { z } from "zod";
 
 import {
+  INGREDIENT_MEASURE_TYPES,
   INGREDIENT_STORAGE_TYPES,
   type IngredientWeightUnit,
 } from "@/entities/ingredient";
@@ -17,17 +18,27 @@ export const EDIT_WEIGHT_UNITS = ["G", "ML"] as const;
 export const ingredientEditFormSchema = z
   .object({
     name: ingredientNameSchema,
+    measureType: z.enum(INGREDIENT_MEASURE_TYPES),
     storageType: z.enum(INGREDIENT_STORAGE_TYPES),
     quantity: ingredientQuantitySchema,
     weightValue: ingredientWeightValueSchema,
     weightUnit: z.enum(EDIT_WEIGHT_UNITS),
     expirationDate: ingredientExpirationDateSchema,
   })
-  // 무게를 비워 두면 단위도 고르지 않은 것이므로 NONE으로 보낸다.
+  .superRefine((values, ctx) => {
+    if (values.measureType === "WEIGHT" && values.weightValue === null) {
+      ctx.addIssue({
+        code: "custom",
+        path: ["weightValue"],
+        message: "무게 또는 부피 값을 입력해주세요",
+      });
+    }
+  })
+  // COUNT는 무게를 보내지 않고, WEIGHT는 사용자가 고른 g/ml 단위를 유지한다.
   .transform((values) => ({
     ...values,
     weightUnit:
-      values.weightValue === null
+      values.measureType === "COUNT"
         ? ("NONE" as const)
         : (values.weightUnit as IngredientWeightUnit),
   }));
@@ -54,15 +65,17 @@ export function hasEditChanges(
 
   if (
     current.storageType !== initial.storageType ||
-    current.quantity !== initial.quantity ||
-    current.expirationDate !== initial.expirationDate ||
-    current.weightValue !== initial.weightValue
+    current.expirationDate !== initial.expirationDate
   ) {
     return true;
   }
 
-  // 무게를 비운 상태에서는 단위를 바꿔도 저장값(NONE)이 그대로다.
+  if (initial.measureType === "COUNT") {
+    return current.quantity !== initial.quantity;
+  }
+
   return (
-    current.weightValue !== "" && current.weightUnit !== initial.weightUnit
+    current.weightValue !== initial.weightValue ||
+    current.weightUnit !== initial.weightUnit
   );
 }

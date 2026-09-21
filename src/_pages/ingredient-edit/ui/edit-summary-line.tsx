@@ -3,6 +3,7 @@
 import {
   INGREDIENT_QUANTITY_UNIT,
   INGREDIENT_STORAGE_TYPE_LABELS,
+  INGREDIENT_WEIGHT_UNIT_LABELS,
 } from "@/entities/ingredient";
 import { formatExpirationDate } from "@/features/select-expiration-date";
 
@@ -18,12 +19,19 @@ type EditSummaryLineProps = {
 };
 
 function formatStock(values: IngredientEditFormInput) {
+  const amount =
+    values.measureType === "COUNT"
+      ? values.quantity === ""
+        ? null
+        : `${values.quantity}${INGREDIENT_QUANTITY_UNIT}`
+      : values.weightValue === ""
+        ? null
+        : `${values.weightValue}${INGREDIENT_WEIGHT_UNIT_LABELS[values.weightUnit]}`;
+
   return [
     values.name.trim() || "이름 없음",
     INGREDIENT_STORAGE_TYPE_LABELS[values.storageType],
-    values.quantity === ""
-      ? null
-      : `${values.quantity}${INGREDIENT_QUANTITY_UNIT}`,
+    amount,
     values.expirationDate
       ? formatExpirationDate(values.expirationDate)
       : "기한 미정",

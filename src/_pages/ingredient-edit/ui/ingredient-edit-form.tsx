@@ -5,7 +5,6 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { FormProvider, useForm } from "react-hook-form";
 
-import { INGREDIENT_QUANTITY_UNIT } from "@/entities/ingredient";
 import { toStockKey } from "@/features/ingredient-form";
 import {
   markAppNavigationIntent,
@@ -42,7 +41,9 @@ import { IngredientEditCard } from "./ingredient-edit-card";
 const FORM_ID = "ingredient-edit-form";
 const SUMMARY_ID = "ingredient-edit-summary";
 const MERGE_NOTICE =
-  "이름·보관 방법·유통기한이 모두 같은 재료가 이미 있으면 저장할 때 수량이 합쳐져요.";
+  "이름·보관 방법·측정 타입·유통기한이 모두 같은 재료가 이미 있으면 기존 재고와 합쳐져요.";
+const SEPARATE_ROW_NOTICE =
+  "그에 비해 항목이 하나라도 다르면 별도의 재고로 관리돼요.";
 
 type IngredientEditFormProps = {
   target: IngredientEditTarget;
@@ -107,7 +108,7 @@ export function IngredientEditForm({ target }: IngredientEditFormProps) {
     setIsSubmitting(true);
 
     try {
-      // TODO: 수정 API 연동 시 요청 DTO로 변환해 전송한다.
+      // TODO: 수정 API 연동 시 measureType은 화면 분기에만 사용하고 수정 DTO에서는 제외한다.
       void values;
       await new Promise<void>((resolve) => setTimeout(resolve, 600));
 
@@ -193,11 +194,16 @@ export function IngredientEditForm({ target }: IngredientEditFormProps) {
           aria-describedby={SUMMARY_ID}
           className="px-5 pt-4 pb-5"
         >
-          <IngredientEditCard createdDate={createdDate} />
+          <IngredientEditCard
+            createdDate={createdDate}
+            initialStorageType={initialValues.storageType}
+            measureType={initialValues.measureType}
+          />
 
-          <p className="m-0 mt-3 rounded-[3px] border border-dashed border-app-ink/25 px-4 py-3 text-[12px] leading-[1.5] break-keep text-app-ink/55">
-            {MERGE_NOTICE}
-          </p>
+          <div className="mt-3 rounded-[3px] border border-dashed border-app-ink/25 px-4 py-3 text-[12px] leading-[1.5] break-keep text-app-ink/55">
+            <p className="m-0">{MERGE_NOTICE}</p>
+            <p className="m-0 mt-1">{SEPARATE_ROW_NOTICE}</p>
+          </div>
         </form>
       </PageActionLayout>
 
@@ -233,7 +239,7 @@ export function IngredientEditForm({ target }: IngredientEditFormProps) {
         title="기존 재료와 합칠까요?"
         description={
           pendingMerge
-            ? `이름·보관 방법·유통기한이 같은 ${withSubjectParticle(pendingMerge.target.name)} 이미 있어요.\n합치면 ${pendingMerge.target.quantity + pendingMerge.values.quantity}${INGREDIENT_QUANTITY_UNIT}가 되고 수정하던 품목은 사라져요.`
+            ? `이름·보관 방법·유통기한이 같은 ${withSubjectParticle(pendingMerge.target.name)} 이미 있어요.\n합치면 기존 재고에 값이 더해지고 수정하던 품목은 사라져요.`
             : ""
         }
         secondaryAction={{
