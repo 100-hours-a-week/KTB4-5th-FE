@@ -3,7 +3,10 @@
 import { useId } from "react";
 import { useFormState } from "react-hook-form";
 
-import { IngredientFieldHelper } from "@/features/ingredient-form";
+import {
+  IngredientFieldHelper,
+  IngredientFormFields,
+} from "@/features/ingredient-form";
 import { NotePaper } from "@/shared/ui/note-paper";
 
 import type { IngredientEditFormInput } from "../model/ingredient-edit-form-schema";
@@ -32,95 +35,99 @@ export function IngredientEditCard({ createdDate }: IngredientEditCardProps) {
   return (
     <NotePaper foldSize={28}>
       <div className="px-5 pt-4 pb-7">
-        <div>
-          <label
-            htmlFor={`${idPrefix}-name`}
-            className={FIELD_LABEL_CLASS_NAME}
-          >
-            재료 이름
-          </label>
-          <EditNameField
-            id={`${idPrefix}-name`}
-            describedBy={`${idPrefix}-name-help`}
-          />
-          <IngredientFieldHelper
-            id={`${idPrefix}-name-help`}
-            hint={NAME_HINT}
-            error={errors.name?.message}
-          />
-        </div>
-
-        <div className="mt-3 grid grid-cols-2 gap-4">
-          <div className="min-w-0">
-            <EditStorageTypeField />
-          </div>
-
-          <div className="min-w-0">
-            <label
-              htmlFor={`${idPrefix}-quantity`}
-              className={FIELD_LABEL_CLASS_NAME}
-            >
-              수량
-            </label>
-            <EditQuantityField
-              id={`${idPrefix}-quantity`}
-              describedBy={`${idPrefix}-quantity-help`}
+        <IngredientFormFields
+          nameField={
+            <div>
+              <label
+                htmlFor={`${idPrefix}-name`}
+                className={FIELD_LABEL_CLASS_NAME}
+              >
+                재료 이름
+              </label>
+              <EditNameField
+                id={`${idPrefix}-name`}
+                describedBy={`${idPrefix}-name-help`}
+              />
+              <IngredientFieldHelper
+                id={`${idPrefix}-name-help`}
+                hint={NAME_HINT}
+                error={errors.name?.message}
+              />
+            </div>
+          }
+          storageField={<EditStorageTypeField />}
+          quantityField={
+            <div>
+              <label
+                htmlFor={`${idPrefix}-quantity`}
+                className={FIELD_LABEL_CLASS_NAME}
+              >
+                수량
+              </label>
+              <EditQuantityField
+                id={`${idPrefix}-quantity`}
+                describedBy={`${idPrefix}-quantity-help`}
+              />
+            </div>
+          }
+          quantityHelper={
+            <IngredientFieldHelper
+              id={`${idPrefix}-quantity-help`}
+              hint={QUANTITY_HINT}
+              error={errors.quantity?.message}
             />
-          </div>
-        </div>
-        {/* 2칸을 가로지르는 한 줄을 써서 좁은 칸에서 문구가 잘리지 않게 한다. */}
-        <IngredientFieldHelper
-          id={`${idPrefix}-quantity-help`}
-          hint={QUANTITY_HINT}
-          error={errors.quantity?.message}
-        />
-
-        <div className="mt-3 grid grid-cols-2 gap-4">
-          <div className="min-w-0">
-            <label
-              htmlFor={`${idPrefix}-weight`}
-              className={FIELD_LABEL_CLASS_NAME}
-            >
-              무게
-            </label>
-            <EditWeightField
-              id={`${idPrefix}-weight`}
-              describedBy={`${idPrefix}-weight-help`}
-            />
+          }
+          weightField={
+            <div>
+              <label
+                htmlFor={`${idPrefix}-weight`}
+                className={FIELD_LABEL_CLASS_NAME}
+              >
+                무게
+              </label>
+              <EditWeightField
+                id={`${idPrefix}-weight`}
+                describedBy={`${idPrefix}-weight-help`}
+              />
+            </div>
+          }
+          weightHelper={
             <IngredientFieldHelper
               id={`${idPrefix}-weight-help`}
               hint={WEIGHT_HINT}
               error={errors.weightValue?.message}
             />
-          </div>
-
-          <div className="min-w-0">
-            <span
-              id={`${idPrefix}-expiration-label`}
-              className={FIELD_LABEL_CLASS_NAME}
-            >
-              유통기한
-            </span>
-            <EditExpirationDateField
-              id={`${idPrefix}-expiration`}
-              labelId={`${idPrefix}-expiration-label`}
-              describedBy={`${idPrefix}-expiration-help`}
-            />
+          }
+          expirationField={
+            <div>
+              <span
+                id={`${idPrefix}-expiration-label`}
+                className={FIELD_LABEL_CLASS_NAME}
+              >
+                유통기한
+              </span>
+              <EditExpirationDateField
+                id={`${idPrefix}-expiration`}
+                labelId={`${idPrefix}-expiration-label`}
+                describedBy={`${idPrefix}-expiration-help`}
+              />
+            </div>
+          }
+          expirationHelper={
             <IngredientFieldHelper
               id={`${idPrefix}-expiration-help`}
               hint={EXPIRATION_HINT}
               error={errors.expirationDate?.message}
             />
-          </div>
-        </div>
-
-        {/* 수정할 수 없는 값은 입력칸 아래에 따로 모아 조작 대상과 구분한다. */}
-        <div className="mt-3 border-t border-app-ink/15 pt-3.5">
-          <EditCreatedDateField
-            id={`${idPrefix}-created`}
-            createdDate={createdDate}
-          />
-        </div>
+          }
+          // 수정할 수 없는 값은 입력칸 아래에 따로 모아 조작 대상과 구분한다.
+          footer={
+            <EditCreatedDateField
+              id={`${idPrefix}-created`}
+              createdDate={createdDate}
+            />
+          }
+        />
       </div>
     </NotePaper>
   );
