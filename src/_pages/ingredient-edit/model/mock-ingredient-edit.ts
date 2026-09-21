@@ -1,6 +1,9 @@
 import { getMockIngredientList } from "@/entities/ingredient";
+import {
+  addDaysToIsoDate,
+  getTodayInSeoul,
+} from "@/features/select-expiration-date";
 
-import { addDaysToIsoDate, getTodayInSeoul } from "../lib/expiration-date";
 import type { IngredientEditFormInput } from "./ingredient-edit-form-schema";
 import { toStockKey } from "./stock-key";
 

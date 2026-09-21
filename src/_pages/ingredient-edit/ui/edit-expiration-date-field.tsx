@@ -5,11 +5,12 @@ import { Lineicons } from "@lineiconshq/react-lineicons";
 import { useState } from "react";
 import { useController } from "react-hook-form";
 
-import { AppBottomSheet } from "@/shared/ui/app-bottom-sheet";
+import {
+  ExpirationDateSheet,
+  formatExpirationDate,
+} from "@/features/select-expiration-date";
 
-import { formatExpirationDate } from "../lib/expiration-date";
 import type { IngredientEditFormInput } from "../model/ingredient-edit-form-schema";
-import { ExpirationCalendarSheetContent } from "./expiration-calendar-sheet-content";
 import { getFieldControlClassName } from "./field-styles";
 
 type EditExpirationDateFieldProps = {
@@ -65,16 +66,12 @@ export function EditExpirationDateField({
         />
       </button>
 
-      <AppBottomSheet
+      <ExpirationDateSheet
         open={isCalendarOpen}
+        value={value}
+        onSelect={selectDate}
         onDismiss={() => setIsCalendarOpen(false)}
-      >
-        <ExpirationCalendarSheetContent
-          value={value}
-          onSelect={selectDate}
-          onCancel={() => setIsCalendarOpen(false)}
-        />
-      </AppBottomSheet>
+      />
     </>
   );
 }
