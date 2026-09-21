@@ -238,6 +238,7 @@ slot은 예외를 숨기는 만능 `children` 통로가 아니라 **사용처가
 | `AsyncViewState`       | 공통 frame + 도메인 slot          | `src/shared/ui/async-view-state`; SERVICE_COMMON_RULES 4의 상태 골격과 상태별 일러스트를 소유하고 문구·액션은 사용처가 갖는다.                                                                |
 | `Badge`, `CardSurface` | 공통 primitive                    | `src/shared/ui`; 도메인 계산과 클릭 결과를 포함하지 않는다.                                                                                                                                   |
 | `ExpirationDateSheet`  | 공통 Feature                      | `src/features/select-expiration-date`; `REG-005`와 `STOCK-002`의 공통 유통기한 선택 UI와 날짜 범위를 소유하고, 폼 연결과 open 상태는 각 Page가 소유한다.                                      |
+| `IngredientNameInput`  | 공통 Feature 기반                 | `src/features/ingredient-form`; 재료명 입력 표현과 즉시 정제를 소유하고, React Hook Form의 필드 경로·오류 판정과 label·helper 조합은 각 Page가 소유한다.                                      |
 
 ### `AppShell` 현재 구현
 
