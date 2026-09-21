@@ -1,4 +1,5 @@
-import { PagePlaceholder } from "@/shared/ui/page-placeholder";
+import { getMockIngredientEditTarget } from "../model/mock-ingredient-edit";
+import { IngredientEditForm } from "./ingredient-edit-form";
 
 type IngredientEditPageProps = {
   ingredientId: string;
@@ -6,11 +7,6 @@ type IngredientEditPageProps = {
 
 export function IngredientEditPage({ ingredientId }: IngredientEditPageProps) {
   return (
-    <PagePlaceholder
-      screenId="STOCK-002 · v1"
-      title="재고 수정"
-      showTitle={false}
-      description={`재료 ${ingredientId}의 수량, 단위와 유통기한을 수정할 페이지입니다.`}
-    />
+    <IngredientEditForm target={getMockIngredientEditTarget(ingredientId)} />
   );
 }
