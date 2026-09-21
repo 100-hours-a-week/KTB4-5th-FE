@@ -1,11 +1,11 @@
 import { getMockIngredientList } from "@/entities/ingredient";
+import { toStockKey } from "@/features/ingredient-form";
 import {
   addDaysToIsoDate,
   getTodayInSeoul,
 } from "@/features/select-expiration-date";
 
 import type { IngredientEditFormInput } from "./ingredient-edit-form-schema";
-import { toStockKey } from "./stock-key";
 
 /** 같은 품목이 되어 수량이 합쳐질 대상. 중복 합산 확인 모달에서 보여준다. */
 export type MergeTarget = {

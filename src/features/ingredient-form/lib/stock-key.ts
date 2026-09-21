@@ -1,5 +1,6 @@
 import type { IngredientStorageType } from "@/entities/ingredient";
-import { normalizeIngredientName } from "@/features/ingredient-form";
+
+import { normalizeIngredientName } from "./ingredient-name";
 
 /**
  * 품목 종류 판정 키:

@@ -1,11 +1,10 @@
 import { getMockIngredientList } from "@/entities/ingredient";
+import { toStockKey } from "@/features/ingredient-form";
 import {
   addDaysToIsoDate,
   getTodayInSeoul,
 } from "@/features/select-expiration-date";
 import { STOCK_TYPE_LIMIT } from "@/shared/config";
-
-import { toStockKey } from "./stock-key";
 
 export type RegisterCapacity = {
   stockTypeCount: number;

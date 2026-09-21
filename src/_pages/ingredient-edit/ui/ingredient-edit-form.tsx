@@ -6,6 +6,7 @@ import { useState } from "react";
 import { FormProvider, useForm } from "react-hook-form";
 
 import { INGREDIENT_QUANTITY_UNIT } from "@/entities/ingredient";
+import { toStockKey } from "@/features/ingredient-form";
 import {
   markAppNavigationIntent,
   readAppNavigationDepth,
@@ -33,7 +34,6 @@ import type {
   IngredientEditTarget,
   MergeTarget,
 } from "../model/mock-ingredient-edit";
-import { toStockKey } from "../model/stock-key";
 import { EditLeaveGuard } from "./edit-leave-guard";
 import { EditSubmitButton } from "./edit-submit-button";
 import { EditSummaryLine } from "./edit-summary-line";
