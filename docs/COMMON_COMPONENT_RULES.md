@@ -237,7 +237,7 @@ slot은 예외를 숨기는 만능 `children` 통로가 아니라 **사용처가
 | `FilterChip`           | 공통 primitive                    | `src/shared/ui/filter-chip`; 선택 표현과 44px 터치 영역만 소유하고 무엇을 조회할지는 사용처가 갖는다.                                                                                         |
 | `AsyncViewState`       | 공통 frame + 도메인 slot          | `src/shared/ui/async-view-state`; SERVICE_COMMON_RULES 4의 상태 골격과 상태별 일러스트를 소유하고 문구·액션은 사용처가 갖는다.                                                                |
 | `Badge`, `CardSurface` | 공통 primitive                    | `src/shared/ui`; 도메인 계산과 클릭 결과를 포함하지 않는다.                                                                                                                                   |
-| `ExpiryDatePicker`     | 도메인 내부 유지                  | `REG-005`와 `STOCK-002`가 같은 날짜 계약인지 확인된 뒤 다시 판정한다.                                                                                                                         |
+| `ExpirationDateSheet`  | 공통 Feature                      | `src/features/select-expiration-date`; `REG-005`와 `STOCK-002`의 공통 유통기한 선택 UI와 날짜 범위를 소유하고, 폼 연결과 open 상태는 각 Page가 소유한다.                                      |
 
 ### `AppShell` 현재 구현
 
