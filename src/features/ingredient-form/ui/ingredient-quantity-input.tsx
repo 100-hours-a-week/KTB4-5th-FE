@@ -8,6 +8,8 @@ import {
   INGREDIENT_QUANTITY_MIN,
 } from "@/shared/config";
 
+import { sanitizeIntegerInput } from "../lib/sanitize-integer-input";
+
 interface IngredientQuantityInputProps {
   id: string;
   name: string;
@@ -38,13 +40,6 @@ function getControlClassName(invalid: boolean) {
   }`;
 }
 
-function sanitizeQuantityInput(value: string) {
-  const digits = value.replace(/\D/g, "").slice(0, QUANTITY_MAX_LENGTH);
-  const withoutLeadingZeros = digits.replace(/^0+(?=\d)/, "");
-
-  return withoutLeadingZeros === "0" ? "" : withoutLeadingZeros;
-}
-
 export function IngredientQuantityInput({
   id,
   name,
@@ -71,7 +66,9 @@ export function IngredientQuantityInput({
         placeholder="0"
         value={value}
         onChange={(event) =>
-          onValueChange(sanitizeQuantityInput(event.target.value))
+          onValueChange(
+            sanitizeIntegerInput(event.target.value, QUANTITY_MAX_LENGTH),
+          )
         }
         onBlur={onBlur}
         aria-invalid={invalid || undefined}
