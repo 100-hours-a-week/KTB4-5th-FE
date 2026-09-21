@@ -244,6 +244,8 @@ slot은 예외를 숨기는 만능 `children` 통로가 아니라 **사용처가
 | `IngredientQuantityInput`       | 공통 Feature 기반                 | `src/features/ingredient-form`; `REG-005`와 `STOCK-002`의 수량 입력 표현, 단위 표기, 자릿수 제한과 즉시 정제를 소유하고, React Hook Form의 필드 경로·오류 판정과 label·helper 조합은 각 Page가 소유한다.                     |
 | `IngredientWeightInput`         | 공통 Feature 기반                 | `src/features/ingredient-form`; `REG-005`와 `STOCK-002`의 무게 입력 표현, 단위(g·ml) 선택지, 자릿수 제한과 즉시 정제를 소유하고, React Hook Form의 값·단위 필드 경로와 오류 판정, label·helper 조합은 각 Page가 소유한다.    |
 | `IngredientFieldHelper`         | 공통 Feature 기반                 | `src/features/ingredient-form`; `REG-005`와 `STOCK-002` 재료 카드의 2열 필드 아래 규칙·오류 문구 표현과 두 줄 높이 유지를 소유하고, 문구 내용과 오류 판정은 각 Page가 소유한다. 로그인 등 1열 폼은 `FieldHelperText`를 쓴다. |
+| `IngredientFormFields`          | 공통 Feature 기반                 | `src/features/ingredient-form`; `REG-005`와 `STOCK-002` 재료 카드의 필드 배치(이름 → 보관 방법·수량 → 무게·유통기한 → footer)만 소유한다. 각 필드와 label·helper, footer 내용은 Page가 slot으로 넘긴다.                      |
+| `useFormLeaveGuard`             | 공통 Feature 기반                 | `src/features/ingredient-form`; 작성 중 뒤로가기 가로채기, 모달을 닫은 뒤 마지막 입력칸으로 포커스 복귀, 나가기 중복 실행 방지를 소유하고 `AppDialog` props를 돌려준다. 가드 조건과 문구는 각 Page가 정한다.                 |
 
 ### `AppShell` 현재 구현
 

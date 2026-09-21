@@ -9,7 +9,10 @@ import {
   INGREDIENT_QUANTITY_UNIT,
   INGREDIENT_STORAGE_TYPE_LABELS,
 } from "@/entities/ingredient";
-import { IngredientFieldHelper } from "@/features/ingredient-form";
+import {
+  IngredientFieldHelper,
+  IngredientFormFields,
+} from "@/features/ingredient-form";
 import { formatExpirationDate } from "@/features/select-expiration-date";
 import { NotePaper } from "@/shared/ui/note-paper";
 
@@ -137,91 +140,96 @@ export function IngredientDraftCard({
             id={bodyId}
             className="border-t border-app-ink/15 px-5 pt-3.5 pb-7"
           >
-            <div>
-              <label
-                htmlFor={`${idPrefix}-name`}
-                className={FIELD_LABEL_CLASS_NAME}
-              >
-                재료 이름
-              </label>
-              <IngredientNameField
-                id={`${idPrefix}-name`}
-                index={index}
-                describedBy={`${idPrefix}-name-help`}
-              />
-              <IngredientFieldHelper
-                id={`${idPrefix}-name-help`}
-                hint={NAME_HINT}
-                error={draftErrors?.name?.message}
-              />
-            </div>
-
-            <div className="mt-3 grid grid-cols-2 gap-4">
-              <div className="min-w-0">
-                <StorageTypeField index={index} />
-              </div>
-
-              <div className="min-w-0">
-                <label
-                  htmlFor={`${idPrefix}-quantity`}
-                  className={FIELD_LABEL_CLASS_NAME}
-                >
-                  수량
-                </label>
-                <QuantityField
-                  id={`${idPrefix}-quantity`}
-                  index={index}
-                  describedBy={`${idPrefix}-quantity-help`}
+            <IngredientFormFields
+              nameField={
+                <div>
+                  <label
+                    htmlFor={`${idPrefix}-name`}
+                    className={FIELD_LABEL_CLASS_NAME}
+                  >
+                    재료 이름
+                  </label>
+                  <IngredientNameField
+                    id={`${idPrefix}-name`}
+                    index={index}
+                    describedBy={`${idPrefix}-name-help`}
+                  />
+                  <IngredientFieldHelper
+                    id={`${idPrefix}-name-help`}
+                    hint={NAME_HINT}
+                    error={draftErrors?.name?.message}
+                  />
+                </div>
+              }
+              storageField={<StorageTypeField index={index} />}
+              quantityField={
+                <div>
+                  <label
+                    htmlFor={`${idPrefix}-quantity`}
+                    className={FIELD_LABEL_CLASS_NAME}
+                  >
+                    수량
+                  </label>
+                  <QuantityField
+                    id={`${idPrefix}-quantity`}
+                    index={index}
+                    describedBy={`${idPrefix}-quantity-help`}
+                  />
+                </div>
+              }
+              quantityHelper={
+                <IngredientFieldHelper
+                  id={`${idPrefix}-quantity-help`}
+                  hint={QUANTITY_HINT}
+                  error={draftErrors?.quantity?.message}
                 />
-              </div>
-            </div>
-            {/* 2칸을 가로지르는 한 줄을 써서 좁은 칸에서 문구가 잘리지 않게 한다. */}
-            <IngredientFieldHelper
-              id={`${idPrefix}-quantity-help`}
-              hint={QUANTITY_HINT}
-              error={draftErrors?.quantity?.message}
-            />
-
-            <div className="mt-3 grid grid-cols-2 gap-4">
-              <div className="min-w-0">
-                <label
-                  htmlFor={`${idPrefix}-weight`}
-                  className={FIELD_LABEL_CLASS_NAME}
-                >
-                  무게
-                </label>
-                <WeightField
-                  id={`${idPrefix}-weight`}
-                  index={index}
-                  describedBy={`${idPrefix}-weight-help`}
-                />
+              }
+              weightField={
+                <div>
+                  <label
+                    htmlFor={`${idPrefix}-weight`}
+                    className={FIELD_LABEL_CLASS_NAME}
+                  >
+                    무게
+                  </label>
+                  <WeightField
+                    id={`${idPrefix}-weight`}
+                    index={index}
+                    describedBy={`${idPrefix}-weight-help`}
+                  />
+                </div>
+              }
+              weightHelper={
                 <IngredientFieldHelper
                   id={`${idPrefix}-weight-help`}
                   hint={WEIGHT_HINT}
                   error={draftErrors?.weightValue?.message}
                 />
-              </div>
-
-              <div className="min-w-0">
-                <span
-                  id={`${idPrefix}-expiration-label`}
-                  className={FIELD_LABEL_CLASS_NAME}
-                >
-                  유통기한
-                </span>
-                <ExpirationDateField
-                  id={`${idPrefix}-expiration`}
-                  labelId={`${idPrefix}-expiration-label`}
-                  index={index}
-                  describedBy={`${idPrefix}-expiration-help`}
-                />
+              }
+              expirationField={
+                <div>
+                  <span
+                    id={`${idPrefix}-expiration-label`}
+                    className={FIELD_LABEL_CLASS_NAME}
+                  >
+                    유통기한
+                  </span>
+                  <ExpirationDateField
+                    id={`${idPrefix}-expiration`}
+                    labelId={`${idPrefix}-expiration-label`}
+                    index={index}
+                    describedBy={`${idPrefix}-expiration-help`}
+                  />
+                </div>
+              }
+              expirationHelper={
                 <IngredientFieldHelper
                   id={`${idPrefix}-expiration-help`}
                   hint={EXPIRATION_HINT}
                   error={draftErrors?.expirationDate?.message}
                 />
-              </div>
-            </div>
+              }
+            />
           </div>
         ) : null}
       </div>
