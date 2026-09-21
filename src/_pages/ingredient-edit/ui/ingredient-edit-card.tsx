@@ -3,12 +3,12 @@
 import { useId } from "react";
 import { useFormState } from "react-hook-form";
 
+import { IngredientFieldHelper } from "@/features/ingredient-form";
 import { NotePaper } from "@/shared/ui/note-paper";
 
 import type { IngredientEditFormInput } from "../model/ingredient-edit-form-schema";
 import { EditCreatedDateField } from "./edit-created-date-field";
 import { EditExpirationDateField } from "./edit-expiration-date-field";
-import { EditFieldHelper } from "./edit-field-helper";
 import { EditNameField } from "./edit-name-field";
 import { EditQuantityField } from "./edit-quantity-field";
 import { EditStorageTypeField } from "./edit-storage-type-field";
@@ -43,7 +43,7 @@ export function IngredientEditCard({ createdDate }: IngredientEditCardProps) {
             id={`${idPrefix}-name`}
             describedBy={`${idPrefix}-name-help`}
           />
-          <EditFieldHelper
+          <IngredientFieldHelper
             id={`${idPrefix}-name-help`}
             hint={NAME_HINT}
             error={errors.name?.message}
@@ -69,7 +69,7 @@ export function IngredientEditCard({ createdDate }: IngredientEditCardProps) {
           </div>
         </div>
         {/* 2칸을 가로지르는 한 줄을 써서 좁은 칸에서 문구가 잘리지 않게 한다. */}
-        <EditFieldHelper
+        <IngredientFieldHelper
           id={`${idPrefix}-quantity-help`}
           hint={QUANTITY_HINT}
           error={errors.quantity?.message}
@@ -87,7 +87,7 @@ export function IngredientEditCard({ createdDate }: IngredientEditCardProps) {
               id={`${idPrefix}-weight`}
               describedBy={`${idPrefix}-weight-help`}
             />
-            <EditFieldHelper
+            <IngredientFieldHelper
               id={`${idPrefix}-weight-help`}
               hint={WEIGHT_HINT}
               error={errors.weightValue?.message}
@@ -106,7 +106,7 @@ export function IngredientEditCard({ createdDate }: IngredientEditCardProps) {
               labelId={`${idPrefix}-expiration-label`}
               describedBy={`${idPrefix}-expiration-help`}
             />
-            <EditFieldHelper
+            <IngredientFieldHelper
               id={`${idPrefix}-expiration-help`}
               hint={EXPIRATION_HINT}
               error={errors.expirationDate?.message}
