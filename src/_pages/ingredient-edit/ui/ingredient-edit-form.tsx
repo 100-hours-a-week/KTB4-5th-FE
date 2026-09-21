@@ -192,7 +192,11 @@ export function IngredientEditForm({ target }: IngredientEditFormProps) {
           aria-describedby={SUMMARY_ID}
           className="px-5 pt-4 pb-5"
         >
-          <IngredientEditCard createdDate={createdDate} />
+          <IngredientEditCard
+            createdDate={createdDate}
+            initialStorageType={initialValues.storageType}
+            measureType={initialValues.measureType}
+          />
 
           <p className="m-0 mt-3 rounded-[3px] border border-dashed border-app-ink/25 px-4 py-3 text-[12px] leading-[1.5] break-keep text-app-ink/55">
             {MERGE_NOTICE}
