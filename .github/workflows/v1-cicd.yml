@@ -95,7 +95,6 @@ jobs:
           COMPOSE_FILE_NAME: ${{ vars.COMPOSE_FILE_NAME }}
           SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
           SSH_KNOWN_HOSTS: ${{ github.ref_name == 'main' && secrets.PROD_SSH_KNOWN_HOSTS || secrets.DEV_SSH_KNOWN_HOSTS }}
-          APP_ENV: ${{ secrets.APP_ENV }}
           IMAGE: ${{ needs.build.outputs.image }}
         shell: bash
         run: |
@@ -109,16 +108,16 @@ jobs:
           [[ "$IMAGE" =~ ^ghcr\.io/[a-z0-9._/-]+@sha256:[a-f0-9]{64}$ ]]
           test -n "$SSH_PRIVATE_KEY"
           test -n "$SSH_KNOWN_HOSTS"
-          test -n "$APP_ENV"
           umask 077
           key=$(mktemp)
           hosts=$(mktemp)
           trap 'rm -f "$key" "$hosts"' EXIT
           printf '%s\n' "$SSH_PRIVATE_KEY" > "$key"
           printf '%s\n' "$SSH_KNOWN_HOSTS" > "$hosts"
-          printf '%s\n' "$APP_ENV" | ssh -i "$key" -p "$DEPLOY_PORT" \
+          ssh -i "$key" -p "$DEPLOY_PORT" \
             -o BatchMode=yes -o StrictHostKeyChecking=yes \
             -o UserKnownHostsFile="$hosts" -o ConnectTimeout=15 \
             -o ServerAliveInterval=15 -o ServerAliveCountMax=4 \
             "$DEPLOY_USER@$DEPLOY_HOST" \
-            "cd '$DEPLOY_PATH' && bash scripts/deploy-v1.sh frontend '$IMAGE' '$COMPOSE_PROJECT' '$COMPOSE_FILE_NAME'"
+            "cd '$DEPLOY_PATH' && bash scripts/deploy-v1.sh frontend '$IMAGE' '$COMPOSE_PROJECT' '$COMPOSE_FILE_NAME'" \
+            < /dev/null
