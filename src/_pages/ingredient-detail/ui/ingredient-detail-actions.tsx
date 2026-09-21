@@ -3,10 +3,6 @@
 import { useRouter } from "next/navigation";
 import { useRef, useState } from "react";
 
-import {
-  DEFAULT_INGREDIENT_LIST_SORT,
-  toIngredientListQueryString,
-} from "@/entities/ingredient";
 import { markAppNavigationIntent } from "@/shared/lib/navigation-history";
 import { routes } from "@/shared/routes";
 import { AppBottomSheet } from "@/shared/ui/app-bottom-sheet";
@@ -42,11 +38,7 @@ export function IngredientDetailActions({
       await new Promise<void>((resolve) => setTimeout(resolve, 700));
       setIsExpireSheetOpen(false);
 
-      const queryString = toIngredientListQueryString({
-        filter: ingredient.status,
-        sort: DEFAULT_INGREDIENT_LIST_SORT,
-      });
-      const href = `${routes.refrigerator}?${queryString}`;
+      const href = routes.refrigerator;
 
       markAppNavigationIntent("replace", href);
       showAppToast({ message: "재고를 처리했어요.", variant: "success" });
