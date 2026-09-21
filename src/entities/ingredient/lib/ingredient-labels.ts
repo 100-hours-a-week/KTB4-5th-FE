@@ -1,4 +1,5 @@
 import type {
+  IngredientMeasureType,
   IngredientStatus,
   IngredientStorageType,
   IngredientWeightUnit,
@@ -9,6 +10,11 @@ import type {
 } from "../model/ingredient-list-query";
 
 export const INGREDIENT_QUANTITY_UNIT = "개";
+
+export const INGREDIENT_MEASURE_TYPE_LABELS = {
+  COUNT: "개수",
+  WEIGHT: "무게·부피",
+} satisfies Record<IngredientMeasureType, string>;
 
 export const INGREDIENT_STORAGE_TYPE_LABELS = {
   REFRIGERATED: "냉장",
