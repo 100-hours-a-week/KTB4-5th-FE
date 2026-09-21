@@ -1,17 +1,10 @@
 "use client";
 
-import { CalendarDaysOutlined } from "@lineiconshq/free-icons";
-import { Lineicons } from "@lineiconshq/react-lineicons";
-import { useState } from "react";
 import { useController } from "react-hook-form";
 
-import {
-  ExpirationDateSheet,
-  formatExpirationDate,
-} from "@/features/select-expiration-date";
+import { IngredientExpirationDateInput } from "@/features/select-expiration-date";
 
 import type { IngredientEditFormInput } from "../model/ingredient-edit-form-schema";
-import { getFieldControlClassName } from "./field-styles";
 
 type EditExpirationDateFieldProps = {
   id: string;
@@ -31,47 +24,17 @@ export function EditExpirationDateField({
   } = useController<IngredientEditFormInput, "expirationDate">({
     name: "expirationDate",
   });
-  const [isCalendarOpen, setIsCalendarOpen] = useState(false);
-
-  function selectDate(isoDate: string) {
-    onChange(isoDate);
-    onBlur();
-    setIsCalendarOpen(false);
-  }
 
   return (
-    <>
-      <button
-        id={id}
-        ref={ref}
-        type="button"
-        onClick={() => setIsCalendarOpen(true)}
-        aria-labelledby={`${labelId} ${id}-value`}
-        aria-describedby={describedBy}
-        className={`${getFieldControlClassName(Boolean(fieldState.error))} cursor-pointer justify-between`}
-      >
-        <span
-          id={`${id}-value`}
-          className={`min-w-0 flex-1 truncate font-app-mono text-[15px] font-bold ${value ? "text-app-ink" : "font-normal text-app-ink/30"}`}
-        >
-          {value ? formatExpirationDate(value) : "기한 선택"}
-        </span>
-        <Lineicons
-          icon={CalendarDaysOutlined}
-          size={15}
-          strokeWidth={2}
-          aria-hidden="true"
-          focusable="false"
-          className="flex-none text-app-ink/45"
-        />
-      </button>
-
-      <ExpirationDateSheet
-        open={isCalendarOpen}
-        value={value}
-        onSelect={selectDate}
-        onDismiss={() => setIsCalendarOpen(false)}
-      />
-    </>
+    <IngredientExpirationDateInput
+      id={id}
+      labelId={labelId}
+      inputRef={ref}
+      value={value}
+      onValueChange={onChange}
+      onBlur={onBlur}
+      invalid={Boolean(fieldState.error)}
+      describedBy={describedBy}
+    />
   );
 }
