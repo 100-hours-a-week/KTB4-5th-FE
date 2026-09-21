@@ -1,19 +1,10 @@
 "use client";
 
-import { useController, useFormContext } from "react-hook-form";
+import { useController } from "react-hook-form";
 
-import { INGREDIENT_WEIGHT_UNIT_LABELS } from "@/entities/ingredient";
-import { INGREDIENT_WEIGHT_MAX, INGREDIENT_WEIGHT_MIN } from "@/shared/config";
+import { IngredientWeightInput } from "@/features/ingredient-form";
 
-import { sanitizeIntegerInput } from "../lib/draft-input";
-import {
-  MANUAL_WEIGHT_UNITS,
-  type ManualRegisterFormInput,
-} from "../model/manual-register-form-schema";
-import {
-  FIELD_INPUT_CLASS_NAME,
-  getFieldControlClassName,
-} from "./field-styles";
+import { type ManualRegisterFormInput } from "../model/manual-register-form-schema";
 
 type WeightFieldProps = {
   id: string;
@@ -21,50 +12,40 @@ type WeightFieldProps = {
   describedBy: string;
 };
 
-const WEIGHT_MAX_LENGTH = String(INGREDIENT_WEIGHT_MAX).length;
-
 export function WeightField({ id, index, describedBy }: WeightFieldProps) {
-  const { register } = useFormContext<ManualRegisterFormInput>();
   const {
     field: { ref, name, value, onChange, onBlur },
     fieldState,
   } = useController<ManualRegisterFormInput, `drafts.${number}.weightValue`>({
     name: `drafts.${index}.weightValue`,
   });
+  const {
+    field: {
+      ref: unitRef,
+      name: unitName,
+      value: unitValue,
+      onChange: onUnitChange,
+      onBlur: onUnitBlur,
+    },
+  } = useController<ManualRegisterFormInput, `drafts.${number}.weightUnit`>({
+    name: `drafts.${index}.weightUnit`,
+  });
 
   return (
-    <div className={getFieldControlClassName(Boolean(fieldState.error))}>
-      <input
-        id={id}
-        ref={ref}
-        name={name}
-        type="text"
-        inputMode="numeric"
-        autoComplete="off"
-        maxLength={WEIGHT_MAX_LENGTH}
-        min={INGREDIENT_WEIGHT_MIN}
-        max={INGREDIENT_WEIGHT_MAX}
-        placeholder="선택"
-        value={value}
-        onChange={(event) =>
-          onChange(sanitizeIntegerInput(event.target.value, WEIGHT_MAX_LENGTH))
-        }
-        onBlur={onBlur}
-        aria-invalid={fieldState.error ? true : undefined}
-        aria-describedby={describedBy}
-        className={`${FIELD_INPUT_CLASS_NAME} text-right`}
-      />
-      <select
-        aria-label="무게 단위"
-        {...register(`drafts.${index}.weightUnit`)}
-        className="-mr-1 flex-none cursor-pointer border-0 bg-transparent py-1 pr-0 pl-1 text-[13px] font-medium text-app-ink/70 outline-none"
-      >
-        {MANUAL_WEIGHT_UNITS.map((unit) => (
-          <option key={unit} value={unit}>
-            {INGREDIENT_WEIGHT_UNIT_LABELS[unit]}
-          </option>
-        ))}
-      </select>
-    </div>
+    <IngredientWeightInput
+      id={id}
+      inputRef={ref}
+      name={name}
+      value={value}
+      onValueChange={onChange}
+      onBlur={onBlur}
+      invalid={Boolean(fieldState.error)}
+      describedBy={describedBy}
+      unitName={unitName}
+      unitValue={unitValue}
+      unitRef={unitRef}
+      onUnitChange={onUnitChange}
+      onUnitBlur={onUnitBlur}
+    />
   );
 }
