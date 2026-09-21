@@ -41,7 +41,9 @@ import { IngredientEditCard } from "./ingredient-edit-card";
 const FORM_ID = "ingredient-edit-form";
 const SUMMARY_ID = "ingredient-edit-summary";
 const MERGE_NOTICE =
-  "이름·보관 방법·유통기한이 모두 같은 재료가 이미 있으면 저장할 때 수량이 합쳐져요.";
+  "이름·보관 방법·측정 타입·유통기한이 모두 같은 재료가 이미 있으면 기존 재고와 합쳐져요.";
+const SEPARATE_ROW_NOTICE =
+  "그에 비해 항목이 하나라도 다르면 별도의 재고로 관리돼요.";
 
 type IngredientEditFormProps = {
   target: IngredientEditTarget;
@@ -198,9 +200,10 @@ export function IngredientEditForm({ target }: IngredientEditFormProps) {
             measureType={initialValues.measureType}
           />
 
-          <p className="m-0 mt-3 rounded-[3px] border border-dashed border-app-ink/25 px-4 py-3 text-[12px] leading-[1.5] break-keep text-app-ink/55">
-            {MERGE_NOTICE}
-          </p>
+          <div className="mt-3 rounded-[3px] border border-dashed border-app-ink/25 px-4 py-3 text-[12px] leading-[1.5] break-keep text-app-ink/55">
+            <p className="m-0">{MERGE_NOTICE}</p>
+            <p className="m-0 mt-1">{SEPARATE_ROW_NOTICE}</p>
+          </div>
         </form>
       </PageActionLayout>
 
