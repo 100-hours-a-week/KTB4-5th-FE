@@ -84,6 +84,7 @@ jobs:
       cancel-in-progress: false
     permissions:
       contents: read
+      packages: read
     steps:
       - name: SSH 배포
         env:
@@ -95,6 +96,8 @@ jobs:
           COMPOSE_FILE_NAME: ${{ vars.COMPOSE_FILE_NAME }}
           SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
           SSH_KNOWN_HOSTS: ${{ github.ref_name == 'main' && secrets.PROD_SSH_KNOWN_HOSTS || secrets.DEV_SSH_KNOWN_HOSTS }}
+          GHCR_USER: ${{ github.actor }}
+          GHCR_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           IMAGE: ${{ needs.build.outputs.image }}
         shell: bash
         run: |
@@ -106,18 +109,19 @@ jobs:
           [[ "$COMPOSE_PROJECT" =~ ^[a-z0-9][a-z0-9_-]*$ ]]
           [[ "$COMPOSE_FILE_NAME" =~ ^[a-zA-Z0-9._-]+\.ya?ml$ ]]
           [[ "$IMAGE" =~ ^ghcr\.io/[a-z0-9._/-]+@sha256:[a-f0-9]{64}$ ]]
+          [[ "$GHCR_USER" =~ ^[a-zA-Z0-9_-]+(\[bot\])?$ ]]
           test -n "$SSH_PRIVATE_KEY"
           test -n "$SSH_KNOWN_HOSTS"
+          test -n "$GHCR_TOKEN"
           umask 077
           key=$(mktemp)
           hosts=$(mktemp)
           trap 'rm -f "$key" "$hosts"' EXIT
           printf '%s\n' "$SSH_PRIVATE_KEY" > "$key"
           printf '%s\n' "$SSH_KNOWN_HOSTS" > "$hosts"
-          ssh -i "$key" -p "$DEPLOY_PORT" \
+          printf '%s\n' "$GHCR_TOKEN" | ssh -i "$key" -p "$DEPLOY_PORT" \
             -o BatchMode=yes -o StrictHostKeyChecking=yes \
             -o UserKnownHostsFile="$hosts" -o ConnectTimeout=15 \
             -o ServerAliveInterval=15 -o ServerAliveCountMax=4 \
             "$DEPLOY_USER@$DEPLOY_HOST" \
-            "cd '$DEPLOY_PATH' && bash scripts/deploy-v1.sh frontend '$IMAGE' '$COMPOSE_PROJECT' '$COMPOSE_FILE_NAME'" \
-            < /dev/null
+            "cd '$DEPLOY_PATH' && bash scripts/deploy-v1.sh frontend '$IMAGE' '$COMPOSE_PROJECT' '$COMPOSE_FILE_NAME' '$GHCR_USER'"

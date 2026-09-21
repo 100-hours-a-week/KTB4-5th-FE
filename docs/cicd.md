@@ -6,4 +6,6 @@
 
 현재 FE에는 실행 시점에 주입할 환경변수가 없으므로 `APP_ENV` Secret을 등록하지 않는다. 브라우저에 포함되는 공개 API 주소는 Repository Variable `DEV_API_BASE_URL`, `PROD_API_BASE_URL`로 관리하며 이미지 빌드 시 주입한다.
 
+비공개 GHCR 이미지는 배포 Job의 단기 `GITHUB_TOKEN`으로 인증해 내려받으며, 별도의 PAT을 등록하지 않는다.
+
 현재 변경은 로컬 구현이며 실제 CI 실행과 서버 배포 검증은 아직 수행하지 않았다.
