@@ -1,0 +1,127 @@
+"use client";
+
+import { useId } from "react";
+import { useFormState } from "react-hook-form";
+
+import { NotePaper } from "@/shared/ui/note-paper";
+
+import type { IngredientEditFormInput } from "../model/ingredient-edit-form-schema";
+import { EditCreatedDateField } from "./edit-created-date-field";
+import { EditExpirationDateField } from "./edit-expiration-date-field";
+import { EditFieldHelper } from "./edit-field-helper";
+import { EditNameField } from "./edit-name-field";
+import { EditQuantityField } from "./edit-quantity-field";
+import { EditStorageTypeField } from "./edit-storage-type-field";
+import { EditWeightField } from "./edit-weight-field";
+import { FIELD_LABEL_CLASS_NAME } from "./field-styles";
+
+type IngredientEditCardProps = {
+  createdDate: string;
+};
+
+const NAME_HINT = "한글·영문·숫자 2~10자";
+const QUANTITY_HINT = "수량은 1~100개";
+const WEIGHT_HINT = "무게는 선택";
+const EXPIRATION_HINT = "기한은 4년 이내";
+
+/** 등록 화면의 메모지 카드를 한 건 전용으로 편 형태다. 항상 펼쳐져 있고 접지 않는다. */
+export function IngredientEditCard({ createdDate }: IngredientEditCardProps) {
+  const { errors } = useFormState<IngredientEditFormInput>();
+  const idPrefix = useId();
+
+  return (
+    <NotePaper foldSize={28}>
+      <div className="px-5 pt-4 pb-7">
+        <div>
+          <label
+            htmlFor={`${idPrefix}-name`}
+            className={FIELD_LABEL_CLASS_NAME}
+          >
+            재료 이름
+          </label>
+          <EditNameField
+            id={`${idPrefix}-name`}
+            describedBy={`${idPrefix}-name-help`}
+          />
+          <EditFieldHelper
+            id={`${idPrefix}-name-help`}
+            hint={NAME_HINT}
+            error={errors.name?.message}
+          />
+        </div>
+
+        <div className="mt-3 grid grid-cols-2 gap-4">
+          <div className="min-w-0">
+            <EditStorageTypeField />
+          </div>
+
+          <div className="min-w-0">
+            <label
+              htmlFor={`${idPrefix}-quantity`}
+              className={FIELD_LABEL_CLASS_NAME}
+            >
+              수량
+            </label>
+            <EditQuantityField
+              id={`${idPrefix}-quantity`}
+              describedBy={`${idPrefix}-quantity-help`}
+            />
+          </div>
+        </div>
+        {/* 2칸을 가로지르는 한 줄을 써서 좁은 칸에서 문구가 잘리지 않게 한다. */}
+        <EditFieldHelper
+          id={`${idPrefix}-quantity-help`}
+          hint={QUANTITY_HINT}
+          error={errors.quantity?.message}
+        />
+
+        <div className="mt-3 grid grid-cols-2 gap-4">
+          <div className="min-w-0">
+            <label
+              htmlFor={`${idPrefix}-weight`}
+              className={FIELD_LABEL_CLASS_NAME}
+            >
+              무게
+            </label>
+            <EditWeightField
+              id={`${idPrefix}-weight`}
+              describedBy={`${idPrefix}-weight-help`}
+            />
+            <EditFieldHelper
+              id={`${idPrefix}-weight-help`}
+              hint={WEIGHT_HINT}
+              error={errors.weightValue?.message}
+            />
+          </div>
+
+          <div className="min-w-0">
+            <span
+              id={`${idPrefix}-expiration-label`}
+              className={FIELD_LABEL_CLASS_NAME}
+            >
+              유통기한
+            </span>
+            <EditExpirationDateField
+              id={`${idPrefix}-expiration`}
+              labelId={`${idPrefix}-expiration-label`}
+              describedBy={`${idPrefix}-expiration-help`}
+            />
+            <EditFieldHelper
+              id={`${idPrefix}-expiration-help`}
+              hint={EXPIRATION_HINT}
+              error={errors.expirationDate?.message}
+            />
+          </div>
+        </div>
+
+        {/* 수정할 수 없는 값은 입력칸 아래에 따로 모아 조작 대상과 구분한다. */}
+        <div className="mt-3 border-t border-app-ink/15 pt-3.5">
+          <EditCreatedDateField
+            id={`${idPrefix}-created`}
+            createdDate={createdDate}
+          />
+        </div>
+      </div>
+    </NotePaper>
+  );
+}
