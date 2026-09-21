@@ -1,5 +1,6 @@
 export { normalizeIngredientName } from "./lib/ingredient-name";
 export { toStockKey } from "./lib/stock-key";
+export { useFormLeaveGuard } from "./model/use-form-leave-guard";
 export {
   ingredientNameSchema,
   ingredientQuantitySchema,
