@@ -7,11 +7,10 @@ import {
 
 import type { IngredientEditFormInput } from "./ingredient-edit-form-schema";
 
-/** 같은 품목이 되어 수량이 합쳐질 대상. 중복 합산 확인 모달에서 보여준다. */
+/** 같은 품목이 되어 재고 값이 합쳐질 대상. 중복 합산 확인 모달에서 보여준다. */
 export type MergeTarget = {
   ingredientId: string;
   name: string;
-  quantity: number;
 };
 
 export type IngredientEditTarget = {
@@ -40,11 +39,15 @@ export function getMockIngredientEditTarget(
   const target = ingredients.find(
     (ingredient) => ingredient.ingredientId === ingredientId,
   );
+  const measureType = target?.measureType ?? "COUNT";
 
   const mergeCandidates: Record<string, MergeTarget> = {};
 
   for (const ingredient of ingredients) {
-    if (ingredient.ingredientId === ingredientId) {
+    if (
+      ingredient.ingredientId === ingredientId ||
+      ingredient.measureType !== measureType
+    ) {
       continue;
     }
 
@@ -57,7 +60,6 @@ export function getMockIngredientEditTarget(
     mergeCandidates[stockKey] = {
       ingredientId: ingredient.ingredientId,
       name: ingredient.name,
-      quantity: ingredient.quantity,
     };
   }
 
@@ -72,6 +74,7 @@ export function getMockIngredientEditTarget(
     createdDate: addDaysToIsoDate(today, -MOCK_CREATED_DAYS_AGO),
     initialValues: {
       name: target?.name ?? FALLBACK_NAME,
+      measureType,
       storageType: target?.storageType ?? "REFRIGERATED",
       quantity: String(target?.quantity ?? 1),
       weightValue:

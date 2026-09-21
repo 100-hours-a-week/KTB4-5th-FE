@@ -5,7 +5,6 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { FormProvider, useForm } from "react-hook-form";
 
-import { INGREDIENT_QUANTITY_UNIT } from "@/entities/ingredient";
 import { toStockKey } from "@/features/ingredient-form";
 import {
   markAppNavigationIntent,
@@ -107,7 +106,7 @@ export function IngredientEditForm({ target }: IngredientEditFormProps) {
     setIsSubmitting(true);
 
     try {
-      // TODO: 수정 API 연동 시 요청 DTO로 변환해 전송한다.
+      // TODO: 수정 API 연동 시 measureType은 화면 분기에만 사용하고 수정 DTO에서는 제외한다.
       void values;
       await new Promise<void>((resolve) => setTimeout(resolve, 600));
 
@@ -233,7 +232,7 @@ export function IngredientEditForm({ target }: IngredientEditFormProps) {
         title="기존 재료와 합칠까요?"
         description={
           pendingMerge
-            ? `이름·보관 방법·유통기한이 같은 ${withSubjectParticle(pendingMerge.target.name)} 이미 있어요.\n합치면 ${pendingMerge.target.quantity + pendingMerge.values.quantity}${INGREDIENT_QUANTITY_UNIT}가 되고 수정하던 품목은 사라져요.`
+            ? `이름·보관 방법·유통기한이 같은 ${withSubjectParticle(pendingMerge.target.name)} 이미 있어요.\n합치면 기존 재고에 값이 더해지고 수정하던 품목은 사라져요.`
             : ""
         }
         secondaryAction={{
