@@ -4,4 +4,6 @@
 
 환경별 설정·서버 준비·롤백 절차는 [CLOUD 저장소의 실행 안내](https://github.com/100-hours-a-week/KTB4-5th-CLOUD/blob/main/docs/v1-cicd-setup.md)를 따른다. 해당 CLOUD 변경을 서버에 먼저 반영해야 한다.
 
+이 저장소의 `APP_ENV` Secret에는 FE 실행 설정만 등록한다. 배포 시 서버의 `env/frontend.env`만 갱신하며 BE와 DB 설정은 변경하지 않는다.
+
 현재 변경은 로컬 구현이며 실제 CI 실행과 서버 배포 검증은 아직 수행하지 않았다.
