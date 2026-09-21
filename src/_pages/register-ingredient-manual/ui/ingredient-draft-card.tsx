@@ -9,9 +9,9 @@ import {
   INGREDIENT_QUANTITY_UNIT,
   INGREDIENT_STORAGE_TYPE_LABELS,
 } from "@/entities/ingredient";
+import { formatExpirationDate } from "@/features/select-expiration-date";
 import { NotePaper } from "@/shared/ui/note-paper";
 
-import { formatExpirationDate } from "../lib/expiration-date";
 import type { ManualRegisterFormInput } from "../model/manual-register-form-schema";
 import { DraftFieldHelper } from "./draft-field-helper";
 import { ExpirationDateField } from "./expiration-date-field";
