@@ -1,4 +1,5 @@
 export { normalizeIngredientName } from "./lib/ingredient-name";
+export { toStockKey } from "./lib/stock-key";
 export {
   ingredientNameSchema,
   ingredientQuantitySchema,
