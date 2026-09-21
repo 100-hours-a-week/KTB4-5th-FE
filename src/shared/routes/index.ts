@@ -7,6 +7,7 @@ export const routes = {
   me: "/me",
   registerIngredient: "/refrigerator/register",
   registerIngredientManual: "/refrigerator/register/manual",
+  registerIngredientMergeResult: "/refrigerator/register/merge-result",
   ingredientDetail: (ingredientId: string) =>
     `/refrigerator/ingredients/${encodeURIComponent(ingredientId)}`,
   ingredientEdit: (ingredientId: string) =>
