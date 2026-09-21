@@ -1,9 +1,11 @@
 import type { IngredientStorageType } from "@/entities/ingredient";
-import { normalizeIngredientName } from "@/features/ingredient-form";
+import {
+  normalizeIngredientName,
+  toStockKey,
+} from "@/features/ingredient-form";
 import { INGREDIENT_REGISTER_BATCH_LIMIT } from "@/shared/config";
 
 import type { RegisterCapacity } from "./register-capacity";
-import { toStockKey } from "./stock-key";
 
 /** 품목 종류 판정에 필요한 부분만 본다. 폼 입력값과 검증 결과값 모두 이 모양을 만족한다. */
 export type DraftStockFields = {
