@@ -3,10 +3,6 @@
 import { useRouter } from "next/navigation";
 import { useRef, useState } from "react";
 
-import {
-  DEFAULT_INGREDIENT_LIST_SORT,
-  toIngredientListQueryString,
-} from "@/entities/ingredient";
 import { markAppNavigationIntent } from "@/shared/lib/navigation-history";
 import { routes } from "@/shared/routes";
 import { AppBottomSheet } from "@/shared/ui/app-bottom-sheet";
@@ -27,11 +23,10 @@ export function IngredientDetailActions({
   const [isExpireSheetOpen, setIsExpireSheetOpen] = useState(false);
   const [isPending, setIsPending] = useState(false);
   const submittingRef = useRef(false);
-  const stock = ingredient.quantity;
 
-  // TODO: API 연동 시 선택한 수량만큼 만료 처리를 요청한다. 만료 처리는 되돌릴 수 없다.
-  async function handleExpire(amount: number) {
-    if (submittingRef.current || amount < 1 || amount > stock) {
+  // TODO: API 연동 시 이 재고 행의 남은 재고 전체를 만료 처리한다.
+  async function handleExpire() {
+    if (submittingRef.current) {
       return;
     }
 
@@ -43,11 +38,7 @@ export function IngredientDetailActions({
       await new Promise<void>((resolve) => setTimeout(resolve, 700));
       setIsExpireSheetOpen(false);
 
-      const queryString = toIngredientListQueryString({
-        filter: ingredient.status,
-        sort: DEFAULT_INGREDIENT_LIST_SORT,
-      });
-      const href = `${routes.refrigerator}?${queryString}`;
+      const href = routes.refrigerator;
 
       markAppNavigationIntent("replace", href);
       showAppToast({ message: "재고를 처리했어요.", variant: "success" });
@@ -59,18 +50,12 @@ export function IngredientDetailActions({
     }
   }
 
-  // 보유량이 하나뿐이면 고를 값이 없으므로 시트를 건너뛰고 바로 처리한다.
   function handleExpireClick() {
     if (submittingRef.current) {
       return;
     }
 
-    if (stock > 1) {
-      setIsExpireSheetOpen(true);
-      return;
-    }
-
-    void handleExpire(1);
+    setIsExpireSheetOpen(true);
   }
 
   return (
@@ -98,12 +83,11 @@ export function IngredientDetailActions({
         onDismiss={() => setIsExpireSheetOpen(false)}
         dismissBehavior={isPending ? "none" : "dismiss"}
       >
-        {/* 닫히면 내용이 unmount되므로 열 때마다 입력값이 비워진다. */}
         <IngredientExpireSheetContent
           ingredient={ingredient}
           isPending={isPending}
           onCancel={() => setIsExpireSheetOpen(false)}
-          onConfirm={(amount) => void handleExpire(amount)}
+          onConfirm={() => void handleExpire()}
         />
       </AppBottomSheet>
     </>
