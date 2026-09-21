@@ -4,6 +4,7 @@ import {
   INGREDIENT_STORAGE_TYPES,
   type IngredientWeightUnit,
 } from "@/entities/ingredient";
+import { normalizeIngredientName } from "@/features/ingredient-form";
 import {
   getMaxExpirationDate,
   getTodayInSeoul,
@@ -16,8 +17,6 @@ import {
   TEXT_FIELD_MAX_LENGTH,
   TEXT_FIELD_MIN_LENGTH,
 } from "@/shared/config";
-
-import { normalizeIngredientName } from "../lib/edit-input";
 
 export const EDIT_WEIGHT_UNITS = ["G", "ML"] as const;
 
