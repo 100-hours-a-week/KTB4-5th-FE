@@ -1,7 +1,8 @@
 import { Locked2Outlined } from "@lineiconshq/free-icons";
 import { Lineicons } from "@lineiconshq/react-lineicons";
 
-import { formatExpirationDate } from "../lib/expiration-date";
+import { formatExpirationDate } from "@/features/select-expiration-date";
+
 import {
   FIELD_CONTROL_READONLY_CLASS_NAME,
   FIELD_LABEL_CLASS_NAME,

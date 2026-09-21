@@ -5,6 +5,10 @@ import {
   type IngredientWeightUnit,
 } from "@/entities/ingredient";
 import {
+  getMaxExpirationDate,
+  getTodayInSeoul,
+} from "@/features/select-expiration-date";
+import {
   INGREDIENT_QUANTITY_MAX,
   INGREDIENT_QUANTITY_MIN,
   INGREDIENT_REGISTER_BATCH_LIMIT,
@@ -15,7 +19,6 @@ import {
 } from "@/shared/config";
 
 import { normalizeIngredientName } from "../lib/draft-input";
-import { getMaxExpirationDate, getTodayInSeoul } from "../lib/expiration-date";
 
 export const MANUAL_WEIGHT_UNITS = ["G", "ML"] as const;
 

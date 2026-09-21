@@ -4,8 +4,8 @@ import {
   INGREDIENT_QUANTITY_UNIT,
   INGREDIENT_STORAGE_TYPE_LABELS,
 } from "@/entities/ingredient";
+import { formatExpirationDate } from "@/features/select-expiration-date";
 
-import { formatExpirationDate } from "../lib/expiration-date";
 import {
   hasEditChanges,
   type IngredientEditFormInput,

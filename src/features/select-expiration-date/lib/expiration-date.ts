@@ -1,7 +1,5 @@
 import { EXPIRATION_MAX_YEARS } from "@/shared/config";
 
-const MS_PER_DAY = 24 * 60 * 60 * 1000;
-
 const seoulDateFormatter = new Intl.DateTimeFormat("en-CA", {
   timeZone: "Asia/Seoul",
   year: "numeric",
@@ -14,7 +12,7 @@ export function getTodayInSeoul() {
   return seoulDateFormatter.format(new Date());
 }
 
-/** 캘린더가 다루는 Date는 로컬 자정을 기준으로 맞춰 하루가 밀리지 않게 한다. */
+// 캘린더가 다루는 Date는 로컬 자정을 기준으로 맞춰 하루가 밀리지 않게 한다.
 export function fromIsoDate(isoDate: string) {
   const [year, month, day] = isoDate.split("-").map(Number);
 
@@ -37,20 +35,7 @@ export function addDaysToIsoDate(isoDate: string, days: number) {
   return toIsoDate(date);
 }
 
-export function getDaysUntil(isoDate: string) {
-  const [year, month, day] = isoDate.split("-").map(Number);
-  const [todayYear, todayMonth, todayDay] = getTodayInSeoul()
-    .split("-")
-    .map(Number);
-
-  return Math.round(
-    (Date.UTC(year, month - 1, day) -
-      Date.UTC(todayYear, todayMonth - 1, todayDay)) /
-      MS_PER_DAY,
-  );
-}
-
-/** 선택 가능한 마지막 날짜. 오늘부터 4년 뒤 같은 날까지 고를 수 있다. */
+// 선택 가능한 마지막 날짜. 오늘부터 4년 뒤 같은 날까지 고를 수 있다.
 export function getMaxExpirationDate(todayIsoDate = getTodayInSeoul()) {
   const date = fromIsoDate(todayIsoDate);
 

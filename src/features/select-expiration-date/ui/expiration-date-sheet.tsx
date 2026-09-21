@@ -5,6 +5,7 @@ import { ko } from "@daypicker/react/locale";
 
 import { EXPIRATION_MAX_YEARS } from "@/shared/config";
 import {
+  AppBottomSheet,
   AppBottomSheetDescription,
   AppBottomSheetTitle,
 } from "@/shared/ui/app-bottom-sheet";
@@ -17,11 +18,12 @@ import {
   toIsoDate,
 } from "../lib/expiration-date";
 
-type ExpirationCalendarSheetContentProps = {
+interface ExpirationDateSheetProps {
+  open: boolean;
   value: string;
   onSelect: (isoDate: string) => void;
-  onCancel: () => void;
-};
+  onDismiss: () => void;
+}
 
 // DayPicker 기본 스타일시트 대신 앱 토큰으로 직접 그린다.
 const calendarClassNames = {
@@ -53,17 +55,18 @@ const calendarClassNames = {
   hidden: "invisible",
 };
 
-export function ExpirationCalendarSheetContent({
+export function ExpirationDateSheet({
+  open,
   value,
   onSelect,
-  onCancel,
-}: ExpirationCalendarSheetContentProps) {
+  onDismiss,
+}: ExpirationDateSheetProps) {
   const today = getTodayInSeoul();
   const maxDate = getMaxExpirationDate(today);
   const selected = value === "" ? undefined : fromIsoDate(value);
 
   return (
-    <>
+    <AppBottomSheet open={open} onDismiss={onDismiss}>
       <AppBottomSheetTitle className="m-0 font-app-heading text-[19px] font-black leading-[1.35] tracking-normal">
         유통기한을 골라주세요
       </AppBottomSheetTitle>
@@ -96,10 +99,10 @@ export function ExpirationCalendarSheetContent({
       />
 
       <div className="mt-[18px] flex gap-[10px]">
-        <FooterButton variant="secondary" onClick={onCancel}>
+        <FooterButton variant="secondary" onClick={onDismiss}>
           닫기
         </FooterButton>
       </div>
-    </>
+    </AppBottomSheet>
   );
 }
