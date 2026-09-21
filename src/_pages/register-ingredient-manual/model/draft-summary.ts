@@ -1,7 +1,7 @@
 import type { IngredientStorageType } from "@/entities/ingredient";
+import { normalizeIngredientName } from "@/features/ingredient-form";
 import { INGREDIENT_REGISTER_BATCH_LIMIT } from "@/shared/config";
 
-import { normalizeIngredientName } from "../lib/draft-input";
 import type { RegisterCapacity } from "./register-capacity";
 import { toStockKey } from "./stock-key";
 
