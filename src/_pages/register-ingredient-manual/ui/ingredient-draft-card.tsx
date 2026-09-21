@@ -9,11 +9,11 @@ import {
   INGREDIENT_QUANTITY_UNIT,
   INGREDIENT_STORAGE_TYPE_LABELS,
 } from "@/entities/ingredient";
+import { IngredientFieldHelper } from "@/features/ingredient-form";
 import { formatExpirationDate } from "@/features/select-expiration-date";
 import { NotePaper } from "@/shared/ui/note-paper";
 
 import type { ManualRegisterFormInput } from "../model/manual-register-form-schema";
-import { DraftFieldHelper } from "./draft-field-helper";
 import { ExpirationDateField } from "./expiration-date-field";
 import { FIELD_LABEL_CLASS_NAME } from "./field-styles";
 import { IngredientNameField } from "./ingredient-name-field";
@@ -149,7 +149,7 @@ export function IngredientDraftCard({
                 index={index}
                 describedBy={`${idPrefix}-name-help`}
               />
-              <DraftFieldHelper
+              <IngredientFieldHelper
                 id={`${idPrefix}-name-help`}
                 hint={NAME_HINT}
                 error={draftErrors?.name?.message}
@@ -176,7 +176,7 @@ export function IngredientDraftCard({
               </div>
             </div>
             {/* 2칸을 가로지르는 한 줄을 써서 좁은 칸에서 문구가 잘리지 않게 한다. */}
-            <DraftFieldHelper
+            <IngredientFieldHelper
               id={`${idPrefix}-quantity-help`}
               hint={QUANTITY_HINT}
               error={draftErrors?.quantity?.message}
@@ -195,7 +195,7 @@ export function IngredientDraftCard({
                   index={index}
                   describedBy={`${idPrefix}-weight-help`}
                 />
-                <DraftFieldHelper
+                <IngredientFieldHelper
                   id={`${idPrefix}-weight-help`}
                   hint={WEIGHT_HINT}
                   error={draftErrors?.weightValue?.message}
@@ -215,7 +215,7 @@ export function IngredientDraftCard({
                   index={index}
                   describedBy={`${idPrefix}-expiration-help`}
                 />
-                <DraftFieldHelper
+                <IngredientFieldHelper
                   id={`${idPrefix}-expiration-help`}
                   hint={EXPIRATION_HINT}
                   error={draftErrors?.expirationDate?.message}
