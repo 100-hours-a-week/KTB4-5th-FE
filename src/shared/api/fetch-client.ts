@@ -9,6 +9,24 @@ import {
   refreshCsrfToken,
 } from "./csrf";
 import { isApiResponse, readProblem } from "./response-parsing";
+import { SessionExpiredError } from "./session-expired-error";
+import { refreshSession } from "./token-refresh";
+
+// 인증 API 자체(로그인·로그아웃·토큰 갱신·CSRF 발급·회원가입)는 갱신-재시도가
+// 무한히 반복될 수 있어 401 자동 갱신 대상에서 뺀다.
+function isAuthEndpoint(path: string, method: string): boolean {
+  return path.startsWith("/auth/") || (path === "/users" && method === "POST");
+}
+
+type RetryState = {
+  csrfRetried: boolean;
+  authRetried: boolean;
+};
+
+const INITIAL_RETRY_STATE: RetryState = {
+  csrfRetried: false,
+  authRetried: false,
+};
 
 export type ApiRequestOptions = Omit<RequestInit, "body"> & {
   json?: unknown;
@@ -17,7 +35,7 @@ export type ApiRequestOptions = Omit<RequestInit, "body"> & {
 async function sendRequest(
   path: string,
   options: ApiRequestOptions = {},
-  csrfRetried = false,
+  retryState: RetryState = INITIAL_RETRY_STATE,
 ): Promise<Response> {
   const { json, headers: inputHeaders, ...init } = options;
 
@@ -62,17 +80,30 @@ async function sendRequest(
     return response;
   }
 
+  // 401 → 토큰 갱신(single-flight) → 원 요청 1회 재시도.
+  if (
+    response.status === 401 &&
+    !retryState.authRetried &&
+    !isAuthEndpoint(path, method)
+  ) {
+    const refreshed = await refreshSession();
+    if (refreshed) {
+      return sendRequest(path, options, { ...retryState, authRetried: true });
+    }
+    throw new SessionExpiredError();
+  }
+
   const problem = await readProblem(response);
 
   // 403 서버 오류 코드 COMMON-403-CSRF-001만 토큰 재발급 후 원 요청 1회 재시도.
   if (
     response.status === 403 &&
     problem.code === CSRF_ERROR_CODE &&
-    !csrfRetried
+    !retryState.csrfRetried
   ) {
     const csrfToken = await refreshCsrfToken();
     if (csrfToken) {
-      return sendRequest(path, options, true);
+      return sendRequest(path, options, { ...retryState, csrfRetried: true });
     }
   }
 
