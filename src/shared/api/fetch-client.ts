@@ -1,63 +1,31 @@
 import { ApiError } from "./api-error";
-import type { ApiProblem, ApiResponse } from "./contract";
-
-const API_BASE_PATH = "/api/v1";
+import { API_BASE_PATH } from "./api-base-path";
+import type { ApiResponse } from "./contract";
+import {
+  CSRF_ERROR_CODE,
+  CSRF_HEADER_NAME,
+  ensureCsrfToken,
+  isCsrfProtectedRequest,
+  refreshCsrfToken,
+} from "./csrf";
+import { isApiResponse, readProblem } from "./response-parsing";
 
 export type ApiRequestOptions = Omit<RequestInit, "body"> & {
   json?: unknown;
 };
 
-function isRecord(value: unknown): value is Record<string, unknown> {
-  return typeof value === "object" && value !== null && !Array.isArray(value);
-}
-
-function isApiResponse(value: unknown): value is ApiResponse<unknown> {
-  return (
-    isRecord(value) &&
-    typeof value.code === "string" &&
-    typeof value.message === "string" &&
-    Object.hasOwn(value, "data")
-  );
-}
-
-async function readProblem(response: Response): Promise<ApiProblem> {
-  const text = await response.text();
-  let value: unknown;
-
-  try {
-    value = JSON.parse(text);
-  } catch {
-    value = null;
-  }
-
-  const problem = isRecord(value) ? value : {};
-
-  return {
-    ...problem,
-    code:
-      typeof problem.code === "string" && problem.code
-        ? problem.code
-        : `UNKNOWN-${response.status}-000`,
-    title:
-      typeof problem.title === "string" && problem.title
-        ? problem.title
-        : response.statusText || `HTTP ${response.status} 오류`,
-    status: response.status,
-    type: typeof problem.type === "string" ? problem.type : "about:blank",
-    detail: typeof problem.detail === "string" ? problem.detail : undefined,
-    instance:
-      typeof problem.instance === "string" ? problem.instance : undefined,
-  };
-}
-
 async function sendRequest(
   path: string,
-  { json, headers: inputHeaders, ...init }: ApiRequestOptions = {},
+  options: ApiRequestOptions = {},
+  csrfRetried = false,
 ): Promise<Response> {
+  const { json, headers: inputHeaders, ...init } = options;
+
   if (!path.startsWith("/") || path.startsWith("//")) {
     throw new TypeError("API 경로는 /로 시작하는 상대 경로여야 합니다.");
   }
 
+  const method = init.method?.toUpperCase() ?? "GET";
   const headers = new Headers(inputHeaders);
   if (!headers.has("Accept")) {
     headers.set("Accept", "application/json, application/problem+json");
@@ -74,17 +42,41 @@ async function sendRequest(
     }
   }
 
+  // CSRF 검증 대상 요청마다 XSRF-TOKEN 쿠키 값을 X-XSRF-TOKEN 헤더로 복사한다.
+  // 쿠키가 없으면 ensureCsrfToken이 먼저 GET /auth/csrf로 발급받는다.
+  if (isCsrfProtectedRequest(path, method) && !headers.has(CSRF_HEADER_NAME)) {
+    const csrfToken = await ensureCsrfToken();
+    if (csrfToken) {
+      headers.set(CSRF_HEADER_NAME, csrfToken);
+    }
+  }
+
   const response = await fetch(`${API_BASE_PATH}${path}`, {
     ...init,
     headers,
     body,
+    credentials: "include",
   });
 
-  if (!response.ok) {
-    throw new ApiError(response.status, await readProblem(response));
+  if (response.ok) {
+    return response;
   }
 
-  return response;
+  const problem = await readProblem(response);
+
+  // 403 서버 오류 코드 COMMON-403-CSRF-001만 토큰 재발급 후 원 요청 1회 재시도.
+  if (
+    response.status === 403 &&
+    problem.code === CSRF_ERROR_CODE &&
+    !csrfRetried
+  ) {
+    const csrfToken = await refreshCsrfToken();
+    if (csrfToken) {
+      return sendRequest(path, options, true);
+    }
+  }
+
+  throw new ApiError(response.status, problem);
 }
 
 export async function requestJson<T>(
