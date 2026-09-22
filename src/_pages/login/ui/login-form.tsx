@@ -2,12 +2,17 @@
 
 import { useFormContext } from "react-hook-form";
 
-import { LOGIN_ID_HINT, PASSWORD_HINT, useLogin } from "@/features/login";
+import {
+  LOGIN_ID_HINT,
+  PASSWORD_HINT,
+  useLoginOrSignup,
+} from "@/features/login";
 import type { LoginFormValues } from "@/features/login";
 import { ApiError } from "@/shared/api";
 import { FieldHelperText } from "@/shared/ui/field-helper-text";
 
 import { useLoginFlow } from "../model/login-flow-provider";
+import { useEnterHome } from "../model/use-enter-home";
 
 // SERVICE_COMMON_RULES §5.1 표준 문구. 계정이 없는지 비밀번호가 틀렸는지는
 // 구분해서 보여주지 않는다(계정 존재 여부 노출 방지).
@@ -17,6 +22,7 @@ const SERVER_ERROR_TYPE = "server";
 
 export function LoginForm() {
   const { showNotificationOnboarding } = useLoginFlow();
+  const { enterHome } = useEnterHome();
   const {
     register,
     handleSubmit,
@@ -25,16 +31,23 @@ export function LoginForm() {
     getFieldState,
     formState: { errors },
   } = useFormContext<LoginFormValues>();
-  const loginMutation = useLogin();
+  const loginOrSignupMutation = useLoginOrSignup();
 
   async function onSubmit(values: LoginFormValues) {
     try {
-      await loginMutation.mutateAsync(values);
-      showNotificationOnboarding();
+      const { isNewAccount } = await loginOrSignupMutation.mutateAsync(values);
+
+      // 신규 가입 루트로 왔을 때만 알림 온보딩을 보여준다. 기존 계정
+      // 로그인은 곧장 홈으로 들어간다.
+      if (isNewAccount) {
+        showNotificationOnboarding();
+      } else {
+        enterHome();
+      }
     } catch (error) {
-      // 400(형식) · 401(비밀번호 오류로 추정) · 404(없는 아이디) · 422(아이디
-      // 사용 불가)는 전부 같은 문구로 합친다. 그 외(CSRF 재시도까지 실패,
-      // 5xx, 네트워크 단절)는 네트워크 문구로 대체한다.
+      // 400(형식) · 401(비밀번호 오류로 추정) · 404(회원가입까지 실패한 경우)
+      // · 422(아이디 사용 불가)는 전부 같은 문구로 합친다. 그 외(CSRF
+      // 재시도까지 실패, 5xx, 네트워크 단절)는 네트워크 문구로 대체한다.
       const isCredentialError =
         error instanceof ApiError &&
         [400, 401, 404, 422].includes(error.status);
