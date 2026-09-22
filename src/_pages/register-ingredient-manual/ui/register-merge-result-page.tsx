@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import {
   INGREDIENT_QUANTITY_UNIT,
@@ -55,9 +55,17 @@ function formatMergedAmount(item: RegisterMergedItem, key: AmountKey) {
 
 export function RegisterMergeResultPage() {
   const router = useRouter();
-  const result = useRegisterResultStore((state) => state.result);
+  const [result] = useState(
+    () => useRegisterResultStore.getState().result,
+  );
   const clearResult = useRegisterResultStore((state) => state.clearResult);
   const [isLeaving, setIsLeaving] = useState(false);
+
+  // 화면에서 사용할 값은 로컬에 고정하고 전역 전달 버퍼는 즉시 비운다.
+  // 이후 헤더·브라우저 뒤로가기를 포함한 어떤 경로로 나가도 결과가 남지 않는다.
+  useEffect(() => {
+    clearResult();
+  }, [clearResult]);
 
   function leaveTo(href: string) {
     if (isLeaving) {
@@ -65,7 +73,6 @@ export function RegisterMergeResultPage() {
     }
 
     setIsLeaving(true);
-    clearResult();
     markAppNavigationIntent("replace", href);
     router.replace(href);
   }

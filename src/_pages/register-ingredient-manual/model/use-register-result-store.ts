@@ -8,7 +8,7 @@ type RegisterResultState = {
   clearResult: () => void;
 };
 
-// 등록 응답을 완료 모달과 합산 결과 페이지 사이에서만 잠시 공유한다.
+// 합산 결과 확인을 누른 순간부터 결과 페이지가 소비할 때까지만 응답을 보관한다.
 export const useRegisterResultStore = create<RegisterResultState>((set) => ({
   result: null,
   setResult: (result) => set({ result }),

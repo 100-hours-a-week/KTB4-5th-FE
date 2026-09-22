@@ -11,13 +11,13 @@ import type { RegisterBatchResult } from "../model/register-result";
 
 type RegisterCompleteDialogProps = {
   result: RegisterBatchResult | null;
+  onViewMergeResult: (result: RegisterBatchResult) => void;
 };
 
-/**
- * 등록 결과를 알리는 완료형 모달
- */
+// 등록 결과를 알리는 완료형 모달
 export function RegisterCompleteDialog({
   result,
+  onViewMergeResult,
 }: RegisterCompleteDialogProps) {
   const router = useRouter();
   const [isLeaving, setIsLeaving] = useState(false);
@@ -39,6 +39,16 @@ export function RegisterCompleteDialog({
   const remainingTypeCount = Math.max(stockTypeLimit - stockTypeCountAfter, 0);
   const hasMergedItems = (result?.mergedItems.length ?? 0) > 0;
 
+  function handlePrimaryAction() {
+    if (hasMergedItems && result) {
+      onViewMergeResult(result);
+      leaveTo(routes.registerIngredientMergeResult);
+      return;
+    }
+
+    leaveTo(routes.refrigerator);
+  }
+
   return (
     <AppDialog
       open={result !== null}
@@ -57,12 +67,7 @@ export function RegisterCompleteDialog({
       primaryAction={{
         label: hasMergedItems ? "합산 결과 확인" : "냉장고 보기",
         disabled: isLeaving,
-        onClick: () =>
-          leaveTo(
-            hasMergedItems
-              ? routes.registerIngredientMergeResult
-              : routes.refrigerator,
-          ),
+        onClick: handlePrimaryAction,
       }}
     />
   );
