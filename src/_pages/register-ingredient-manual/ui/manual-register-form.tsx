@@ -55,6 +55,9 @@ export function ManualRegisterForm({ capacity }: ManualRegisterFormProps) {
   const [completedResult, setCompletedResult] =
     useState<RegisterBatchResult | null>(null);
   const setRegisterResult = useRegisterResultStore((state) => state.setResult);
+  const clearRegisterResult = useRegisterResultStore(
+    (state) => state.clearResult,
+  );
 
   const isBatchLimitReached = fields.length >= INGREDIENT_REGISTER_BATCH_LIMIT;
 
@@ -87,12 +90,12 @@ export function ManualRegisterForm({ capacity }: ManualRegisterFormProps) {
     }
 
     setIsSubmitting(true);
+    clearRegisterResult();
 
     try {
       // TODO: 실제 등록 API에 values를 요청 DTO로 변환해 전송한다.
       const response = await registerIngredientsMock(values.drafts);
 
-      setRegisterResult(response.data);
       setCompletedResult(response.data);
     } catch {
       showAppToast({ message: "재고 등록에 실패했어요.", variant: "error" });
@@ -165,7 +168,10 @@ export function ManualRegisterForm({ capacity }: ManualRegisterFormProps) {
         formId={FORM_ID}
         isRegistered={completedResult !== null}
       />
-      <RegisterCompleteDialog result={completedResult} />
+      <RegisterCompleteDialog
+        result={completedResult}
+        onViewMergeResult={setRegisterResult}
+      />
     </FormProvider>
   );
 }
