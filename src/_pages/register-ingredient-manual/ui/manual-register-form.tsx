@@ -5,9 +5,9 @@ import { useState } from "react";
 import { FormProvider, useFieldArray, useForm } from "react-hook-form";
 
 import { INGREDIENT_REGISTER_BATCH_LIMIT } from "@/shared/config";
+import { showAppToast } from "@/shared/ui/app-toast";
 import { PageActionLayout } from "@/shared/ui/page-action-layout";
 
-import { summarizeDrafts, type DraftSummary } from "../model/draft-summary";
 import {
   BATCH_LIMIT_MESSAGE,
   EMPTY_DRAFTS_MESSAGE,
@@ -17,6 +17,11 @@ import {
   type ManualRegisterFormValues,
 } from "../model/manual-register-form-schema";
 import type { RegisterCapacity } from "../model/register-capacity";
+import {
+  registerIngredientsMock,
+  type RegisterBatchResult,
+} from "../model/register-result";
+import { useRegisterResultStore } from "../model/use-register-result-store";
 import { IngredientDraftCard } from "./ingredient-draft-card";
 import { RegisterCompleteDialog } from "./register-complete-dialog";
 import { RegisterLeaveGuard } from "./register-leave-guard";
@@ -47,10 +52,9 @@ export function ManualRegisterForm({ capacity }: ManualRegisterFormProps) {
   // 화면에 처음 들어오면 빈 메모 한 장만 펼쳐 둔다. 한 번에 하나만 펼친다.
   const [expandedIndex, setExpandedIndex] = useState<number | null>(0);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  // 등록에 성공하면 그 시점의 요약을 담아 완료 모달을 연다.
-  const [completedSummary, setCompletedSummary] = useState<DraftSummary | null>(
-    null,
-  );
+  const [completedResult, setCompletedResult] =
+    useState<RegisterBatchResult | null>(null);
+  const setRegisterResult = useRegisterResultStore((state) => state.setResult);
 
   const isBatchLimitReached = fields.length >= INGREDIENT_REGISTER_BATCH_LIMIT;
 
@@ -85,9 +89,13 @@ export function ManualRegisterForm({ capacity }: ManualRegisterFormProps) {
     setIsSubmitting(true);
 
     try {
-      // TODO: 등록 API 연동 시 요청 DTO로 변환해 전송한다. 성공한 응답의 종 수로 요약을 만든다.
-      void values;
-      setCompletedSummary(summarizeDrafts(values.drafts, capacity));
+      // TODO: 실제 등록 API에 values를 요청 DTO로 변환해 전송한다.
+      const response = await registerIngredientsMock(values.drafts);
+
+      setRegisterResult(response.data);
+      setCompletedResult(response.data);
+    } catch {
+      showAppToast({ message: "재고 등록에 실패했어요.", variant: "error" });
     } finally {
       setIsSubmitting(false);
     }
@@ -155,9 +163,9 @@ export function ManualRegisterForm({ capacity }: ManualRegisterFormProps) {
       </PageActionLayout>
       <RegisterLeaveGuard
         formId={FORM_ID}
-        isRegistered={completedSummary !== null}
+        isRegistered={completedResult !== null}
       />
-      <RegisterCompleteDialog summary={completedSummary} />
+      <RegisterCompleteDialog result={completedResult} />
     </FormProvider>
   );
 }

@@ -64,6 +64,14 @@ function getFlowHeaderPolicy(pathname: string): RouteHeaderPolicy {
     };
   }
 
+  if (pathname === routes.registerIngredientMergeResult) {
+    return {
+      kind: "flow",
+      title: "합산 결과 확인",
+      backFallbackHref: routes.registerIngredient,
+    };
+  }
+
   const ingredientEditMatch = pathname.match(
     /^\/refrigerator\/ingredients\/([^/]+)\/edit$/,
   );
