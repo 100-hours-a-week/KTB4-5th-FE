@@ -1,25 +1,18 @@
 "use client";
 
-import { useRouter } from "next/navigation";
-import { useTransition } from "react";
+import { useFormState } from "react-hook-form";
 
-import { markAppNavigationIntent } from "@/shared/lib/navigation-history";
-import { routes } from "@/shared/routes";
+import type { LoginFormValues } from "@/features/login";
 import { Button } from "@/shared/ui/button";
 
 import { useLoginFlow } from "../model/login-flow-provider";
+import { useEnterHome } from "../model/use-enter-home";
 
 export function LoginFooterAction() {
-  const router = useRouter();
   const { step } = useLoginFlow();
-  const [isPending, startTransition] = useTransition();
-
-  function handleOnboardingStart() {
-    startTransition(() => {
-      markAppNavigationIntent("replace", routes.home);
-      router.replace(routes.home);
-    });
-  }
+  const { enterHome, isPending } = useEnterHome();
+  // SERVICE_COMMON_RULES §5.1: 오류가 있거나 필수 값이 비면 주 버튼을 비활성화한다.
+  const { isValid, isSubmitting } = useFormState<LoginFormValues>();
 
   if (step === "login") {
     return (
@@ -29,8 +22,10 @@ export function LoginFooterAction() {
         variant="highlight"
         shape="note"
         className="w-full shadow-app-md"
+        loading={isSubmitting}
+        disabled={!isValid}
       >
-        시작하기
+        {isSubmitting ? "로그인 중" : "시작하기"}
       </Button>
     );
   }
@@ -67,7 +62,7 @@ export function LoginFooterAction() {
       variant="highlight"
       shape="note"
       className="w-full shadow-app-md"
-      onClick={handleOnboardingStart}
+      onClick={enterHome}
     >
       시작하기
     </Button>
