@@ -1,3 +1,4 @@
+import { LogoutSettingsCard } from "./logout-settings-card";
 import { SettingsCard } from "./settings-card";
 
 export function MyPage() {
@@ -9,7 +10,7 @@ export function MyPage() {
           description="매일 오전 8시 · 켜짐"
           trailingText="다음 버전"
         />
-        <SettingsCard title="로그아웃" />
+        <LogoutSettingsCard />
       </div>
     </div>
   );

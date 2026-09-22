@@ -242,9 +242,14 @@ Next.js rewrites 프록시가 필요하다.
   `routes.login`으로 이동
 - `_app/providers/csrf-bootstrap-provider`: 앱 진입 시 1회 `GET /auth/csrf`
 
-**아직 반영되지 않은 것** — 로그인·회원가입 성공 직후 CSRF 재발급은
-`useLoginOrSignup`의 `onSuccess`에 붙였다(§8.3). 로그아웃 UI·API는 아직
-연동 안 해서 그쪽 재발급은 로그아웃을 구현할 때 같이 붙인다.
+인증 상태 변경 직후 CSRF 재발급(§8.3)은 로그인·회원가입은
+`useLoginOrSignup`의 `onSuccess`에, 로그아웃은 `useLogout`에 붙였다.
+로그아웃은 마이페이지 "로그아웃" 카드 → 확인 모달(SERVICE_COMMON_RULES §7.2의
+확인형 6종 중 하나) → `DELETE /auth/sessions` → `queryClient.clear()` ·
+선택된 냉장고 비우기 → `routes.login`으로 문서 교체(`location.replace`)다.
+Next 라우터 캐시에 남은 이전 사용자의 보호 화면까지 버리려고 세션 만료
+처리와 같은 방식을 쓴다.
+이미 세션이 끊겨 `401`이 오면 실패가 아니라 로그아웃 완료로 처리한다.
 
 SSR 측(§8.5)은 (b)로 결정만 했고 코드는 아직 없다. 서버에서 인증 데이터를
 가져오는 화면이 없어서다 — 홈 헤더 "{loginId}네 냉장고"용 목업 `getUserSession()`은
