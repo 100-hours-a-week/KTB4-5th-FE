@@ -1,4 +1,5 @@
 import Image from "next/image";
+import { Suspense } from "react";
 
 import stackedLogo from "@/shared/assets/logo/logo-stacked.png";
 import { PageActionLayout } from "@/shared/ui/page-action-layout";
@@ -8,10 +9,14 @@ import { LoginFormProvider } from "../model/login-form-provider";
 import { LoginFooterAction } from "./login-footer-action";
 import { LoginForm } from "./login-form";
 import { LoginNotiOnboarding } from "./login-noti-onboarding";
+import { LoginRedirectNotice } from "./login-redirect-notice";
 
 export function LoginPage() {
   return (
     <LoginFlowProvider>
+      <Suspense fallback={null}>
+        <LoginRedirectNotice />
+      </Suspense>
       <LoginFormProvider>
         <PageActionLayout action={<LoginFooterAction />}>
           <div className="block group-data-[login-step=notification-onboarding]:!hidden">

@@ -9,10 +9,8 @@ import {
   refreshCsrfToken,
 } from "./csrf";
 import { isApiResponse, readProblem } from "./response-parsing";
-
-export type ApiRequestOptions = Omit<RequestInit, "body"> & {
-  json?: unknown;
-};
+import { SessionExpiredError } from "./session-expired-error";
+import { refreshSession } from "./token-refresh";
 
 function changesAuthentication(path: string, method: string): boolean {
   return (
@@ -21,10 +19,28 @@ function changesAuthentication(path: string, method: string): boolean {
   );
 }
 
+function isAuthEndpoint(path: string, method: string): boolean {
+  return path.startsWith("/auth/") || (path === "/users" && method === "POST");
+}
+
+type RetryState = {
+  csrfRetried: boolean;
+  authRetried: boolean;
+};
+
+const INITIAL_RETRY_STATE: RetryState = {
+  csrfRetried: false,
+  authRetried: false,
+};
+
+export type ApiRequestOptions = Omit<RequestInit, "body"> & {
+  json?: unknown;
+};
+
 async function sendRequest(
   path: string,
   options: ApiRequestOptions = {},
-  csrfRetried = false,
+  retryState: RetryState = INITIAL_RETRY_STATE,
 ): Promise<Response> {
   const { json, headers: inputHeaders, ...init } = options;
 
@@ -49,8 +65,6 @@ async function sendRequest(
     }
   }
 
-  // CSRF 검증 대상 요청마다 XSRF-TOKEN 쿠키 값을 X-XSRF-TOKEN 헤더로 복사한다.
-  // 쿠키가 없으면 ensureCsrfToken이 먼저 GET /auth/csrf로 발급받는다.
   if (isCsrfProtectedRequest(path, method) && !headers.has(CSRF_HEADER_NAME)) {
     const csrfToken = await ensureCsrfToken();
     if (!csrfToken) {
@@ -71,24 +85,34 @@ async function sendRequest(
       try {
         await refreshCsrfToken();
       } catch {
-        // Keep the successful authentication result. The next mutation will
-        // retry issuance before sending its request.
+        // The next mutation will retry CSRF issuance.
       }
     }
     return response;
   }
 
+  if (response.status === 401 && !isAuthEndpoint(path, method)) {
+    if (retryState.authRetried) {
+      throw new SessionExpiredError();
+    }
+
+    const refreshed = await refreshSession();
+    if (refreshed) {
+      return sendRequest(path, options, { ...retryState, authRetried: true });
+    }
+    throw new SessionExpiredError();
+  }
+
   const problem = await readProblem(response);
 
-  // 403 서버 오류 코드 COMMON-403-CSRF-001만 토큰 재발급 후 원 요청 1회 재시도.
   if (
     response.status === 403 &&
     problem.code === CSRF_ERROR_CODE &&
-    !csrfRetried
+    !retryState.csrfRetried
   ) {
     const csrfToken = await refreshCsrfToken();
     if (csrfToken) {
-      return sendRequest(path, options, true);
+      return sendRequest(path, options, { ...retryState, csrfRetried: true });
     }
   }
 
