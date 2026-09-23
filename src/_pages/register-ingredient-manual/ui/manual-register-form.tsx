@@ -1,9 +1,16 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { FormProvider, useFieldArray, useForm } from "react-hook-form";
 
+import {
+  ingredientQueries,
+  registerIngredients,
+  type RegisterBatchResult,
+} from "@/entities/ingredient";
+import { useCurrentRefrigeratorId } from "@/entities/refrigerator";
 import { INGREDIENT_REGISTER_BATCH_LIMIT } from "@/shared/config";
 import { showAppToast } from "@/shared/ui/app-toast";
 import { PageActionLayout } from "@/shared/ui/page-action-layout";
@@ -17,10 +24,7 @@ import {
   type ManualRegisterFormValues,
 } from "../model/manual-register-form-schema";
 import type { RegisterCapacity } from "../model/register-capacity";
-import {
-  registerIngredientsMock,
-  type RegisterBatchResult,
-} from "../model/register-result";
+import { toRegisterIngredientItems } from "../model/to-register-items";
 import { useRegisterResultStore } from "../model/use-register-result-store";
 import { IngredientDraftCard } from "./ingredient-draft-card";
 import { RegisterCompleteDialog } from "./register-complete-dialog";
@@ -51,13 +55,27 @@ export function ManualRegisterForm({ capacity }: ManualRegisterFormProps) {
   });
   // 화면에 처음 들어오면 빈 메모 한 장만 펼쳐 둔다. 한 번에 하나만 펼친다.
   const [expandedIndex, setExpandedIndex] = useState<number | null>(0);
-  const [isSubmitting, setIsSubmitting] = useState(false);
   const [completedResult, setCompletedResult] =
     useState<RegisterBatchResult | null>(null);
   const setRegisterResult = useRegisterResultStore((state) => state.setResult);
   const clearRegisterResult = useRegisterResultStore(
     (state) => state.clearResult,
   );
+  const queryClient = useQueryClient();
+  const refrigeratorId = useCurrentRefrigeratorId();
+  const registerMutation = useMutation({
+    mutationFn: registerIngredients,
+    onSuccess: (result, { refrigeratorId: registeredRefrigeratorId }) => {
+      // 등록으로 재고 목록과 품목 수가 바뀌므로 해당 냉장고의 조회를 모두 무효화한다.
+      void queryClient.invalidateQueries({
+        queryKey: ingredientQueries.byRefrigerator(registeredRefrigeratorId),
+      });
+      setCompletedResult(result);
+    },
+    onError: () => {
+      showAppToast({ message: "재고 등록에 실패했어요.", variant: "error" });
+    },
+  });
 
   const isBatchLimitReached = fields.length >= INGREDIENT_REGISTER_BATCH_LIMIT;
 
@@ -84,24 +102,21 @@ export function ManualRegisterForm({ capacity }: ManualRegisterFormProps) {
   }
 
   // 등록은 확인 모달 없이 기존 품목에 합산한다.
-  async function submitDrafts(values: ManualRegisterFormValues) {
-    if (isSubmitting) {
+  function submitDrafts(values: ManualRegisterFormValues) {
+    if (registerMutation.isPending) {
       return;
     }
 
-    setIsSubmitting(true);
-    clearRegisterResult();
-
-    try {
-      // TODO: 실제 등록 API에 values를 요청 DTO로 변환해 전송한다.
-      const response = await registerIngredientsMock(values.drafts);
-
-      setCompletedResult(response.data);
-    } catch {
+    if (!refrigeratorId) {
       showAppToast({ message: "재고 등록에 실패했어요.", variant: "error" });
-    } finally {
-      setIsSubmitting(false);
+      return;
     }
+
+    clearRegisterResult();
+    registerMutation.mutate({
+      refrigeratorId,
+      items: toRegisterIngredientItems(values.drafts),
+    });
   }
 
   return (
@@ -112,7 +127,7 @@ export function ManualRegisterForm({ capacity }: ManualRegisterFormProps) {
             <RegisterSubmitButton
               formId={FORM_ID}
               capacity={capacity}
-              isSubmitting={isSubmitting}
+              isSubmitting={registerMutation.isPending}
             />
           </div>
         }
