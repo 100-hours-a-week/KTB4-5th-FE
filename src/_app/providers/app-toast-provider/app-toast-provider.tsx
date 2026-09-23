@@ -19,7 +19,7 @@ export function AppToastProvider() {
       containerAriaLabel="알림"
       toastOptions={{ unstyled: true, style: { width: "100%" } }}
       style={{
-        width: "min(calc(100vw - 32px), var(--app-max-width))",
+        width: "min(calc(100vw - 32px), 400px)",
         left: "50%",
         right: "auto",
         transform: "translateX(-50%)",
