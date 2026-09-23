@@ -4,4 +4,4 @@ export {
   PASSWORD_HINT,
 } from "./model/login-form.schema";
 export type { LoginFormValues } from "./model/login-form.schema";
-export { useLogin } from "./model/use-login";
+export { useLoginOrSignup } from "./model/use-login-or-signup";
