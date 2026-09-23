@@ -1,22 +1,53 @@
 "use client";
 
+import { useFormContext } from "react-hook-form";
+
+import { LOGIN_ID_HINT, PASSWORD_HINT, useLogin } from "@/features/login";
+import type { LoginFormValues } from "@/features/login";
+import { ApiError } from "@/shared/api";
 import { FieldHelperText } from "@/shared/ui/field-helper-text";
 
 import { useLoginFlow } from "../model/login-flow-provider";
 
-export function LoginForm() {
-  const { showNotificationOnboarding } = useLoginFlow();
+const CREDENTIAL_ERROR_MESSAGE = "아이디 또는 비밀번호를 확인해 주세요";
+const NETWORK_ERROR_MESSAGE = "인터넷 연결을 확인해 주세요";
+const SERVER_ERROR_TYPE = "server";
 
-  function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    event.currentTarget.reset();
-    showNotificationOnboarding();
+export function LoginForm() {
+  const { enterHome } = useLoginFlow();
+  const {
+    register,
+    handleSubmit,
+    setError,
+    clearErrors,
+    getFieldState,
+    formState: { errors },
+  } = useFormContext<LoginFormValues>();
+  const loginMutation = useLogin();
+
+  async function onSubmit(values: LoginFormValues) {
+    try {
+      await loginMutation.mutateAsync(values);
+      enterHome();
+    } catch (error) {
+      const isCredentialError =
+        error instanceof ApiError &&
+        [400, 401, 404, 422].includes(error.status);
+
+      setError("password", {
+        type: SERVER_ERROR_TYPE,
+        message: isCredentialError
+          ? CREDENTIAL_ERROR_MESSAGE
+          : NETWORK_ERROR_MESSAGE,
+      });
+    }
   }
 
   return (
     <form
       id="login-form"
-      onSubmit={handleSubmit}
+      noValidate
+      onSubmit={handleSubmit(onSubmit)}
       className="mt-[34px] flex flex-col gap-[14px]"
     >
       <div className="rounded-[4px] bg-white px-4 py-[14px] shadow-app-sm focus-within:outline-2 focus-within:outline-offset-2 focus-within:outline-app-primary">
@@ -33,8 +64,19 @@ export function LoginForm() {
           aria-describedby="username-help"
           placeholder="아이디를 입력해주세요"
           className="mt-1 w-full border-0 bg-transparent p-0 text-[17px] font-bold text-app-ink outline-none placeholder:text-app-neutral-400"
+          {...register("loginId", {
+            onChange: () => {
+              if (getFieldState("password").error?.type === SERVER_ERROR_TYPE) {
+                clearErrors("password");
+              }
+            },
+          })}
         />
-        <FieldHelperText id="username-help" hint="2~10자 · 한글·영문·숫자만" />
+        <FieldHelperText
+          id="username-help"
+          hint={LOGIN_ID_HINT}
+          error={errors.loginId?.message}
+        />
       </div>
 
       <div className="rounded-[4px] bg-white px-4 py-[14px] shadow-app-sm focus-within:outline-2 focus-within:outline-offset-2 focus-within:outline-app-primary">
@@ -51,8 +93,13 @@ export function LoginForm() {
           aria-describedby="password-help"
           placeholder="비밀번호를 입력해주세요"
           className="mt-1 w-full border-0 bg-transparent p-0 text-[17px] font-bold text-app-ink outline-none placeholder:text-app-neutral-400"
+          {...register("password")}
         />
-        <FieldHelperText id="password-help" hint="8자 이상 · 영문+숫자 조합" />
+        <FieldHelperText
+          id="password-help"
+          hint={PASSWORD_HINT}
+          error={errors.password?.message}
+        />
       </div>
 
       <p className="mb-0 px-1 pt-0.5 text-[15px] leading-5 text-app-ink/60">
