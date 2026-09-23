@@ -8,9 +8,6 @@ import {
   isStorageFilter,
 } from "../model/ingredient-list-query";
 
-// TODO: 공통 도메인의 현재 냉장고 문맥(CurrentFridgeContext)이 생기면 교체한다.
-export const REFRIGERATOR_ID = "1";
-
 // TODO: API 연동 시 재고 목록 조회 함수와 DTO mapper로 교체한다.
 export type MockIngredientList = {
   ingredientsNum: number;
