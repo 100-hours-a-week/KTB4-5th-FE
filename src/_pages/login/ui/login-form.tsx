@@ -2,7 +2,11 @@
 
 import { useFormContext } from "react-hook-form";
 
-import { LOGIN_ID_HINT, PASSWORD_HINT, useLogin } from "@/features/login";
+import {
+  LOGIN_ID_HINT,
+  PASSWORD_HINT,
+  useLoginOrSignup,
+} from "@/features/login";
 import type { LoginFormValues } from "@/features/login";
 import { ApiError } from "@/shared/api";
 import { FieldHelperText } from "@/shared/ui/field-helper-text";
@@ -14,7 +18,7 @@ const NETWORK_ERROR_MESSAGE = "인터넷 연결을 확인해 주세요";
 const SERVER_ERROR_TYPE = "server";
 
 export function LoginForm() {
-  const { enterHome } = useLoginFlow();
+  const { enterHome, showNotificationOnboarding } = useLoginFlow();
   const {
     register,
     handleSubmit,
@@ -23,12 +27,17 @@ export function LoginForm() {
     getFieldState,
     formState: { errors },
   } = useFormContext<LoginFormValues>();
-  const loginMutation = useLogin();
+  const loginOrSignupMutation = useLoginOrSignup();
 
   async function onSubmit(values: LoginFormValues) {
     try {
-      await loginMutation.mutateAsync(values);
-      enterHome();
+      const { isNewAccount } = await loginOrSignupMutation.mutateAsync(values);
+
+      if (isNewAccount) {
+        showNotificationOnboarding();
+      } else {
+        enterHome();
+      }
     } catch (error) {
       const isCredentialError =
         error instanceof ApiError &&
