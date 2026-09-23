@@ -14,6 +14,13 @@ export type ApiRequestOptions = Omit<RequestInit, "body"> & {
   json?: unknown;
 };
 
+function changesAuthentication(path: string, method: string): boolean {
+  return (
+    (path === "/auth/sessions" && (method === "POST" || method === "DELETE")) ||
+    (path === "/users" && method === "POST")
+  );
+}
+
 async function sendRequest(
   path: string,
   options: ApiRequestOptions = {},
@@ -46,9 +53,10 @@ async function sendRequest(
   // 쿠키가 없으면 ensureCsrfToken이 먼저 GET /auth/csrf로 발급받는다.
   if (isCsrfProtectedRequest(path, method) && !headers.has(CSRF_HEADER_NAME)) {
     const csrfToken = await ensureCsrfToken();
-    if (csrfToken) {
-      headers.set(CSRF_HEADER_NAME, csrfToken);
+    if (!csrfToken) {
+      throw new TypeError("CSRF 토큰 쿠키가 발급되지 않았습니다.");
     }
+    headers.set(CSRF_HEADER_NAME, csrfToken);
   }
 
   const response = await fetch(`${API_BASE_PATH}${path}`, {
@@ -59,6 +67,14 @@ async function sendRequest(
   });
 
   if (response.ok) {
+    if (changesAuthentication(path, method)) {
+      try {
+        await refreshCsrfToken();
+      } catch {
+        // Keep the successful authentication result. The next mutation will
+        // retry issuance before sending its request.
+      }
+    }
     return response;
   }
 
