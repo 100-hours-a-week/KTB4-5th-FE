@@ -1,4 +1,5 @@
 import { infiniteQueryOptions } from "@tanstack/react-query";
+import { ApiError } from "@/shared/api";
 
 import type { IngredientListQuery } from "../model/ingredient-list-query";
 import { getIngredientList } from "./get-ingredient-list";
@@ -15,5 +16,12 @@ export const ingredientQueries = {
         getIngredientList({ refrigeratorId, query, cursor: pageParam, signal }),
       initialPageParam: null as string | null,
       getNextPageParam: (lastPage) => lastPage.nextCursor,
+      retry: (failureCount, error) =>
+        !(
+          error instanceof ApiError &&
+          error.status === 400 &&
+          error.code === "REFRIGERATOR-400-008"
+        ) &&
+        failureCount < 2,
     }),
 };

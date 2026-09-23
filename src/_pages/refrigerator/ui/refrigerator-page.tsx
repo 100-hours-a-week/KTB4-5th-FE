@@ -1,7 +1,7 @@
 "use client";
 
 import { useInfiniteQuery } from "@tanstack/react-query";
-import { useMemo, useRef } from "react";
+import { useMemo } from "react";
 
 import {
   ingredientQueries,
@@ -9,6 +9,7 @@ import {
   parseIngredientListQuery,
   type RawQueryParams,
 } from "@/entities/ingredient";
+import { useIngredientListPaginationState } from "../model/use-ingredient-list-pagination-state";
 import { IngredientControlsContainer } from "./ingredient-controls-container";
 import { IngredientDisposeBanner } from "./ingredient-dispose-banner";
 import { IngredientListContainer } from "./ingredient-list-container";
@@ -39,7 +40,12 @@ export function RefrigeratorPage({ queryParams }: RefrigeratorPageProps) {
     fetchNextPage,
     refetch,
   } = useInfiniteQuery(options);
-  const scrollContainerRef = useRef<HTMLElement>(null);
+  const { scrollContainerRef, handleScroll } = useIngredientListPaginationState(
+    {
+      queryKey: options.queryKey,
+      error,
+    },
+  );
 
   const firstPage = data?.pages[0];
   const ingredients = data?.pages.flatMap((page) => page.ingredients) ?? [];
@@ -73,6 +79,7 @@ export function RefrigeratorPage({ queryParams }: RefrigeratorPageProps) {
 
       <section
         ref={scrollContainerRef}
+        onScroll={handleScroll}
         className="min-h-0 flex-1 overflow-y-auto px-5 pt-4 pb-[calc(var(--space-6)+var(--safe-bottom))] [-webkit-overflow-scrolling:touch]"
         aria-label="재고 목록"
       >
