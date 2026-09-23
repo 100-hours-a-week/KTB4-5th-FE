@@ -3,6 +3,8 @@ type SettingsCardProps = {
   description?: string;
   trailingText?: string;
   ariaLabel?: string;
+  disabled?: boolean;
+  onClick?: () => void;
 };
 
 export function SettingsCard({
@@ -10,12 +12,16 @@ export function SettingsCard({
   description,
   trailingText,
   ariaLabel = title,
+  disabled = false,
+  onClick,
 }: SettingsCardProps) {
   return (
     <button
       type="button"
       aria-label={ariaLabel}
-      className="flex w-full items-center justify-between gap-4 rounded-[4px] bg-white px-[18px] py-4 text-left shadow-app-sm transition-colors hover:bg-app-neutral-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-app-primary active:bg-app-neutral-200"
+      disabled={disabled}
+      onClick={onClick}
+      className="flex w-full items-center justify-between gap-4 rounded-[4px] bg-white px-[18px] py-4 text-left shadow-app-sm transition-colors hover:bg-app-neutral-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-app-primary active:bg-app-neutral-200 disabled:pointer-events-none disabled:opacity-50"
     >
       <span className="min-w-0">
         <span className="block text-[15.5px] font-bold text-app-ink">
