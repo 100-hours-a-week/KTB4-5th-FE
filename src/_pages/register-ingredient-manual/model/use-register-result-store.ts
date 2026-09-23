@@ -1,6 +1,6 @@
 import { create } from "zustand";
 
-import type { RegisterBatchResult } from "./register-result";
+import type { RegisterBatchResult } from "@/entities/ingredient";
 
 type RegisterResultState = {
   result: RegisterBatchResult | null;

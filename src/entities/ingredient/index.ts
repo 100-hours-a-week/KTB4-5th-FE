@@ -5,6 +5,16 @@ export {
   type MockIngredientList,
 } from "./api/mock-ingredient-list";
 export {
+  INGREDIENT_REGISTRATION_SOURCES,
+  registerIngredients,
+} from "./api/register-ingredients";
+export type {
+  IngredientRegistrationSource,
+  RegisterBatchResult,
+  RegisterIngredientItem,
+  RegisterMergedItem,
+} from "./api/register-ingredients";
+export {
   INGREDIENT_MEASURE_TYPES,
   INGREDIENT_STORAGE_TYPES,
 } from "./model/ingredient";

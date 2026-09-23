@@ -3,11 +3,10 @@
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
+import type { RegisterBatchResult } from "@/entities/ingredient";
 import { markAppNavigationIntent } from "@/shared/lib/navigation-history";
 import { routes } from "@/shared/routes";
 import { AppDialog } from "@/shared/ui/app-dialog";
-
-import type { RegisterBatchResult } from "../model/register-result";
 
 type RegisterCompleteDialogProps = {
   result: RegisterBatchResult | null;
