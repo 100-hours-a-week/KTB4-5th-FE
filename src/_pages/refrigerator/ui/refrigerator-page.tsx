@@ -5,10 +5,11 @@ import { useMemo } from "react";
 
 import {
   ingredientQueries,
-  REFRIGERATOR_ID,
   parseIngredientListQuery,
   type RawQueryParams,
 } from "@/entities/ingredient";
+import { useCurrentRefrigeratorId } from "@/entities/refrigerator";
+
 import { useIngredientListPaginationState } from "../model/use-ingredient-list-pagination-state";
 import { IngredientControlsContainer } from "./ingredient-controls-container";
 import { IngredientDisposeBanner } from "./ingredient-dispose-banner";
@@ -23,10 +24,12 @@ export function RefrigeratorPage({ queryParams }: RefrigeratorPageProps) {
     () => parseIngredientListQuery(queryParams),
     [queryParams],
   );
-  // TODO: 현재 냉장고 선택 상태가 연동되면 선택된 ID를 사용한다.
-  const refrigeratorId = REFRIGERATOR_ID;
+  const refrigeratorId = useCurrentRefrigeratorId();
   const options = useMemo(
-    () => ingredientQueries.list(refrigeratorId, query),
+    () => ({
+      ...ingredientQueries.list(refrigeratorId ?? "", query),
+      enabled: Boolean(refrigeratorId),
+    }),
     [refrigeratorId, query],
   );
   const {
@@ -65,7 +68,7 @@ export function RefrigeratorPage({ queryParams }: RefrigeratorPageProps) {
       />
 
       <div className="flex-none px-5 pt-4">
-        {canDisposeExpired ? (
+        {canDisposeExpired && refrigeratorId ? (
           <div className="pb-4">
             <IngredientDisposeBanner
               refrigeratorId={refrigeratorId}
