@@ -7,6 +7,7 @@ import {
   INGREDIENT_QUANTITY_UNIT,
   INGREDIENT_STORAGE_TYPE_LABELS,
   INGREDIENT_WEIGHT_UNIT_LABELS,
+  type RegisterMergedItem,
 } from "@/entities/ingredient";
 import { formatExpirationDate } from "@/features/select-expiration-date";
 import { markAppNavigationIntent } from "@/shared/lib/navigation-history";
@@ -15,7 +16,6 @@ import { FooterButton } from "@/shared/ui/footer-button";
 import { NotePaper } from "@/shared/ui/note-paper";
 import { PageActionLayout } from "@/shared/ui/page-action-layout";
 
-import type { RegisterMergedItem } from "../model/register-result";
 import { useRegisterResultStore } from "../model/use-register-result-store";
 
 type AmountKey = "previous" | "added" | "total";
@@ -55,9 +55,7 @@ function formatMergedAmount(item: RegisterMergedItem, key: AmountKey) {
 
 export function RegisterMergeResultPage() {
   const router = useRouter();
-  const [result] = useState(
-    () => useRegisterResultStore.getState().result,
-  );
+  const [result] = useState(() => useRegisterResultStore.getState().result);
   const clearResult = useRegisterResultStore((state) => state.clearResult);
   const [isLeaving, setIsLeaving] = useState(false);
 
