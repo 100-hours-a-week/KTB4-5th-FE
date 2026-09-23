@@ -53,7 +53,6 @@ export function isStorageFilter(
   return (INGREDIENT_STORAGE_TYPES as readonly string[]).includes(filter);
 }
 
-// URL 조건을 조회 조건으로 정규화한다. 허용하지 않는 값은 기본값으로 폴백
 export function parseIngredientListQuery(
   queryParams: RawQueryParams,
 ): IngredientListQuery {
@@ -70,7 +69,6 @@ export function parseIngredientListQuery(
   };
 }
 
-// 정규화된 조건을 URL query string으로 되돌린다. 기본값과 빈 값은 생략한다.
 export function toIngredientListQueryString(
   query: IngredientListQuery,
 ): string {
@@ -87,7 +85,6 @@ export function toIngredientListQueryString(
   return queryParams.toString();
 }
 
-// 사용자가 직접 고른 조회 조건이 있으면 true다. 빈 상태 문구를 가른다.
 export function hasIngredientListCondition(
   query: IngredientListQuery,
 ): boolean {
