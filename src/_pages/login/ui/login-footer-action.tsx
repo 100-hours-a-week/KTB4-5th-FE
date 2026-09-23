@@ -1,27 +1,19 @@
 "use client";
 
-import { useRouter } from "next/navigation";
-import { useTransition } from "react";
+import { useFormState } from "react-hook-form";
 
-import { markAppNavigationIntent } from "@/shared/lib/navigation-history";
-import { routes } from "@/shared/routes";
+import type { LoginFormValues } from "@/features/login";
 import { Button } from "@/shared/ui/button";
 
 import { useLoginFlow } from "../model/login-flow-provider";
 
 export function LoginFooterAction() {
-  const router = useRouter();
-  const { step } = useLoginFlow();
-  const [isPending, startTransition] = useTransition();
-
-  function handleOnboardingStart() {
-    startTransition(() => {
-      markAppNavigationIntent("replace", routes.home);
-      router.replace(routes.home);
-    });
-  }
+  const { step, enterHome, isEnteringHome } = useLoginFlow();
+  const { isValid, isSubmitting } = useFormState<LoginFormValues>();
 
   if (step === "login") {
+    const isEntering = isSubmitting || isEnteringHome;
+
     return (
       <Button
         type="submit"
@@ -29,13 +21,15 @@ export function LoginFooterAction() {
         variant="highlight"
         shape="note"
         className="w-full shadow-app-md"
+        loading={isEntering}
+        disabled={!isValid}
       >
-        시작하기
+        {isEntering ? "로그인 중" : "시작하기"}
       </Button>
     );
   }
 
-  if (isPending) {
+  if (isEnteringHome) {
     return (
       <div
         className="text-center"
@@ -67,7 +61,7 @@ export function LoginFooterAction() {
       variant="highlight"
       shape="note"
       className="w-full shadow-app-md"
-      onClick={handleOnboardingStart}
+      onClick={enterHome}
     >
       시작하기
     </Button>
