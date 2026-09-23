@@ -7,16 +7,13 @@ export type RouteHeaderPolicy =
       kind: "tabs";
       title: string;
       showNotifications: boolean;
+      showRefrigeratorName: boolean;
     }
   | {
       kind: "flow";
       title: string;
       backFallbackHref: string;
     };
-
-export type RouteHeaderTitleOverrides = {
-  home?: string;
-};
 
 const tabHeaderTitles: Record<string, string> = {
   [routes.home]: "홈",
@@ -25,17 +22,12 @@ const tabHeaderTitles: Record<string, string> = {
   [routes.me]: "MY",
 };
 
-function getTabHeaderPolicy(
-  pathname: string,
-  titleOverrides: RouteHeaderTitleOverrides,
-): RouteHeaderPolicy {
-  const overriddenTitle =
-    pathname === routes.home ? titleOverrides.home : undefined;
-
+function getTabHeaderPolicy(pathname: string): RouteHeaderPolicy {
   return {
     kind: "tabs",
-    title: overriddenTitle ?? tabHeaderTitles[pathname] ?? "다먹자",
+    title: tabHeaderTitles[pathname] ?? "다먹자",
     showNotifications: true,
+    showRefrigeratorName: pathname === routes.home,
   };
 }
 
@@ -104,9 +96,8 @@ function getFlowHeaderPolicy(pathname: string): RouteHeaderPolicy {
 export function getRouteHeaderPolicy(
   pathname: string,
   mode: RouteHeaderMode,
-  titleOverrides: RouteHeaderTitleOverrides = {},
 ): RouteHeaderPolicy {
   return mode === "tabs"
-    ? getTabHeaderPolicy(pathname, titleOverrides)
+    ? getTabHeaderPolicy(pathname)
     : getFlowHeaderPolicy(pathname);
 }

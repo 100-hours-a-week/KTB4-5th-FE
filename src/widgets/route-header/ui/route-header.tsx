@@ -16,26 +16,31 @@ import {
   getRouteHeaderPolicy,
   type RouteHeaderMode,
 } from "../model/route-header-policy";
+import { RefrigeratorHeaderTitle } from "./refrigerator-header-title";
 
 type RouteHeaderProps = {
   mode: RouteHeaderMode;
-  homeTitle?: string;
   unreadNotificationCount?: number;
 };
 
 export function RouteHeader({
   mode,
-  homeTitle,
   unreadNotificationCount,
 }: RouteHeaderProps) {
   const pathname = usePathname();
   const router = useRouter();
-  const policy = getRouteHeaderPolicy(pathname, mode, { home: homeTitle });
+  const policy = getRouteHeaderPolicy(pathname, mode);
 
   if (policy.kind === "tabs") {
     return (
       <AppHeader
-        title={policy.title}
+        title={
+          policy.showRefrigeratorName ? (
+            <RefrigeratorHeaderTitle fallback={policy.title} />
+          ) : (
+            policy.title
+          )
+        }
         actions={
           policy.showNotifications ? (
             <NotificationBell unreadCount={unreadNotificationCount} />
