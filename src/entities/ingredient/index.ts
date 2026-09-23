@@ -2,7 +2,7 @@ export { disposeExpiredIngredients } from "./api/dispose-expired-ingredients";
 export { ingredientQueries } from "./api/ingredient.queries";
 export {
   getMockIngredientList,
-  MOCK_REFRIGERATOR_ID,
+  REFRIGERATOR_ID,
   type MockIngredientList,
 } from "./api/mock-ingredient-list";
 export {

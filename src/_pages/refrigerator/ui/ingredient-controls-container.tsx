@@ -1,7 +1,6 @@
 "use client";
 
 import { type IngredientListQuery } from "@/entities/ingredient";
-import { STOCK_TYPE_LIMIT } from "@/shared/config";
 
 import { useIngredientListNavigation } from "../model/use-ingredient-list-navigation";
 import { IngredientFilterSection } from "./ingredient-filter-section";
@@ -11,17 +10,22 @@ type IngredientControlsContainerProps = {
   query: IngredientListQuery;
   filteredCount: number;
   ingredientsNum: number;
+  refrigeratorCapacity: number;
+  isLoading: boolean;
 };
 
 export function IngredientControlsContainer({
   filteredCount,
   ingredientsNum,
+  refrigeratorCapacity,
+  isLoading,
   query,
 }: IngredientControlsContainerProps) {
   const updateQuery = useIngredientListNavigation(query);
-  const remaining = Math.max(STOCK_TYPE_LIMIT - ingredientsNum, 0);
-  const countText =
-    query.filter === null
+  const remaining = refrigeratorCapacity - ingredientsNum;
+  const countText = isLoading
+    ? "재고 조회 중"
+    : query.filter === null
       ? `전체 ${ingredientsNum}종 · 잔여 ${remaining}종`
       : `총 ${filteredCount}종`;
 
