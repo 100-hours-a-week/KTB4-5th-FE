@@ -119,12 +119,10 @@ async function sendRequest(
   throw new ApiError(response.status, problem);
 }
 
-export async function requestJson<T>(
-  path: string,
-  options: ApiRequestOptions = {},
+async function readJsonBody<T>(
+  response: Response,
+  options: ApiRequestOptions,
 ): Promise<ApiResponse<T>> {
-  const response = await sendRequest(path, options);
-
   if (
     response.status === 204 ||
     response.status === 205 ||
@@ -139,6 +137,32 @@ export async function requestJson<T>(
   }
 
   return value as ApiResponse<T>;
+}
+
+export async function requestJson<T>(
+  path: string,
+  options: ApiRequestOptions = {},
+): Promise<ApiResponse<T>> {
+  const response = await sendRequest(path, options);
+
+  return readJsonBody<T>(response, options);
+}
+
+export type JsonWithHeaders<T> = {
+  body: ApiResponse<T>;
+  headers: Headers;
+};
+
+export async function requestJsonWithHeaders<T>(
+  path: string,
+  options: ApiRequestOptions = {},
+): Promise<JsonWithHeaders<T>> {
+  const response = await sendRequest(path, options);
+
+  return {
+    body: await readJsonBody<T>(response, options),
+    headers: response.headers,
+  };
 }
 
 export async function requestNoContent(

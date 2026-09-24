@@ -13,6 +13,10 @@ export function isApiResponse(value: unknown): value is ApiResponse<unknown> {
   );
 }
 
+function readNonEmptyString(value: unknown): string | null {
+  return typeof value === "string" && value ? value : null;
+}
+
 export async function readProblem(response: Response): Promise<ApiProblem> {
   const text = await response.text();
   let value: unknown;
@@ -27,14 +31,12 @@ export async function readProblem(response: Response): Promise<ApiProblem> {
 
   return {
     ...problem,
-    code:
-      typeof problem.code === "string" && problem.code
-        ? problem.code
-        : `UNKNOWN-${response.status}-000`,
+    code: readNonEmptyString(problem.code) ?? `UNKNOWN-${response.status}-000`,
     title:
-      typeof problem.title === "string" && problem.title
-        ? problem.title
-        : response.statusText || `HTTP ${response.status} 오류`,
+      readNonEmptyString(problem.title) ??
+      readNonEmptyString(problem.message) ??
+      readNonEmptyString(response.statusText) ??
+      `HTTP ${response.status} 오류`,
     status: response.status,
     type: typeof problem.type === "string" ? problem.type : "about:blank",
     detail: typeof problem.detail === "string" ? problem.detail : undefined,
