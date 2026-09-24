@@ -1,4 +1,5 @@
 export { disposeExpiredIngredients } from "./api/dispose-expired-ingredients";
+export type { IngredientListPage } from "./api/get-ingredient-list";
 export { ingredientQueries } from "./api/ingredient.queries";
 export {
   getMockIngredientList,
