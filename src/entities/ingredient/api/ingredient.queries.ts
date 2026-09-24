@@ -3,7 +3,7 @@ import { ApiError, SessionExpiredError } from "@/shared/api";
 
 import type { IngredientListQuery } from "../model/ingredient-list-query";
 import { getIngredientDetail } from "./get-ingredient-detail";
-import { getIngredientList } from "./get-ingredient-list";
+import { getAllIngredients, getIngredientList } from "./get-ingredient-list";
 
 function retryIngredientList(failureCount: number, error: Error): boolean {
   return (
@@ -59,5 +59,16 @@ export const ingredientQueries = {
       queryFn: ({ signal }) =>
         getIngredientList({ refrigeratorId, query, cursor: null, signal }),
       retry: retryIngredientList,
+    }),
+  allPages: (refrigeratorId: string, query: IngredientListQuery) =>
+    queryOptions({
+      queryKey: [
+        ...ingredientQueries.byRefrigerator(refrigeratorId),
+        "all-pages",
+        query,
+      ] as const,
+      queryFn: ({ signal }) =>
+        getAllIngredients({ refrigeratorId, query, signal }),
+      retry: retryIngredientRead,
     }),
 };

@@ -3,10 +3,6 @@ export { getIngredientDetail } from "./api/get-ingredient-detail";
 export type { IngredientDetailView } from "./api/get-ingredient-detail";
 export type { IngredientListPage } from "./api/get-ingredient-list";
 export { ingredientQueries } from "./api/ingredient.queries";
-export {
-  getMockIngredientList,
-  type MockIngredientList,
-} from "./api/mock-ingredient-list";
 export { registerIngredients } from "./api/register-ingredients";
 export type {
   RegisterBatchResult,
