@@ -5,11 +5,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { FormProvider, useFieldArray, useForm } from "react-hook-form";
 
-import {
-  ingredientQueries,
-  registerIngredients,
-  type RegisterBatchResult,
-} from "@/entities/ingredient";
+import { type RegisterBatchResult } from "@/entities/ingredient";
 import { useCurrentRefrigeratorId } from "@/entities/refrigerator";
 import { INGREDIENT_REGISTER_BATCH_LIMIT } from "@/shared/config";
 import { showAppToast } from "@/shared/ui/app-toast";
@@ -23,6 +19,7 @@ import {
   type ManualRegisterFormInput,
   type ManualRegisterFormValues,
 } from "../model/manual-register-form-schema";
+import { createRegisterIngredientsMutationOptions } from "../model/register-ingredients-mutation";
 import type { RegisterCapacity } from "../model/register-capacity";
 import { toRegisterIngredientItems } from "../model/to-register-items";
 import { useRegisterResultStore } from "../model/use-register-result-store";
@@ -63,18 +60,15 @@ export function ManualRegisterForm({ capacity }: ManualRegisterFormProps) {
   );
   const queryClient = useQueryClient();
   const refrigeratorId = useCurrentRefrigeratorId();
-  const registerMutation = useMutation({
-    mutationFn: registerIngredients,
-    onSuccess: (result, { refrigeratorId: registeredRefrigeratorId }) => {
-      void queryClient.invalidateQueries({
-        queryKey: ingredientQueries.byRefrigerator(registeredRefrigeratorId),
-      });
-      setCompletedResult(result);
-    },
-    onError: () => {
-      showAppToast({ message: "재고 등록에 실패했어요.", variant: "error" });
-    },
-  });
+  const registerMutation = useMutation(
+    createRegisterIngredientsMutationOptions({
+      queryClient,
+      onCompleted: setCompletedResult,
+      onErrorMessage: (message) => {
+        showAppToast({ message, variant: "error" });
+      },
+    }),
+  );
 
   const isBatchLimitReached = fields.length >= INGREDIENT_REGISTER_BATCH_LIMIT;
 
