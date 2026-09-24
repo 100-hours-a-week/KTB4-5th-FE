@@ -29,7 +29,7 @@ export type IngredientWeightUnit = (typeof INGREDIENT_WEIGHT_UNITS)[number];
 export const INGREDIENT_MEASURE_TYPES = ["COUNT", "WEIGHT"] as const;
 export type IngredientMeasureType = (typeof INGREDIENT_MEASURE_TYPES)[number];
 
-export const INGREDIENT_REGISTRATION_SOURCES = ["DIRECT", "RECEIPT"] as const;
+export const INGREDIENT_REGISTRATION_SOURCES = ["DIRECT"] as const;
 export type IngredientRegistrationSource =
   (typeof INGREDIENT_REGISTRATION_SOURCES)[number];
 
