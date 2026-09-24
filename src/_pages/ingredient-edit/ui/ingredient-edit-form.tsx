@@ -32,7 +32,7 @@ import {
 import type {
   IngredientEditTarget,
   MergeTarget,
-} from "../model/mock-ingredient-edit";
+} from "../model/ingredient-edit-target";
 import { EditLeaveGuard } from "./edit-leave-guard";
 import { EditSubmitButton } from "./edit-submit-button";
 import { EditSummaryLine } from "./edit-summary-line";
@@ -49,7 +49,6 @@ type IngredientEditFormProps = {
   target: IngredientEditTarget;
 };
 
-// 합산 확인 모달이 열려 있는 동안 저장할 값을 그대로 들고 있는다.
 type PendingMerge = {
   target: MergeTarget;
   values: IngredientEditFormValues;
@@ -68,14 +67,12 @@ export function IngredientEditForm({ target }: IngredientEditFormProps) {
     defaultValues: initialValues,
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
-  // 저장이나 취소로 화면을 떠나기로 정하면 이탈 확인을 풀어 그대로 이동한다.
   const [isLeaving, setIsLeaving] = useState(false);
   const [pendingMerge, setPendingMerge] = useState<PendingMerge | null>(null);
   const [isCancelConfirmOpen, setIsCancelConfirmOpen] = useState(false);
 
   const detailHref = routes.ingredientDetail(ingredientId);
 
-  /** 상세에서 들어왔으면 기존 엔트리로 돌아가고, 직접 진입이면 상세로 교체한다. */
   function leaveToDetail() {
     setIsLeaving(true);
 
@@ -88,7 +85,6 @@ export function IngredientEditForm({ target }: IngredientEditFormProps) {
     router.replace(detailHref);
   }
 
-  // 합산된 품목은 사라지므로 이전 화면에 남기지 않고 대상 품목 상세로 교체한다.
   function leaveToMergedDetail(mergeTarget: MergeTarget) {
     const href = routes.ingredientDetail(mergeTarget.ingredientId);
 
@@ -108,7 +104,6 @@ export function IngredientEditForm({ target }: IngredientEditFormProps) {
     setIsSubmitting(true);
 
     try {
-      // TODO: 수정 API 연동 시 measureType은 화면 분기에만 사용하고 수정 DTO에서는 제외한다.
       void values;
       await new Promise<void>((resolve) => setTimeout(resolve, 600));
 
@@ -122,14 +117,12 @@ export function IngredientEditForm({ target }: IngredientEditFormProps) {
 
       leaveToDetail();
     } catch {
-      // 실패하면 화면을 그대로 두고 다시 저장할 수 있게 한다.
       setIsSubmitting(false);
       setPendingMerge(null);
       showAppToast({ message: SAVE_ERROR_MESSAGE, variant: "error" });
     }
   }
 
-  // 이름·보관 방법·유통기한이 기존 품목과 같아지면 합산이므로 먼저 확인을 받는다.
   function submitEdit(values: IngredientEditFormValues) {
     const mergeTarget =
       mergeCandidates[
@@ -149,7 +142,6 @@ export function IngredientEditForm({ target }: IngredientEditFormProps) {
       return;
     }
 
-    // 바꾼 것이 없으면 확인 없이 바로 상세로 돌아간다.
     if (!hasEditChanges(initialValues, form.getValues())) {
       leaveToDetail();
       return;
@@ -182,7 +174,6 @@ export function IngredientEditForm({ target }: IngredientEditFormProps) {
           </div>
         }
       >
-        {/* 수정 전 값은 위에 고정하고 입력 카드만 스크롤한다. */}
         <div className="sticky top-0 z-10 border-b border-app-ink/10 bg-app-bg px-5 pt-3 pb-2.5">
           <EditSummaryLine id={SUMMARY_ID} initialValues={initialValues} />
         </div>

@@ -56,3 +56,26 @@ export async function getIngredientList({
     })),
   };
 }
+
+export async function getAllIngredients(
+  params: Omit<GetIngredientListParams, "cursor">,
+): Promise<Ingredient[]> {
+  const ingredients: Ingredient[] = [];
+  const seenCursors = new Set<string>();
+  let cursor: string | null = null;
+
+  do {
+    const page = await getIngredientList({ ...params, cursor });
+    ingredients.push(...page.ingredients);
+    cursor = page.nextCursor;
+
+    if (cursor !== null) {
+      if (seenCursors.has(cursor)) {
+        throw new TypeError("재고 목록의 페이지 커서가 반복되었습니다.");
+      }
+      seenCursors.add(cursor);
+    }
+  } while (cursor !== null);
+
+  return ingredients;
+}
