@@ -1,4 +1,6 @@
 export { disposeExpiredIngredients } from "./api/dispose-expired-ingredients";
+export { expireIngredient } from "./api/expire-ingredient";
+export type { ExpireIngredientBody } from "./api/expire-ingredient";
 export { getIngredientDetail } from "./api/get-ingredient-detail";
 export type { IngredientDetailView } from "./api/get-ingredient-detail";
 export type { IngredientListPage } from "./api/get-ingredient-list";
