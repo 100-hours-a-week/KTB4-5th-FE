@@ -45,3 +45,19 @@ export type Ingredient = {
   status: IngredientStatus;
   daysUntilExpiration: number;
 };
+
+export type IngredientDetail = {
+  ingredientId: string;
+  name: string;
+  category: IngredientCategory;
+  storageType: IngredientStorageType;
+  measureType: IngredientMeasureType;
+  quantity: number | null;
+  weightValue: number | null;
+  weightUnit: IngredientWeightUnit;
+  expirationDate: string;
+  createdDate: string;
+  registrationSource: IngredientRegistrationSource;
+  status: IngredientStatus;
+  daysUntilExpiration: number;
+};

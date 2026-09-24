@@ -26,10 +26,8 @@ const NAME_HINT = "한글·영문·숫자 2~10자";
 const QUANTITY_HINT = "1~100개 사이에서 수정할 수 있어요";
 const WEIGHT_HINT = "1~50,000 사이에서 수정할 수 있어요";
 const EXPIRATION_HINT = "기한은 4년 이내";
-const FROZEN_STORAGE_WARNING =
-  "변경 시 유통기간이 정확하지 않을 수 있습니다.";
+const FROZEN_STORAGE_WARNING = "변경 시 유통기간이 정확하지 않을 수 있습니다.";
 
-/** 등록 화면의 메모지 카드를 한 건 전용으로 편 형태다. 항상 펼쳐져 있고 접지 않는다. */
 export function IngredientEditCard({
   createdDate,
   initialStorageType,
