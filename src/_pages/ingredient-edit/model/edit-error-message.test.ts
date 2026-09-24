@@ -7,6 +7,7 @@ import { getEditErrorMessage } from "./edit-error-message";
 const cases = [
   ["INGREDIENT-400-003", 400, "입력값을 다시 확인해 주세요"],
   ["REFRIGERATOR-403-001", 403, "냉장고 접근 권한을 확인해 주세요"],
+  ["COMMON-403-CSRF-001", 403, "보안 인증에 실패했어요. 다시 시도해 주세요"],
   ["INGREDIENT-404-001", 404, "존재하지 않는 냉장고예요"],
   [
     "INGREDIENT-412-001",
@@ -26,6 +27,12 @@ describe("ingredient edit errors", () => {
     expect(
       getEditErrorMessage(new ApiError(status, { code, title: "오류" })),
     ).toBe(message);
+  });
+
+  it("shows a network failure message", () => {
+    expect(getEditErrorMessage(new TypeError("Failed to fetch"))).toBe(
+      "인터넷 연결을 확인해 주세요",
+    );
   });
 
   it("leaves an expired session to the global auth handler", () => {

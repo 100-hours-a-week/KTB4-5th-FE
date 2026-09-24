@@ -3,7 +3,7 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 
 import { ingredientQueries, updateIngredient } from "@/entities/ingredient";
 import { ApiError } from "@/shared/api";
@@ -52,6 +52,9 @@ export function IngredientEditForm({
 }: IngredientEditFormProps) {
   const { ingredientId, etag, createdDate, initialValues } = target;
   const queryClient = useQueryClient();
+  const { mutateAsync: mutateIngredient } = useMutation({
+    mutationFn: updateIngredient,
+  });
   const router = useRouter();
   const form = useForm<
     IngredientEditFormInput,
@@ -89,12 +92,15 @@ export function IngredientEditForm({
         message: "재고 버전 정보가 없어요. 다시 불러와 주세요",
         variant: "error",
       });
+      void queryClient.invalidateQueries({
+        queryKey: ingredientQueries.detail(refrigeratorId, ingredientId).queryKey,
+      });
       return;
     }
 
     setIsSubmitting(true);
     try {
-      const result = await updateIngredient({
+      const result = await mutateIngredient({
         ingredientId,
         etag,
         body: toUpdateIngredientBody(initialValues, values),
