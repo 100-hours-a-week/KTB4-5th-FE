@@ -22,10 +22,38 @@ const ingredientDraftSchema = z
   .object({
     name: ingredientNameSchema,
     storageType: z.enum(INGREDIENT_STORAGE_TYPES),
-    quantity: ingredientQuantitySchema,
+    quantity: z
+      .string()
+      .superRefine((value, ctx) => {
+        if (value === "") return;
+        const result = ingredientQuantitySchema.safeParse(value);
+        if (!result.success) {
+          ctx.addIssue({
+            code: "custom",
+            message: result.error.issues[0]?.message ?? "수량을 확인해 주세요",
+          });
+        }
+      })
+      .transform((value) => (value === "" ? null : Number(value))),
     weightValue: ingredientWeightValueSchema,
     weightUnit: z.enum(MANUAL_WEIGHT_UNITS),
     expirationDate: ingredientExpirationDateSchema,
+  })
+  .superRefine((draft, ctx) => {
+    if (draft.quantity === null && draft.weightValue === null) {
+      ctx.addIssue({
+        code: "custom",
+        path: ["quantity"],
+        message: "수량 또는 무게를 입력해주세요",
+      });
+    }
+    if (draft.quantity !== null && draft.weightValue !== null) {
+      ctx.addIssue({
+        code: "custom",
+        path: ["weightValue"],
+        message: "수량과 무게 중 하나만 입력해주세요",
+      });
+    }
   })
   // 무게를 비워 두면 단위도 고르지 않은 것이므로 NONE으로 보낸다.
   .transform((draft) => ({
@@ -55,17 +83,13 @@ export function createEmptyDraft(): ManualIngredientDraft {
   return {
     name: "",
     storageType: "REFRIGERATED",
-    quantity: "1",
+    quantity: "",
     weightValue: "",
     weightUnit: "G",
     expirationDate: "",
   };
 }
 
-/**
- * 한 칸이라도 손댄 카드가 있는지 본다. 입력값이 하나도 없으면 뒤로가기에서
- * 확인 모달 없이 바로 이동한다
- */
 export function hasAnyDraftInput(drafts: readonly ManualIngredientDraft[]) {
   const emptyDraft = createEmptyDraft();
 

@@ -10,9 +10,15 @@ type QuantityFieldProps = {
   id: string;
   index: number;
   describedBy: string;
+  disabled: boolean;
 };
 
-export function QuantityField({ id, index, describedBy }: QuantityFieldProps) {
+export function QuantityField({
+  id,
+  index,
+  describedBy,
+  disabled,
+}: QuantityFieldProps) {
   const {
     field: { ref, name, value, onChange, onBlur },
     fieldState,
@@ -30,6 +36,7 @@ export function QuantityField({ id, index, describedBy }: QuantityFieldProps) {
       onBlur={onBlur}
       invalid={Boolean(fieldState.error)}
       describedBy={describedBy}
+      disabled={disabled}
     />
   );
 }
