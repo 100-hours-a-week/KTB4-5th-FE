@@ -39,7 +39,7 @@ export function IngredientDetailPage({
   });
   const retryControl = useRetryControl();
 
-  if (refrigeratorId === null) {
+  if (!refrigeratorId) {
     return (
       <DetailStateLayout>
         <IngredientRefrigeratorRequiredState />
@@ -72,11 +72,17 @@ export function IngredientDetailPage({
     );
   }
 
-  const { ingredient } = data;
+  const { ingredient, etag } = data;
 
   return (
     <PageActionLayout
-      action={<IngredientDetailActions ingredient={ingredient} />}
+      action={
+        <IngredientDetailActions
+          ingredient={ingredient}
+          etag={etag}
+          refrigeratorId={refrigeratorId}
+        />
+      }
     >
       <IngredientSummaryCard ingredient={ingredient} />
       <IngredientMemoNote status={ingredient.status} />
