@@ -8,7 +8,10 @@ import {
   type IngredientListQuery,
 } from "@/entities/ingredient";
 import { useCurrentRefrigeratorId } from "@/entities/refrigerator";
-import { AsyncViewState } from "@/shared/ui/async-view-state";
+import {
+  AsyncViewState,
+  asyncViewActionClassName,
+} from "@/shared/ui/async-view-state";
 
 import { getRegisterCapacity } from "../model/register-capacity";
 import { ManualRegisterForm } from "./manual-register-form";
@@ -44,7 +47,7 @@ export function RegisterIngredientManualPage() {
             <button
               type="button"
               onClick={() => void refetch()}
-              className="rounded-full bg-app-ink px-6 py-3 text-sm font-bold text-app-canvas"
+              className={asyncViewActionClassName}
             >
               다시 시도
             </button>

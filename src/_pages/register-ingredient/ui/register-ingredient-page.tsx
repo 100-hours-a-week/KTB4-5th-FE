@@ -11,7 +11,10 @@ import {
 import { useCurrentRefrigeratorId } from "@/entities/refrigerator";
 import { ApiError } from "@/shared/api";
 import { routes } from "@/shared/routes";
-import { AsyncViewState } from "@/shared/ui/async-view-state";
+import {
+  AsyncViewState,
+  asyncViewActionClassName,
+} from "@/shared/ui/async-view-state";
 
 import { getRegisterCapacity } from "../model/register-capacity";
 import { RegisterCapacityNotice } from "./register-capacity-notice";
@@ -49,7 +52,7 @@ export function RegisterIngredientPage() {
             <button
               type="button"
               onClick={() => void refetch()}
-              className="rounded-full bg-app-ink px-6 py-3 text-sm font-bold text-app-canvas"
+              className={asyncViewActionClassName}
             >
               다시 시도
             </button>

@@ -8,7 +8,10 @@ import {
   type IngredientListQuery,
 } from "@/entities/ingredient";
 import { ApiError } from "@/shared/api";
-import { AsyncViewState } from "@/shared/ui/async-view-state";
+import {
+  AsyncViewState,
+  asyncViewActionClassName,
+} from "@/shared/ui/async-view-state";
 
 import { useIngredientListNavigation } from "../model/use-ingredient-list-navigation";
 import { useInfiniteScrollTrigger } from "../model/use-infinite-scroll-trigger";
@@ -68,7 +71,7 @@ export function IngredientListContainer({
           <button
             type="button"
             onClick={onRetry}
-            className="rounded-full bg-app-ink px-6 py-3 text-sm font-bold text-app-canvas"
+            className={asyncViewActionClassName}
           >
             다시 시도
           </button>
