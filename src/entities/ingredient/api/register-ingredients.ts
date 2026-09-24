@@ -27,8 +27,6 @@ export type RegisterIngredientItem = {
 export type RegisterMergedItem = {
   ingredientId: number;
   name: string;
-  storageType: IngredientStorageType;
-  expirationDate: string;
   measureType: IngredientMeasureType;
   previousQuantity: number | null;
   addedQuantity: number | null;
@@ -40,7 +38,6 @@ export type RegisterMergedItem = {
 };
 
 export type RegisterBatchResult = {
-  /** 새로 생긴 행 수. 이 수만큼만 냉장고 용량을 쓴다. */
   createdCount: number;
   mergedCount: number;
   ingredientsNum: number;

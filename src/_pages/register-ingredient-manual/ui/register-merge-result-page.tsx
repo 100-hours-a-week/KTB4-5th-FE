@@ -5,11 +5,9 @@ import { useEffect, useState } from "react";
 
 import {
   INGREDIENT_QUANTITY_UNIT,
-  INGREDIENT_STORAGE_TYPE_LABELS,
   INGREDIENT_WEIGHT_UNIT_LABELS,
   type RegisterMergedItem,
 } from "@/entities/ingredient";
-import { formatExpirationDate } from "@/features/select-expiration-date";
 import { markAppNavigationIntent } from "@/shared/lib/navigation-history";
 import { routes } from "@/shared/routes";
 import { FooterButton } from "@/shared/ui/footer-button";
@@ -137,22 +135,16 @@ export function RegisterMergeResultPage() {
             <li key={item.ingredientId}>
               <NotePaper foldSize={22}>
                 <div className="px-4 pt-[17px] pr-5 pb-6">
-                  <div className="flex items-baseline gap-3">
-                    <strong className="min-w-0 flex-1 truncate font-app-heading text-[15px] font-black leading-[1.35]">
-                      {item.name} ·{" "}
-                      {INGREDIENT_STORAGE_TYPE_LABELS[item.storageType]}
-                    </strong>
-                    <span className="flex-none text-[12px] text-app-ink/45">
-                      유통기한 {formatExpirationDate(item.expirationDate)}
-                    </span>
-                  </div>
+                  <strong className="block truncate font-app-heading text-[15px] font-black leading-[1.35]">
+                    {item.name}
+                  </strong>
 
-                  <div className="mt-4 grid grid-cols-[1fr_auto_1fr_auto_1fr] items-baseline gap-2 text-[13px] text-app-ink/65">
+                  <div className="mt-3 flex flex-wrap items-baseline gap-x-1.5 gap-y-1 text-[13px] text-app-ink/65">
                     <span>기존 {formatMergedAmount(item, "previous")}</span>
                     <span aria-hidden="true">+</span>
                     <span>추가 {formatMergedAmount(item, "added")}</span>
                     <span aria-hidden="true">=</span>
-                    <strong className="text-right font-app-heading text-[15px] font-black text-app-ink">
+                    <strong className="font-app-heading text-[15px] font-black text-app-ink">
                       총 {formatMergedAmount(item, "total")}
                     </strong>
                   </div>
