@@ -45,7 +45,6 @@ export function EditWeightField({ id, describedBy }: EditWeightFieldProps) {
       unitRef={unitRef}
       onUnitChange={onUnitChange}
       onUnitBlur={onUnitBlur}
-      unitDisabled
     />
   );
 }

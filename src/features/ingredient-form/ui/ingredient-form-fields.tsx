@@ -33,11 +33,10 @@ export function IngredientFormFields({
 
       <div className="mt-3 grid grid-cols-2 gap-4">
         <div className="min-w-0">{storageField}</div>
-        <div className="min-w-0">
-          {quantityField}
-          {quantityHelper}
-        </div>
+        <div className="min-w-0">{quantityField}</div>
       </div>
+      {/* 2칸을 가로지르는 한 줄을 써서 좁은 칸에서 문구가 잘리지 않게 한다. */}
+      {quantityHelper}
 
       <div className="mt-3 grid grid-cols-2 gap-4">
         <div className="min-w-0">
