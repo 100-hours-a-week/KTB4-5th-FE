@@ -148,6 +148,17 @@ export async function requestJson<T>(
   return readJsonBody<T>(response, options);
 }
 
+export async function requestJsonOrNoContent<T>(
+  path: string,
+  options: ApiRequestOptions = {},
+): Promise<ApiResponse<T> | null> {
+  const response = await sendRequest(path, options);
+  if (response.status === 204) {
+    return null;
+  }
+  return readJsonBody<T>(response, options);
+}
+
 export type JsonWithHeaders<T> = {
   body: ApiResponse<T>;
   headers: Headers;
