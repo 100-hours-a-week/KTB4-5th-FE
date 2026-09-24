@@ -1,32 +1,86 @@
 "use client";
 
 import { useRouter } from "next/navigation";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useRef, useState } from "react";
 
-import type { IngredientDetail } from "@/entities/ingredient";
+import {
+  expireIngredient,
+  ingredientQueries,
+  type ExpireIngredientBody,
+  type IngredientDetail,
+} from "@/entities/ingredient";
+import { ApiError } from "@/shared/api";
 import { markAppNavigationIntent } from "@/shared/lib/navigation-history";
 import { routes } from "@/shared/routes";
 import { AppBottomSheet } from "@/shared/ui/app-bottom-sheet";
 import { AppLink } from "@/shared/ui/app-link";
 import { showAppToast } from "@/shared/ui/app-toast";
 
+import { getExpireErrorMessage } from "../model/expire-error-message";
 import { IngredientExpireSheetContent } from "./ingredient-expire-sheet-content";
 
 type IngredientDetailActionsProps = {
   ingredient: IngredientDetail;
+  etag: string | null;
+  refrigeratorId: string;
 };
 
 export function IngredientDetailActions({
   ingredient,
+  etag,
+  refrigeratorId,
 }: IngredientDetailActionsProps) {
   const router = useRouter();
+  const queryClient = useQueryClient();
+  const { mutateAsync: mutateExpire } = useMutation({
+    mutationFn: expireIngredient,
+  });
   const [isExpireSheetOpen, setIsExpireSheetOpen] = useState(false);
   const [isPending, setIsPending] = useState(false);
   const submittingRef = useRef(false);
 
-  // TODO: API 연동 시 이 재고 행의 남은 재고 전체를 만료 처리한다.
   async function handleExpire() {
     if (submittingRef.current) {
+      return;
+    }
+
+    if (!etag || etag.startsWith("W/")) {
+      showAppToast({
+        message: "재고 버전 정보가 없어요. 다시 불러와 주세요",
+        variant: "error",
+      });
+      setIsExpireSheetOpen(false);
+      void queryClient.invalidateQueries({
+        queryKey: ingredientQueries.detail(
+          refrigeratorId,
+          ingredient.ingredientId,
+        ).queryKey,
+      });
+      return;
+    }
+
+    const body: ExpireIngredientBody | null =
+      ingredient.measureType === "WEIGHT"
+        ? ingredient.weightValue !== null
+          ? { weightValue: String(ingredient.weightValue) }
+          : null
+        : ingredient.quantity !== null
+          ? { quantity: ingredient.quantity }
+          : null;
+
+    if (!body) {
+      showAppToast({
+        message: "처리할 재고 값을 확인해 주세요",
+        variant: "error",
+      });
+      setIsExpireSheetOpen(false);
+      void queryClient.invalidateQueries({
+        queryKey: ingredientQueries.detail(
+          refrigeratorId,
+          ingredient.ingredientId,
+        ).queryKey,
+      });
       return;
     }
 
@@ -34,19 +88,62 @@ export function IngredientDetailActions({
     setIsPending(true);
 
     try {
-      // 상세 만료 처리 API가 연결되기 전까지 요청 중 상태를 확인하기 위한 목업.
-      await new Promise<void>((resolve) => setTimeout(resolve, 700));
+      const result = await mutateExpire({
+        ingredientId: ingredient.ingredientId,
+        etag,
+        body,
+      });
       setIsExpireSheetOpen(false);
+      void queryClient.invalidateQueries({
+        queryKey: ingredientQueries.byRefrigerator(refrigeratorId),
+        refetchType: "inactive",
+      });
+
+      showAppToast({ message: "재고를 처리했어요.", variant: "success" });
+      if (!result.removed) {
+        submittingRef.current = false;
+        setIsPending(false);
+        void queryClient.invalidateQueries({
+          queryKey: ingredientQueries.detail(
+            refrigeratorId,
+            ingredient.ingredientId,
+          ).queryKey,
+        });
+        return;
+      }
 
       const href = routes.refrigerator;
 
       markAppNavigationIntent("replace", href);
-      showAppToast({ message: "재고를 처리했어요.", variant: "success" });
       router.replace(href);
-    } catch {
+    } catch (error) {
       submittingRef.current = false;
       setIsPending(false);
-      showAppToast({ message: "재고 처리에 실패했어요.", variant: "error" });
+      const message = getExpireErrorMessage(error);
+      if (message) showAppToast({ message, variant: "error" });
+
+      if (
+        error instanceof ApiError &&
+        (error.status === 412 || error.status === 428)
+      ) {
+        setIsExpireSheetOpen(false);
+        void queryClient.invalidateQueries({
+          queryKey: ingredientQueries.detail(
+            refrigeratorId,
+            ingredient.ingredientId,
+          ).queryKey,
+        });
+      }
+
+      if (error instanceof ApiError && error.status === 404) {
+        void queryClient.invalidateQueries({
+          queryKey: ingredientQueries.byRefrigerator(refrigeratorId),
+          refetchType: "inactive",
+        });
+        const href = routes.refrigerator;
+        markAppNavigationIntent("replace", href);
+        router.replace(href);
+      }
     }
   }
 

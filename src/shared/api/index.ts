@@ -3,6 +3,7 @@ export { ensureCsrfToken, refreshCsrfToken } from "./csrf";
 export type { ApiProblem, ApiResponse } from "./contract";
 export {
   requestJson,
+  requestJsonOrNoContent,
   requestJsonWithHeaders,
   requestNoContent,
 } from "./fetch-client";
