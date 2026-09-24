@@ -1,23 +1,19 @@
-import { getMockIngredientList, type Ingredient } from "@/entities/ingredient";
+import type { Ingredient, IngredientListPage } from "@/entities/ingredient";
 
 export const HOME_ATTENTION_LIMIT = 3;
 
 export type HomeSummary = {
   attentionItems: Ingredient[];
   stockTypeCount: number;
+  stockTypeLimit: number;
 };
 
-// TODO: API 연동 시 재고 목록 조회 결과로 교체한다.
-export function getHomeSummary(): HomeSummary {
-  const list = getMockIngredientList({
-    filter: null,
-    sort: "EXPIRATION_ASC",
-  });
-
+export function toHomeSummary(page: IngredientListPage): HomeSummary {
   return {
-    attentionItems: list.ingredients
+    attentionItems: page.ingredients
       .filter((ingredient) => ingredient.status !== "NORMAL")
       .slice(0, HOME_ATTENTION_LIMIT),
-    stockTypeCount: list.ingredientsNum,
+    stockTypeCount: page.ingredientsNum,
+    stockTypeLimit: page.refrigeratorCapacity,
   };
 }

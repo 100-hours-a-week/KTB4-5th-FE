@@ -23,6 +23,9 @@ const illustrations: Record<AsyncViewStatus, StaticImageData> = {
   empty: emptyIllustration,
 };
 
+export const asyncViewActionClassName =
+  "rounded-full bg-app-ink px-6 py-3 text-sm font-bold text-app-canvas";
+
 const loadingDotDelays = ["0ms", "160ms", "320ms"];
 
 function LoadingDots() {
