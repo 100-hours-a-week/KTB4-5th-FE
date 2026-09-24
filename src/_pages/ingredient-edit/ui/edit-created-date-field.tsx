@@ -1,7 +1,7 @@
 import { Locked2Outlined } from "@lineiconshq/free-icons";
 import { Lineicons } from "@lineiconshq/react-lineicons";
 
-import { formatExpirationDate } from "@/features/select-expiration-date";
+import { formatIsoDate } from "@/shared/lib/date";
 
 import {
   FIELD_CONTROL_READONLY_CLASS_NAME,
@@ -30,7 +30,7 @@ export function EditCreatedDateField({
         className={`m-0 ${FIELD_CONTROL_READONLY_CLASS_NAME}`}
       >
         <span className="min-w-0 flex-1 truncate font-app-mono text-[15px] font-bold">
-          {formatExpirationDate(createdDate)}
+          {formatIsoDate(createdDate)}
         </span>
         <Lineicons
           icon={Locked2Outlined}

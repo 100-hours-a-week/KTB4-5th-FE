@@ -5,7 +5,7 @@ import {
   INGREDIENT_STORAGE_TYPE_LABELS,
   INGREDIENT_WEIGHT_UNIT_LABELS,
 } from "@/entities/ingredient";
-import { formatExpirationDate } from "@/features/select-expiration-date";
+import { formatIsoDate } from "@/shared/lib/date";
 
 import {
   hasEditChanges,
@@ -32,15 +32,12 @@ function formatStock(values: IngredientEditFormInput) {
     values.name.trim() || "이름 없음",
     INGREDIENT_STORAGE_TYPE_LABELS[values.storageType],
     amount,
-    values.expirationDate
-      ? formatExpirationDate(values.expirationDate)
-      : "기한 미정",
+    values.expirationDate ? formatIsoDate(values.expirationDate) : "기한 미정",
   ]
     .filter(Boolean)
     .join(" · ");
 }
 
-/** 수정 전 값을 목록 위에 고정해 지금 무엇을 바꾸고 있는지 계속 보이게 한다. */
 export function EditSummaryLine({ id, initialValues }: EditSummaryLineProps) {
   const values = useEditValues();
   const isChanged = hasEditChanges(initialValues, values);

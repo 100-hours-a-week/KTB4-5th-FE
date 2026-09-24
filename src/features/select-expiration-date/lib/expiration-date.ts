@@ -43,7 +43,3 @@ export function getMaxExpirationDate(todayIsoDate = getTodayInSeoul()) {
 
   return toIsoDate(date);
 }
-
-export function formatExpirationDate(isoDate: string) {
-  return isoDate.replaceAll("-", ".");
-}

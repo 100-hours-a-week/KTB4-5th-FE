@@ -5,8 +5,9 @@ import { Lineicons } from "@lineiconshq/react-lineicons";
 import { useState } from "react";
 import type { Ref } from "react";
 
+import { formatIsoDate } from "@/shared/lib/date";
+
 import { ExpirationDateSheet } from "./expiration-date-sheet";
-import { formatExpirationDate } from "../lib/expiration-date";
 
 interface IngredientExpirationDateInputProps {
   id: string;
@@ -63,7 +64,7 @@ export function IngredientExpirationDateInput({
           id={`${id}-value`}
           className={`min-w-0 flex-1 truncate font-app-mono text-[15px] font-bold ${value ? "text-app-ink" : "font-normal text-app-ink/30"}`}
         >
-          {value ? formatExpirationDate(value) : "기한 선택"}
+          {value ? formatIsoDate(value) : "기한 선택"}
         </span>
         <Lineicons
           icon={CalendarDaysOutlined}
