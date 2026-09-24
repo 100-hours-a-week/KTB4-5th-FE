@@ -1,6 +1,5 @@
 export {
   addDaysToIsoDate,
-  formatExpirationDate,
   getMaxExpirationDate,
   getTodayInSeoul,
 } from "./lib/expiration-date";

@@ -1,21 +1,21 @@
 import type { ReactNode } from "react";
 
 import {
-  INGREDIENT_QUANTITY_UNIT,
+  formatIngredientQuantity,
+  formatIngredientWeight,
   INGREDIENT_STORAGE_TYPE_LABELS,
-  INGREDIENT_WEIGHT_UNIT_LABELS,
   IngredientExpiryStamp,
+  type IngredientDetail,
 } from "@/entities/ingredient";
+import { formatIsoDate } from "@/shared/lib/date";
 
 import {
   formatDDay,
-  formatDetailDate,
   formatExpirationDeadline,
 } from "../lib/format-ingredient-detail";
-import type { MockIngredientDetail } from "../model/mock-ingredient-detail";
 
 type IngredientSummaryCardProps = {
-  ingredient: MockIngredientDetail;
+  ingredient: IngredientDetail;
 };
 
 type DetailRow = {
@@ -27,28 +27,33 @@ type DetailRow = {
 export function IngredientSummaryCard({
   ingredient,
 }: IngredientSummaryCardProps) {
-  const hasWeight =
-    ingredient.weightValue !== null && ingredient.weightUnit !== "NONE";
+  const quantity =
+    ingredient.quantity === null
+      ? null
+      : formatIngredientQuantity(ingredient.quantity);
+  const weight = formatIngredientWeight(
+    ingredient.weightValue,
+    ingredient.weightUnit,
+  );
 
   const rows: DetailRow[] = [
     {
       label: "등록일",
-      value: formatDetailDate(ingredient.createdDate),
+      value: formatIsoDate(ingredient.createdDate),
     },
     {
       label: "유통기한",
-      value: formatDetailDate(ingredient.expirationDate),
+      value: formatIsoDate(ingredient.expirationDate),
     },
     {
       label: "수량",
-      value: `${ingredient.quantity}${INGREDIENT_QUANTITY_UNIT}`,
+      value: quantity ?? "안 적음",
+      muted: quantity === null,
     },
     {
       label: "무게",
-      value: hasWeight
-        ? `${ingredient.weightValue}${INGREDIENT_WEIGHT_UNIT_LABELS[ingredient.weightUnit]}`
-        : "안 적음",
-      muted: !hasWeight,
+      value: weight ?? "안 적음",
+      muted: weight === null,
     },
     {
       label: "보관 방법",

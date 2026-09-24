@@ -13,7 +13,7 @@ import {
   IngredientFieldHelper,
   IngredientFormFields,
 } from "@/features/ingredient-form";
-import { formatExpirationDate } from "@/features/select-expiration-date";
+import { formatIsoDate } from "@/shared/lib/date";
 import { NotePaper } from "@/shared/ui/note-paper";
 
 import type { ManualRegisterFormInput } from "../model/manual-register-form-schema";
@@ -57,7 +57,6 @@ export function IngredientDraftCard({
   });
   const idPrefix = useId();
 
-  // 카드를 지우면 구독이 끊기기 전에 빈 값으로 한 번 더 그려질 수 있다.
   if (!draft) {
     return null;
   }
@@ -75,15 +74,12 @@ export function IngredientDraftCard({
     draft.quantity === ""
       ? null
       : `${draft.quantity}${INGREDIENT_QUANTITY_UNIT}`,
-    draft.expirationDate
-      ? formatExpirationDate(draft.expirationDate)
-      : "기한 미정",
+    draft.expirationDate ? formatIsoDate(draft.expirationDate) : "기한 미정",
   ]
     .filter(Boolean)
     .join(" · ");
 
   return (
-    // 접힘과 펼침이 같은 메모지를 쓰고 접힌 귀의 크기와 머리글 줄로만 상태를 구분한다.
     <NotePaper foldSize={isExpanded ? 28 : 20}>
       <div className="relative">
         <button
@@ -107,7 +103,6 @@ export function IngredientDraftCard({
           </span>
         </button>
 
-        {/* 펼침 표시는 맨 오른쪽에 두고, 눌림은 아래 헤더 버튼이 그대로 받는다. */}
         <Lineicons
           icon={ChevronDownOutlined}
           size={14}
@@ -119,7 +114,6 @@ export function IngredientDraftCard({
           }`}
         />
 
-        {/* 지우기는 펼침 표시(⌄) 왼쪽에 둔다. 접힌 귀가 있는 오른쪽 아래는 비워둔다. */}
         <button
           type="button"
           onClick={onRemove}

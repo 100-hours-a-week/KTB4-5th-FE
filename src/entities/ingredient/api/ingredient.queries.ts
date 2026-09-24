@@ -1,8 +1,9 @@
 import { infiniteQueryOptions, queryOptions } from "@tanstack/react-query";
-import { ApiError } from "@/shared/api";
+import { ApiError, SessionExpiredError } from "@/shared/api";
 
 import type { IngredientListQuery } from "../model/ingredient-list-query";
-import { getIngredientList } from "./get-ingredient-list";
+import { getIngredientDetail } from "./get-ingredient-detail";
+import { getAllIngredients, getIngredientList } from "./get-ingredient-list";
 
 function retryIngredientList(failureCount: number, error: Error): boolean {
   return (
@@ -14,9 +15,28 @@ function retryIngredientList(failureCount: number, error: Error): boolean {
   );
 }
 
+function retryIngredientRead(failureCount: number, error: Error): boolean {
+  return (
+    !(error instanceof SessionExpiredError) &&
+    !(error instanceof ApiError && error.status < 500) &&
+    failureCount < 2
+  );
+}
+
 export const ingredientQueries = {
   byRefrigerator: (refrigeratorId: string) =>
     ["refrigerators", refrigeratorId, "ingredients"] as const,
+  details: (refrigeratorId: string) =>
+    [...ingredientQueries.byRefrigerator(refrigeratorId), "detail"] as const,
+  detail: (refrigeratorId: string, ingredientId: string) =>
+    queryOptions({
+      queryKey: [
+        ...ingredientQueries.details(refrigeratorId),
+        ingredientId,
+      ] as const,
+      queryFn: ({ signal }) => getIngredientDetail({ ingredientId, signal }),
+      retry: retryIngredientRead,
+    }),
   lists: (refrigeratorId: string) =>
     [...ingredientQueries.byRefrigerator(refrigeratorId), "list"] as const,
   list: (refrigeratorId: string, query: IngredientListQuery) =>
@@ -39,5 +59,16 @@ export const ingredientQueries = {
       queryFn: ({ signal }) =>
         getIngredientList({ refrigeratorId, query, cursor: null, signal }),
       retry: retryIngredientList,
+    }),
+  allPages: (refrigeratorId: string, query: IngredientListQuery) =>
+    queryOptions({
+      queryKey: [
+        ...ingredientQueries.byRefrigerator(refrigeratorId),
+        "all-pages",
+        query,
+      ] as const,
+      queryFn: ({ signal }) =>
+        getAllIngredients({ refrigeratorId, query, signal }),
+      retry: retryIngredientRead,
     }),
 };
