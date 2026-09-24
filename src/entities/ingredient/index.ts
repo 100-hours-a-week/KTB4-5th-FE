@@ -5,23 +5,21 @@ export {
   getMockIngredientList,
   type MockIngredientList,
 } from "./api/mock-ingredient-list";
-export {
-  INGREDIENT_REGISTRATION_SOURCES,
-  registerIngredients,
-} from "./api/register-ingredients";
+export { registerIngredients } from "./api/register-ingredients";
 export type {
-  IngredientRegistrationSource,
   RegisterBatchResult,
   RegisterIngredientItem,
   RegisterMergedItem,
 } from "./api/register-ingredients";
 export {
   INGREDIENT_MEASURE_TYPES,
+  INGREDIENT_REGISTRATION_SOURCES,
   INGREDIENT_STORAGE_TYPES,
 } from "./model/ingredient";
 export type {
   Ingredient,
   IngredientMeasureType,
+  IngredientRegistrationSource,
   IngredientStatus,
   IngredientStorageType,
   IngredientWeightUnit,

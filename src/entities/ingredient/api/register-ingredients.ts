@@ -3,13 +3,10 @@ import { requestJson } from "@/shared/api";
 import type {
   IngredientCategory,
   IngredientMeasureType,
+  IngredientRegistrationSource,
   IngredientStorageType,
   IngredientWeightUnit,
 } from "../model/ingredient";
-
-export const INGREDIENT_REGISTRATION_SOURCES = ["DIRECT", "RECEIPT"] as const;
-export type IngredientRegistrationSource =
-  (typeof INGREDIENT_REGISTRATION_SOURCES)[number];
 
 /** 수량과 무게는 measureType에 맞는 한쪽만 값을 가진다. */
 export type RegisterIngredientItem = {
