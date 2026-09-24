@@ -3,9 +3,12 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+
+import { ingredientQueries, updateIngredient } from "@/entities/ingredient";
+import { ApiError } from "@/shared/api";
 import { FormProvider, useForm } from "react-hook-form";
 
-import { toStockKey } from "@/features/ingredient-form";
 import {
   markAppNavigationIntent,
   readAppNavigationDepth,
@@ -16,23 +19,20 @@ import { showAppToast } from "@/shared/ui/app-toast";
 import { FooterButton } from "@/shared/ui/footer-button";
 import { PageActionLayout } from "@/shared/ui/page-action-layout";
 
-import { withSubjectParticle } from "../lib/korean-particle";
 import {
   LEAVE_DIALOG_DESCRIPTION,
   LEAVE_DIALOG_TITLE,
-  SAVE_ERROR_MESSAGE,
   SAVE_SUCCESS_MESSAGE,
 } from "../model/edit-messages";
 import {
   hasEditChanges,
-  ingredientEditFormSchema,
+  createIngredientEditFormSchema,
   type IngredientEditFormInput,
   type IngredientEditFormValues,
 } from "../model/ingredient-edit-form-schema";
-import type {
-  IngredientEditTarget,
-  MergeTarget,
-} from "../model/ingredient-edit-target";
+import type { IngredientEditTarget } from "../model/ingredient-edit-target";
+import { getEditErrorMessage } from "../model/edit-error-message";
+import { toUpdateIngredientBody } from "../model/to-update-ingredient-body";
 import { EditLeaveGuard } from "./edit-leave-guard";
 import { EditSubmitButton } from "./edit-submit-button";
 import { EditSummaryLine } from "./edit-summary-line";
@@ -40,35 +40,35 @@ import { IngredientEditCard } from "./ingredient-edit-card";
 
 const FORM_ID = "ingredient-edit-form";
 const SUMMARY_ID = "ingredient-edit-summary";
-const MERGE_NOTICE =
-  "이름·보관 방법·측정 타입·유통기한이 모두 같은 재료가 이미 있으면 기존 재고와 합쳐져요.";
-const SEPARATE_ROW_NOTICE =
-  "그에 비해 항목이 하나라도 다르면 별도의 재고로 관리돼요.";
 
 type IngredientEditFormProps = {
   target: IngredientEditTarget;
+  refrigeratorId: string;
 };
 
-type PendingMerge = {
-  target: MergeTarget;
-  values: IngredientEditFormValues;
-};
-
-export function IngredientEditForm({ target }: IngredientEditFormProps) {
-  const { ingredientId, createdDate, initialValues, mergeCandidates } = target;
+export function IngredientEditForm({
+  target,
+  refrigeratorId,
+}: IngredientEditFormProps) {
+  const { ingredientId, etag, createdDate, initialValues } = target;
+  const queryClient = useQueryClient();
+  const { mutateAsync: mutateIngredient } = useMutation({
+    mutationFn: updateIngredient,
+  });
   const router = useRouter();
   const form = useForm<
     IngredientEditFormInput,
     unknown,
     IngredientEditFormValues
   >({
-    resolver: zodResolver(ingredientEditFormSchema),
+    resolver: zodResolver(
+      createIngredientEditFormSchema(initialValues.expirationDate),
+    ),
     mode: "onChange",
     defaultValues: initialValues,
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isLeaving, setIsLeaving] = useState(false);
-  const [pendingMerge, setPendingMerge] = useState<PendingMerge | null>(null);
   const [isCancelConfirmOpen, setIsCancelConfirmOpen] = useState(false);
 
   const detailHref = routes.ingredientDetail(ingredientId);
@@ -85,56 +85,50 @@ export function IngredientEditForm({ target }: IngredientEditFormProps) {
     router.replace(detailHref);
   }
 
-  function leaveToMergedDetail(mergeTarget: MergeTarget) {
-    const href = routes.ingredientDetail(mergeTarget.ingredientId);
-
-    setIsLeaving(true);
-    markAppNavigationIntent("replace", href);
-    router.replace(href);
-  }
-
-  async function save(
-    values: IngredientEditFormValues,
-    mergeTarget: MergeTarget | null,
-  ) {
-    if (isSubmitting) {
+  async function submitEdit(values: IngredientEditFormValues) {
+    if (isSubmitting) return;
+    if (!etag) {
+      showAppToast({
+        message: "재고 버전 정보가 없어요. 다시 불러와 주세요",
+        variant: "error",
+      });
+      void queryClient.invalidateQueries({
+        queryKey: ingredientQueries.detail(refrigeratorId, ingredientId).queryKey,
+      });
       return;
     }
 
     setIsSubmitting(true);
-
     try {
-      void values;
-      await new Promise<void>((resolve) => setTimeout(resolve, 600));
-
-      setPendingMerge(null);
+      const result = await mutateIngredient({
+        ingredientId,
+        etag,
+        body: toUpdateIngredientBody(initialValues, values),
+      });
+      queryClient.setQueryData(
+        ingredientQueries.detail(refrigeratorId, ingredientId).queryKey,
+        result,
+      );
+      void queryClient.invalidateQueries({
+        queryKey: ingredientQueries.byRefrigerator(refrigeratorId),
+        refetchType: "inactive",
+      });
       showAppToast({ message: SAVE_SUCCESS_MESSAGE, variant: "success" });
-
-      if (mergeTarget) {
-        leaveToMergedDetail(mergeTarget);
-        return;
-      }
-
       leaveToDetail();
-    } catch {
+    } catch (error) {
       setIsSubmitting(false);
-      setPendingMerge(null);
-      showAppToast({ message: SAVE_ERROR_MESSAGE, variant: "error" });
+      const message = getEditErrorMessage(error);
+      if (message) showAppToast({ message, variant: "error" });
+      if (
+        error instanceof ApiError &&
+        (error.status === 412 || error.status === 428)
+      ) {
+        void queryClient.invalidateQueries({
+          queryKey: ingredientQueries.detail(refrigeratorId, ingredientId)
+            .queryKey,
+        });
+      }
     }
-  }
-
-  function submitEdit(values: IngredientEditFormValues) {
-    const mergeTarget =
-      mergeCandidates[
-        toStockKey(values.name, values.storageType, values.expirationDate)
-      ];
-
-    if (mergeTarget) {
-      setPendingMerge({ target: mergeTarget, values });
-      return;
-    }
-
-    void save(values, null);
   }
 
   function cancelEdit() {
@@ -190,11 +184,6 @@ export function IngredientEditForm({ target }: IngredientEditFormProps) {
             initialStorageType={initialValues.storageType}
             measureType={initialValues.measureType}
           />
-
-          <div className="mt-3 rounded-[3px] border border-dashed border-app-ink/25 px-4 py-3 text-[12px] leading-[1.5] break-keep text-app-ink/55">
-            <p className="m-0">{MERGE_NOTICE}</p>
-            <p className="m-0 mt-1">{SEPARATE_ROW_NOTICE}</p>
-          </div>
         </form>
       </PageActionLayout>
 
@@ -220,31 +209,6 @@ export function IngredientEditForm({ target }: IngredientEditFormProps) {
           onClick: () => {
             setIsCancelConfirmOpen(false);
             leaveToDetail();
-          },
-        }}
-      />
-
-      <AppDialog
-        open={pendingMerge !== null}
-        dismissBehavior="none"
-        title="기존 재료와 합칠까요?"
-        description={
-          pendingMerge
-            ? `이름·보관 방법·유통기한이 같은 ${withSubjectParticle(pendingMerge.target.name)} 이미 있어요.\n합치면 기존 재고에 값이 더해지고 수정하던 품목은 사라져요.`
-            : ""
-        }
-        secondaryAction={{
-          label: "취소",
-          disabled: isSubmitting,
-          onClick: () => setPendingMerge(null),
-        }}
-        primaryAction={{
-          label: isSubmitting ? "로딩 중" : "합치기",
-          disabled: isSubmitting,
-          onClick: () => {
-            if (pendingMerge) {
-              void save(pendingMerge.values, pendingMerge.target);
-            }
           },
         }}
       />

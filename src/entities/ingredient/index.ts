@@ -4,6 +4,8 @@ export type { IngredientDetailView } from "./api/get-ingredient-detail";
 export type { IngredientListPage } from "./api/get-ingredient-list";
 export { ingredientQueries } from "./api/ingredient.queries";
 export { registerIngredients } from "./api/register-ingredients";
+export { updateIngredient } from "./api/update-ingredient";
+export type { UpdateIngredientBody } from "./api/update-ingredient";
 export type {
   RegisterBatchResult,
   RegisterIngredientItem,

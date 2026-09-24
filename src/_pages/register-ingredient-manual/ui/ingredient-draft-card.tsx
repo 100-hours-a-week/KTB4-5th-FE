@@ -8,6 +8,7 @@ import { useFormState, useWatch } from "react-hook-form";
 import {
   INGREDIENT_QUANTITY_UNIT,
   INGREDIENT_STORAGE_TYPE_LABELS,
+  INGREDIENT_WEIGHT_UNIT_LABELS,
 } from "@/entities/ingredient";
 import {
   IngredientFieldHelper,
@@ -41,6 +42,8 @@ const DRAFT_ERROR_FIELDS = [
 const NAME_HINT = "한글·영문·숫자 2~10자";
 const QUANTITY_HINT = "수량은 1~100개";
 const WEIGHT_HINT = "무게는 선택 · 1~50,000 정수";
+const QUANTITY_DISABLED_HINT = "무게를 비우면 수량 입력 가능";
+const WEIGHT_DISABLED_HINT = "수량을 비우면 무게 입력 가능";
 const EXPIRATION_HINT = "기한은 4년 이내";
 
 export function IngredientDraftCard({
@@ -62,6 +65,8 @@ export function IngredientDraftCard({
   }
 
   const draftErrors = errors.drafts?.[index];
+  const quantityDisabled = draft.weightValue !== "";
+  const weightDisabled = draft.quantity !== "";
   const errorMessage = DRAFT_ERROR_FIELDS.map(
     (fieldName) => draftErrors?.[fieldName]?.message,
   ).find(Boolean);
@@ -74,6 +79,9 @@ export function IngredientDraftCard({
     draft.quantity === ""
       ? null
       : `${draft.quantity}${INGREDIENT_QUANTITY_UNIT}`,
+    draft.weightValue === ""
+      ? null
+      : `${draft.weightValue}${INGREDIENT_WEIGHT_UNIT_LABELS[draft.weightUnit]}`,
     draft.expirationDate ? formatIsoDate(draft.expirationDate) : "기한 미정",
   ]
     .filter(Boolean)
@@ -168,14 +176,19 @@ export function IngredientDraftCard({
                     id={`${idPrefix}-quantity`}
                     index={index}
                     describedBy={`${idPrefix}-quantity-help`}
+                    disabled={quantityDisabled}
                   />
                 </div>
               }
               quantityHelper={
                 <IngredientFieldHelper
                   id={`${idPrefix}-quantity-help`}
-                  hint={QUANTITY_HINT}
-                  error={draftErrors?.quantity?.message}
+                  hint={quantityDisabled ? QUANTITY_DISABLED_HINT : QUANTITY_HINT}
+                  error={
+                    quantityDisabled
+                      ? undefined
+                      : draftErrors?.quantity?.message
+                  }
                 />
               }
               weightField={
@@ -190,14 +203,19 @@ export function IngredientDraftCard({
                     id={`${idPrefix}-weight`}
                     index={index}
                     describedBy={`${idPrefix}-weight-help`}
+                    disabled={weightDisabled}
                   />
                 </div>
               }
               weightHelper={
                 <IngredientFieldHelper
                   id={`${idPrefix}-weight-help`}
-                  hint={WEIGHT_HINT}
-                  error={draftErrors?.weightValue?.message}
+                  hint={weightDisabled ? WEIGHT_DISABLED_HINT : WEIGHT_HINT}
+                  error={
+                    weightDisabled
+                      ? undefined
+                      : draftErrors?.weightValue?.message
+                  }
                 />
               }
               expirationField={

@@ -35,8 +35,10 @@ export function formatIngredientWeight(
 export function formatIngredientAmount(ingredient: Ingredient): string {
   const parts = [
     INGREDIENT_STORAGE_TYPE_LABELS[ingredient.storageType],
-    formatIngredientQuantity(ingredient.quantity),
   ];
+  if (ingredient.quantity !== null) {
+    parts.push(formatIngredientQuantity(ingredient.quantity));
+  }
   const weight = formatIngredientWeight(
     ingredient.weightValue,
     ingredient.weightUnit,

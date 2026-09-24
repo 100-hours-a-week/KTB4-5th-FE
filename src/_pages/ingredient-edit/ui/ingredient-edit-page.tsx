@@ -4,11 +4,9 @@ import { useQuery } from "@tanstack/react-query";
 import type { ReactNode } from "react";
 
 import {
-  DEFAULT_INGREDIENT_LIST_SORT,
   IngredientReadErrorState,
   IngredientRefrigeratorRequiredState,
   ingredientQueries,
-  type IngredientListQuery,
 } from "@/entities/ingredient";
 import { useCurrentRefrigeratorId } from "@/entities/refrigerator";
 import { useRetryControl } from "@/shared/lib/use-retry-control";
@@ -17,14 +15,7 @@ import { AsyncViewState } from "@/shared/ui/async-view-state";
 import { toIngredientEditTarget } from "../model/ingredient-edit-target";
 import { IngredientEditForm } from "./ingredient-edit-form";
 
-const MERGE_CANDIDATE_LIST_QUERY: IngredientListQuery = {
-  filter: null,
-  sort: DEFAULT_INGREDIENT_LIST_SORT,
-};
-
-type IngredientEditPageProps = {
-  ingredientId: string;
-};
+type IngredientEditPageProps = { ingredientId: string };
 
 function EditStateLayout({ children }: { children: ReactNode }) {
   return (
@@ -40,17 +31,9 @@ export function IngredientEditPage({ ingredientId }: IngredientEditPageProps) {
     ...ingredientQueries.detail(refrigeratorId ?? "", ingredientId),
     enabled: Boolean(refrigeratorId),
   });
-  const listQuery = useQuery({
-    ...ingredientQueries.allPages(
-      refrigeratorId ?? "",
-      MERGE_CANDIDATE_LIST_QUERY,
-    ),
-    enabled: Boolean(refrigeratorId),
-  });
-  const detailRetry = useRetryControl();
-  const listRetry = useRetryControl();
+  const retry = useRetryControl();
 
-  if (refrigeratorId === null) {
+  if (refrigeratorId == null) {
     return (
       <EditStateLayout>
         <IngredientRefrigeratorRequiredState />
@@ -58,28 +41,24 @@ export function IngredientEditPage({ ingredientId }: IngredientEditPageProps) {
     );
   }
 
-  if (detailRetry.retryingError !== null || listRetry.retryingError !== null) {
-    const isDetailRetry = detailRetry.retryingError !== null;
-    const retryControl = isDetailRetry ? detailRetry : listRetry;
-    const failedQuery = isDetailRetry ? detailQuery : listQuery;
-
+  if (retry.retryingError !== null || detailQuery.isError) {
     return (
       <EditStateLayout>
         <IngredientReadErrorState
-          error={retryControl.retryingError?.error}
-          resource={isDetailRetry ? "detail" : "list"}
-          isFetching
-          failureCount={retryControl.failureCount}
-          cooldownSeconds={retryControl.cooldownSeconds}
+          error={retry.retryingError?.error ?? detailQuery.error}
+          resource="detail"
+          isFetching={retry.retryingError !== null || detailQuery.isFetching}
+          failureCount={retry.failureCount}
+          cooldownSeconds={retry.cooldownSeconds}
           onRetry={() =>
-            void retryControl.retry(failedQuery.error, failedQuery.refetch)
+            void retry.retry(detailQuery.error, detailQuery.refetch)
           }
         />
       </EditStateLayout>
     );
   }
 
-  if (detailQuery.isPending || listQuery.isPending) {
+  if (detailQuery.isPending) {
     return (
       <EditStateLayout>
         <AsyncViewState status="loading" title="재고를 불러오는 중입니다" />
@@ -87,33 +66,11 @@ export function IngredientEditPage({ ingredientId }: IngredientEditPageProps) {
     );
   }
 
-  if (detailQuery.isError || listQuery.isError) {
-    const isDetailError = detailQuery.isError;
-    const failedQuery = isDetailError ? detailQuery : listQuery;
-    const retryControl = isDetailError ? detailRetry : listRetry;
-
-    return (
-      <EditStateLayout>
-        <IngredientReadErrorState
-          error={failedQuery.error}
-          resource={isDetailError ? "detail" : "list"}
-          isFetching={failedQuery.isFetching}
-          failureCount={retryControl.failureCount}
-          cooldownSeconds={retryControl.cooldownSeconds}
-          onRetry={() =>
-            void retryControl.retry(failedQuery.error, failedQuery.refetch)
-          }
-        />
-      </EditStateLayout>
-    );
-  }
-
   return (
     <IngredientEditForm
-      target={toIngredientEditTarget(
-        detailQuery.data.ingredient,
-        listQuery.data,
-      )}
+      key={detailQuery.data.etag ?? ingredientId}
+      target={toIngredientEditTarget(detailQuery.data)}
+      refrigeratorId={refrigeratorId}
     />
   );
 }
