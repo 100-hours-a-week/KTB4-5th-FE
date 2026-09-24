@@ -38,7 +38,7 @@ export type Ingredient = {
   name: string;
   category: IngredientCategory;
   measureType: IngredientMeasureType;
-  quantity: number;
+  quantity: number | null;
   weightValue: number | null;
   weightUnit: IngredientWeightUnit;
   storageType: IngredientStorageType;

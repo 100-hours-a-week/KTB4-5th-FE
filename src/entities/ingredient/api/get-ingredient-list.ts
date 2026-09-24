@@ -5,7 +5,9 @@ import type { IngredientListQuery } from "../model/ingredient-list-query";
 
 export const INGREDIENT_LIST_PAGE_SIZE = 10;
 
-type IngredientListItemDto = Omit<Ingredient, "measureType">;
+type IngredientListItemDto = Omit<Ingredient, "measureType" | "weightValue"> & {
+  weightValue: string | null;
+};
 
 type IngredientListResponseDto = {
   ingredientsNum: number;
@@ -52,6 +54,8 @@ export async function getIngredientList({
     ...response.data,
     ingredients: response.data.ingredients.map((ingredient) => ({
       ...ingredient,
+      weightValue:
+        ingredient.weightValue === null ? null : Number(ingredient.weightValue),
       measureType: ingredient.weightUnit === "NONE" ? "COUNT" : "WEIGHT",
     })),
   };

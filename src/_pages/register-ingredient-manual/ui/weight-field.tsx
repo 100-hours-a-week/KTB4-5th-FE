@@ -10,9 +10,15 @@ type WeightFieldProps = {
   id: string;
   index: number;
   describedBy: string;
+  disabled: boolean;
 };
 
-export function WeightField({ id, index, describedBy }: WeightFieldProps) {
+export function WeightField({
+  id,
+  index,
+  describedBy,
+  disabled,
+}: WeightFieldProps) {
   const {
     field: { ref, name, value, onChange, onBlur },
     fieldState,
@@ -46,6 +52,7 @@ export function WeightField({ id, index, describedBy }: WeightFieldProps) {
       unitRef={unitRef}
       onUnitChange={onUnitChange}
       onUnitBlur={onUnitBlur}
+      disabled={disabled}
     />
   );
 }
