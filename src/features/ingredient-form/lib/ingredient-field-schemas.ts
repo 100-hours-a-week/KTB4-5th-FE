@@ -79,7 +79,7 @@ export const ingredientWeightValueSchema = z
     }
 
     if (weight > INGREDIENT_WEIGHT_MAX) {
-      ctx.addIssue({ code: "custom", message: "20,000 이하로 입력해주세요" });
+      ctx.addIssue({ code: "custom", message: "50,000 이하로 입력해주세요" });
     }
   })
   .transform((value) => (value === "" ? null : Number(value)));
