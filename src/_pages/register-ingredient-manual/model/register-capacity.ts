@@ -1,30 +1,31 @@
-import type { IngredientListPage } from "@/entities/ingredient";
-import { toStockKey } from "@/features/ingredient-form";
+import {
+  getIngredientCapacity,
+  type IngredientCapacity,
+  type IngredientListPage,
+  toStockKey,
+} from "@/entities/ingredient";
 import {
   addDaysToIsoDate,
   getTodayInSeoul,
 } from "@/features/select-expiration-date";
 
-export type RegisterCapacity = {
-  stockTypeCount: number;
-  stockTypeLimit: number;
+export type RegisterCapacity = IngredientCapacity & {
   existingStockKeys: string[];
 };
 
 export function getRegisterCapacity(
-  page: IngredientListPage
+  page: IngredientListPage,
 ): RegisterCapacity {
   const today = getTodayInSeoul();
 
   return {
-    stockTypeCount: page.ingredientsNum,
-    stockTypeLimit: page.refrigeratorCapacity,
+    ...getIngredientCapacity(page),
     existingStockKeys: page.ingredients.map((ingredient) =>
       toStockKey(
         ingredient.name,
         ingredient.storageType,
-        addDaysToIsoDate(today, ingredient.daysUntilExpiration)
-      )
+        addDaysToIsoDate(today, ingredient.daysUntilExpiration),
+      ),
     ),
   };
 }

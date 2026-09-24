@@ -8,7 +8,7 @@ import type {
   IngredientWeightUnit,
 } from "../model/ingredient";
 
-/** 수량과 무게는 measureType에 맞는 한쪽만 값을 가진다. */
+/** 등록 시 선택한 측정 방식의 값만 보내고 다른 측정값은 null로 보낸다. */
 export type RegisterIngredientItem = {
   name: string;
   category: IngredientCategory;

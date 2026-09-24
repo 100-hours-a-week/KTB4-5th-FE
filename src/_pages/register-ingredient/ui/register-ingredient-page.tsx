@@ -5,6 +5,7 @@ import { useQuery } from "@tanstack/react-query";
 
 import {
   DEFAULT_INGREDIENT_LIST_SORT,
+  getIngredientCapacity,
   ingredientQueries,
   type IngredientListQuery,
 } from "@/entities/ingredient";
@@ -16,7 +17,6 @@ import {
   asyncViewActionClassName,
 } from "@/shared/ui/async-view-state";
 
-import { getRegisterCapacity } from "../model/register-capacity";
 import { RegisterCapacityNotice } from "./register-capacity-notice";
 import { RegisterMethodCard } from "./register-method-card";
 
@@ -35,7 +35,7 @@ export function RegisterIngredientPage() {
     ...ingredientQueries.firstPage(refrigeratorId ?? "", CAPACITY_LIST_QUERY),
     enabled: Boolean(refrigeratorId),
   });
-  const capacity = page ? getRegisterCapacity(page) : null;
+  const capacity = page ? getIngredientCapacity(page) : null;
 
   if (error && !page) {
     return (

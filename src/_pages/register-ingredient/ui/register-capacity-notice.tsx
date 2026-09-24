@@ -1,10 +1,10 @@
 import { routes } from "@/shared/routes";
 import { AppLink } from "@/shared/ui/app-link";
 
-import type { RegisterCapacity } from "../model/register-capacity";
+import type { IngredientCapacity } from "@/entities/ingredient";
 
 type RegisterCapacityNoticeProps = {
-  capacity: RegisterCapacity;
+  capacity: IngredientCapacity;
 };
 
 export function RegisterCapacityNotice({

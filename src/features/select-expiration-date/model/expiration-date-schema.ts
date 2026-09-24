@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-import { getMaxExpirationDate, getTodayInSeoul } from "./expiration-date";
+import { getMaxExpirationDate, getTodayInSeoul } from "../lib/expiration-date";
 
 export const ingredientExpirationDateSchema = z
   .string()

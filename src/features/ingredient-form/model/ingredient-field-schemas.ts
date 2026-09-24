@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-import { normalizeIngredientName } from "./ingredient-name";
+import { normalizeIngredientName } from "@/entities/ingredient";
 import {
   INGREDIENT_QUANTITY_MAX,
   INGREDIENT_QUANTITY_MIN,

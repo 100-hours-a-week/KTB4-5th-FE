@@ -13,8 +13,3 @@ export function sanitizeIngredientNameInput(value: string) {
     .replace(ALLOWED_NAME_CHARACTERS, "")
     .slice(0, TEXT_FIELD_MAX_LENGTH * 2);
 }
-
-/** 저장 시 앞뒤 공백을 지우고 중간 공백은 1칸으로 줄인다. */
-export function normalizeIngredientName(value: string) {
-  return value.trim().replace(/ {2,}/g, " ");
-}

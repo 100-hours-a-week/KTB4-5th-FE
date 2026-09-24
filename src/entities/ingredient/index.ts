@@ -25,6 +25,8 @@ export type {
   IngredientStorageType,
   IngredientWeightUnit,
 } from "./model/ingredient";
+export { getIngredientCapacity } from "./model/ingredient-capacity";
+export type { IngredientCapacity } from "./model/ingredient-capacity";
 export {
   DEFAULT_INGREDIENT_LIST_SORT,
   hasIngredientListCondition,
@@ -40,6 +42,7 @@ export type {
   IngredientListSort,
   RawQueryParams,
 } from "./model/ingredient-list-query";
+export { normalizeIngredientName, toStockKey } from "./model/stock-key";
 export {
   formatDaysUntilExpiration,
   formatIngredientAmount,

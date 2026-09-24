@@ -4,12 +4,12 @@ import {
   INGREDIENT_MEASURE_TYPES,
   INGREDIENT_STORAGE_TYPES,
   type IngredientWeightUnit,
+  normalizeIngredientName,
 } from "@/entities/ingredient";
 import {
   ingredientNameSchema,
   ingredientQuantitySchema,
   ingredientWeightValueSchema,
-  normalizeIngredientName,
 } from "@/features/ingredient-form";
 import { ingredientExpirationDateSchema } from "@/features/select-expiration-date";
 

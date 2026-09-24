@@ -3,7 +3,10 @@
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
-import type { RegisterBatchResult } from "@/entities/ingredient";
+import {
+  getIngredientCapacity,
+  type RegisterBatchResult,
+} from "@/entities/ingredient";
 import { markAppNavigationIntent } from "@/shared/lib/navigation-history";
 import { routes } from "@/shared/routes";
 import { AppDialog } from "@/shared/ui/app-dialog";
@@ -13,7 +16,6 @@ type RegisterCompleteDialogProps = {
   onViewMergeResult: (result: RegisterBatchResult) => void;
 };
 
-// 등록 결과를 알리는 완료형 모달
 export function RegisterCompleteDialog({
   result,
   onViewMergeResult,
@@ -33,9 +35,14 @@ export function RegisterCompleteDialog({
 
   const registeredTypeCount =
     (result?.createdCount ?? 0) + (result?.mergedCount ?? 0);
-  const stockTypeCountAfter = result?.ingredientsNum ?? 0;
-  const stockTypeLimit = result?.refrigeratorCapacity ?? 0;
-  const remainingTypeCount = Math.max(stockTypeLimit - stockTypeCountAfter, 0);
+  const {
+    stockTypeCount: stockTypeCountAfter,
+    stockTypeLimit,
+    remainingSlots: remainingTypeCount,
+  } = getIngredientCapacity({
+    ingredientsNum: result?.ingredientsNum ?? 0,
+    refrigeratorCapacity: result?.refrigeratorCapacity ?? 0,
+  });
   const hasMergedItems = (result?.mergedItems.length ?? 0) > 0;
 
   function handlePrimaryAction() {
