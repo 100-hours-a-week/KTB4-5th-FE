@@ -3,13 +3,10 @@ import { requestJson } from "@/shared/api";
 import type {
   IngredientCategory,
   IngredientMeasureType,
+  IngredientRegistrationSource,
   IngredientStorageType,
   IngredientWeightUnit,
 } from "../model/ingredient";
-
-export const INGREDIENT_REGISTRATION_SOURCES = ["DIRECT", "RECEIPT"] as const;
-export type IngredientRegistrationSource =
-  (typeof INGREDIENT_REGISTRATION_SOURCES)[number];
 
 /** 수량과 무게는 measureType에 맞는 한쪽만 값을 가진다. */
 export type RegisterIngredientItem = {
@@ -27,8 +24,6 @@ export type RegisterIngredientItem = {
 export type RegisterMergedItem = {
   ingredientId: number;
   name: string;
-  storageType: IngredientStorageType;
-  expirationDate: string;
   measureType: IngredientMeasureType;
   previousQuantity: number | null;
   addedQuantity: number | null;
@@ -40,7 +35,6 @@ export type RegisterMergedItem = {
 };
 
 export type RegisterBatchResult = {
-  /** 새로 생긴 행 수. 이 수만큼만 냉장고 용량을 쓴다. */
   createdCount: number;
   mergedCount: number;
   ingredientsNum: number;

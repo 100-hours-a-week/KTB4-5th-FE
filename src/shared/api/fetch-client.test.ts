@@ -94,6 +94,26 @@ describe("CSRF API integration", () => {
     expect(fetchMock).toHaveBeenCalledTimes(1);
   });
 
+  it("turns a failed 401 renewal into the global session-expired error", async () => {
+    cookie("member-token");
+    const fetchMock = vi.fn(async (input: string) => {
+      if (input === "/api/v1/auth/token-renewals") {
+        return new Response(null, { status: 401 });
+      }
+
+      return new Response(
+        JSON.stringify({ title: "로그인 필요", code: "AUTH-401-001" }),
+        { status: 401 },
+      );
+    });
+    vi.stubGlobal("fetch", fetchMock);
+
+    await expect(request("/items", { method: "POST" })).rejects.toMatchObject({
+      name: "SessionExpiredError",
+    });
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+  });
+
   it("keeps GET and read-only nickname validation free of CSRF headers", async () => {
     const fetchMock = vi.fn(async (_input: string, init: RequestInit) => {
       expect(new Headers(init.headers).has("X-XSRF-TOKEN")).toBe(false);

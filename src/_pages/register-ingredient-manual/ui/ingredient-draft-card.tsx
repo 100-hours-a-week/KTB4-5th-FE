@@ -40,7 +40,7 @@ const DRAFT_ERROR_FIELDS = [
 
 const NAME_HINT = "한글·영문·숫자 2~10자";
 const QUANTITY_HINT = "수량은 1~100개";
-const WEIGHT_HINT = "무게는 선택";
+const WEIGHT_HINT = "무게는 선택 · 1~50,000 정수";
 const EXPIRATION_HINT = "기한은 4년 이내";
 
 export function IngredientDraftCard({
