@@ -1,4 +1,4 @@
-import type { Ingredient } from "../model/ingredient";
+import type { Ingredient, IngredientWeightUnit } from "../model/ingredient";
 import {
   INGREDIENT_QUANTITY_UNIT,
   INGREDIENT_STORAGE_TYPE_LABELS,
@@ -17,16 +17,33 @@ export function formatDaysUntilExpiration(daysUntilExpiration: number): string {
   return `D-${daysUntilExpiration}`;
 }
 
+export function formatIngredientQuantity(quantity: number): string {
+  return `${quantity}${INGREDIENT_QUANTITY_UNIT}`;
+}
+
+export function formatIngredientWeight(
+  weightValue: number | null,
+  weightUnit: IngredientWeightUnit,
+): string | null {
+  if (weightValue === null || weightUnit === "NONE") {
+    return null;
+  }
+
+  return `${weightValue}${INGREDIENT_WEIGHT_UNIT_LABELS[weightUnit]}`;
+}
+
 export function formatIngredientAmount(ingredient: Ingredient): string {
   const parts = [
     INGREDIENT_STORAGE_TYPE_LABELS[ingredient.storageType],
-    `${ingredient.quantity}${INGREDIENT_QUANTITY_UNIT}`,
+    formatIngredientQuantity(ingredient.quantity),
   ];
+  const weight = formatIngredientWeight(
+    ingredient.weightValue,
+    ingredient.weightUnit,
+  );
 
-  if (ingredient.weightValue !== null && ingredient.weightUnit !== "NONE") {
-    parts.push(
-      `${ingredient.weightValue}${INGREDIENT_WEIGHT_UNIT_LABELS[ingredient.weightUnit]}`,
-    );
+  if (weight !== null) {
+    parts.push(weight);
   }
 
   return parts.join(" · ");

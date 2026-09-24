@@ -1,6 +1,7 @@
 import {
-  INGREDIENT_QUANTITY_UNIT,
-  INGREDIENT_WEIGHT_UNIT_LABELS,
+  formatIngredientQuantity,
+  formatIngredientWeight,
+  type IngredientDetail,
 } from "@/entities/ingredient";
 import {
   AppBottomSheetDescription,
@@ -8,25 +9,28 @@ import {
 } from "@/shared/ui/app-bottom-sheet";
 import { FooterButton } from "@/shared/ui/footer-button";
 
-import type { MockIngredientDetail } from "../model/mock-ingredient-detail";
-
 type IngredientExpireSheetContentProps = {
-  ingredient: MockIngredientDetail;
+  ingredient: IngredientDetail;
   isPending: boolean;
   onCancel: () => void;
   onConfirm: () => void;
 };
 
-function formatExpireAmount(ingredient: MockIngredientDetail) {
-  if (
-    ingredient.measureType === "WEIGHT" &&
-    ingredient.weightValue !== null &&
-    ingredient.weightUnit !== "NONE"
-  ) {
-    return `${ingredient.weightValue}${INGREDIENT_WEIGHT_UNIT_LABELS[ingredient.weightUnit]}`;
+function formatExpireAmount(ingredient: IngredientDetail) {
+  if (ingredient.measureType === "WEIGHT") {
+    const weight = formatIngredientWeight(
+      ingredient.weightValue,
+      ingredient.weightUnit,
+    );
+
+    if (weight !== null) {
+      return weight;
+    }
   }
 
-  return `${ingredient.quantity}${INGREDIENT_QUANTITY_UNIT}`;
+  return ingredient.quantity === null
+    ? "-"
+    : formatIngredientQuantity(ingredient.quantity);
 }
 
 export function IngredientExpireSheetContent({

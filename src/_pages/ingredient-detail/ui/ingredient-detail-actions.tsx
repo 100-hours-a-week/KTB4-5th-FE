@@ -3,17 +3,17 @@
 import { useRouter } from "next/navigation";
 import { useRef, useState } from "react";
 
+import type { IngredientDetail } from "@/entities/ingredient";
 import { markAppNavigationIntent } from "@/shared/lib/navigation-history";
 import { routes } from "@/shared/routes";
 import { AppBottomSheet } from "@/shared/ui/app-bottom-sheet";
 import { AppLink } from "@/shared/ui/app-link";
 import { showAppToast } from "@/shared/ui/app-toast";
 
-import type { MockIngredientDetail } from "../model/mock-ingredient-detail";
 import { IngredientExpireSheetContent } from "./ingredient-expire-sheet-content";
 
 type IngredientDetailActionsProps = {
-  ingredient: MockIngredientDetail;
+  ingredient: IngredientDetail;
 };
 
 export function IngredientDetailActions({

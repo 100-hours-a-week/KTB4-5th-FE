@@ -1,4 +1,6 @@
 export { disposeExpiredIngredients } from "./api/dispose-expired-ingredients";
+export { getIngredientDetail } from "./api/get-ingredient-detail";
+export type { IngredientDetailView } from "./api/get-ingredient-detail";
 export type { IngredientListPage } from "./api/get-ingredient-list";
 export { ingredientQueries } from "./api/ingredient.queries";
 export {
@@ -18,6 +20,7 @@ export {
 } from "./model/ingredient";
 export type {
   Ingredient,
+  IngredientDetail,
   IngredientMeasureType,
   IngredientRegistrationSource,
   IngredientStatus,
@@ -42,6 +45,8 @@ export type {
 export {
   formatDaysUntilExpiration,
   formatIngredientAmount,
+  formatIngredientQuantity,
+  formatIngredientWeight,
 } from "./lib/format-ingredient";
 export {
   INGREDIENT_MEASURE_TYPE_LABELS,
@@ -53,3 +58,5 @@ export {
   INGREDIENT_WEIGHT_UNIT_LABELS,
 } from "./lib/ingredient-labels";
 export { IngredientExpiryStamp } from "./ui/ingredient-expiry-stamp";
+export { IngredientReadErrorState } from "./ui/ingredient-read-error-state";
+export { IngredientRefrigeratorRequiredState } from "./ui/ingredient-refrigerator-required-state";
