@@ -1,11 +1,19 @@
 "use client";
 
-import { useState } from "react";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useRef, useState } from "react";
 
-import { type Ingredient } from "@/entities/ingredient";
+import {
+  disposeExpiredIngredients,
+  ingredientQueries,
+  type Ingredient,
+} from "@/entities/ingredient";
+import { refrigeratorQueries } from "@/entities/refrigerator";
 import { AppBottomSheet } from "@/shared/ui/app-bottom-sheet";
 import { AppDialog } from "@/shared/ui/app-dialog";
+import { showAppToast } from "@/shared/ui/app-toast";
 
+import { getDisposeExpiredErrorMessage } from "../model/dispose-expired-error-message";
 import { IngredientDisposeBottomSheetContent } from "./ingredient-dispose-sheet-content";
 
 type IngredientDisposeBottomSheetProps = {
@@ -15,16 +23,67 @@ type IngredientDisposeBottomSheetProps = {
   onClose: () => void;
 };
 
+type PendingDisposal = {
+  refrigeratorId: string;
+  ingredientIds: string[];
+};
+
 export function IngredientDisposeBottomSheet({
   open,
+  refrigeratorId,
   ingredients,
   onClose,
 }: IngredientDisposeBottomSheetProps) {
-  const [confirmCount, setConfirmCount] = useState<number | null>(null);
+  const queryClient = useQueryClient();
+  const [pendingDisposal, setPendingDisposal] =
+    useState<PendingDisposal | null>(null);
+  const submittingRef = useRef(false);
+  const { mutateAsync, isPending } = useMutation({
+    mutationFn: disposeExpiredIngredients,
+  });
 
-  function openConfirm(selectedCount: number) {
+  function openConfirm(ingredientIds: string[]) {
     onClose();
-    setConfirmCount(selectedCount);
+    setPendingDisposal({ refrigeratorId, ingredientIds });
+  }
+
+  function closeConfirm() {
+    if (!submittingRef.current) {
+      setPendingDisposal(null);
+    }
+  }
+
+  async function disposeSelectedIngredients() {
+    if (submittingRef.current || !pendingDisposal?.ingredientIds.length) {
+      return;
+    }
+
+    submittingRef.current = true;
+
+    try {
+      await mutateAsync(pendingDisposal);
+      setPendingDisposal(null);
+
+      void queryClient.invalidateQueries({
+        queryKey: ingredientQueries.byRefrigerator(
+          pendingDisposal.refrigeratorId,
+        ),
+      });
+      void queryClient.invalidateQueries({
+        queryKey: refrigeratorQueries.current().queryKey,
+      });
+      showAppToast({
+        message: "만료 재료 정리를 완료했어요.",
+        variant: "success",
+      });
+    } catch (error) {
+      const message = getDisposeExpiredErrorMessage(error);
+      if (message) {
+        showAppToast({ message, variant: "error" });
+      }
+    } finally {
+      submittingRef.current = false;
+    }
   }
 
   return (
@@ -38,16 +97,19 @@ export function IngredientDisposeBottomSheet({
         />
       </AppBottomSheet>
       <AppDialog
-        open={confirmCount !== null}
-        title={`만료 재료 ${confirmCount ?? 0}종을 폐기할까요?`}
+        open={pendingDisposal !== null}
+        title={`만료 재료 ${pendingDisposal?.ingredientIds.length ?? 0}종을 폐기할까요?`}
         description="선택한 재료의 보유 수량을 모두 폐기해요. 폐기한 재료는 되돌릴 수 없어요."
+        dismissBehavior={isPending ? "none" : "secondary-action"}
         secondaryAction={{
           label: "취소",
-          onClick: () => setConfirmCount(null),
+          disabled: isPending,
+          onClick: closeConfirm,
         }}
         primaryAction={{
-          label: "폐기하기",
-          onClick: () => setConfirmCount(null),
+          label: isPending ? "처리 중..." : "폐기하기",
+          disabled: isPending,
+          onClick: () => void disposeSelectedIngredients(),
         }}
       />
     </>

@@ -16,7 +16,7 @@ export function disposeExpiredIngredients({
   return requestNoContent(
     `/refrigerators/${encodeURIComponent(refrigeratorId)}/ingredients/expired`,
     {
-      method: "DELETE",
+      method: "POST",
       // API 명세의 재고 ID는 숫자이므로 요청 경계에서 변환한다.
       json: { ingredientIds: ingredientIds.map(Number) },
     },
