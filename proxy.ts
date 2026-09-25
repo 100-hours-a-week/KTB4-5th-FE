@@ -6,7 +6,10 @@ import {
 } from "@/shared/api";
 import { loginRedirectReasons, routes } from "@/shared/routes";
 
-const PUBLIC_PATHS: ReadonlySet<string> = new Set([routes.login]);
+const PUBLIC_PATHS: ReadonlySet<string> = new Set([
+  routes.login,
+  routes.offline,
+]);
 
 function hasSessionCookie(request: NextRequest): boolean {
   return (
@@ -30,6 +33,6 @@ export function proxy(request: NextRequest) {
 
 export const config = {
   matcher: [
-    "/((?!api|_next/static|_next/image|manifest.webmanifest|favicon.ico|.*\\.png$).*)",
+    "/((?!api|serwist/|_next/static|_next/image|manifest.webmanifest|favicon.ico|.*\\.png$).*)",
   ],
 };
