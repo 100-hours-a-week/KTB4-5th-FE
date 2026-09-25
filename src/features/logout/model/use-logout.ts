@@ -3,6 +3,7 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 
 import { setCurrentRefrigeratorId } from "@/entities/refrigerator";
+import { rotateNotificationSessionScope } from "@/entities/notification";
 import { ApiError, refreshCsrfToken } from "@/shared/api";
 import { routes } from "@/shared/routes";
 import { showAppToast } from "@/shared/ui/app-toast";
@@ -21,6 +22,7 @@ export function useLogout() {
   function leaveSession() {
     queryClient.clear();
     setCurrentRefrigeratorId(null);
+    rotateNotificationSessionScope();
     void refreshCsrfToken();
     window.location.replace(routes.login);
   }

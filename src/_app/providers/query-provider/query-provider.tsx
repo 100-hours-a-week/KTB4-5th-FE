@@ -10,6 +10,7 @@ import {
 import type { ReactNode } from "react";
 
 import { setCurrentRefrigeratorId } from "@/entities/refrigerator";
+import { rotateNotificationSessionScope } from "@/entities/notification";
 import { SessionExpiredError } from "@/shared/api";
 import { loginRedirectReasons, routes } from "@/shared/routes";
 
@@ -33,6 +34,7 @@ function createQueryClient(): QueryClient {
     // 이동 방식 매트릭스: 로그아웃 → 로그인은 replace. 뒤로가기로 이전
     if (typeof window !== "undefined") {
       setCurrentRefrigeratorId(null);
+      rotateNotificationSessionScope();
       window.location.replace(
         routes.loginWithReason(loginRedirectReasons.sessionExpired),
       );

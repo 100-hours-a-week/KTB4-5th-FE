@@ -3,6 +3,7 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 
 import { setCurrentRefrigeratorId } from "@/entities/refrigerator";
+import { rotateNotificationSessionScope } from "@/entities/notification";
 import { ApiError } from "@/shared/api";
 
 import { login, type LoginRequest, type LoginResult } from "../api/login";
@@ -38,6 +39,7 @@ export function useLoginOrSignup() {
     mutationFn: loginOrSignup,
     onSuccess: ({ data }) => {
       queryClient.removeQueries();
+      rotateNotificationSessionScope();
       setCurrentRefrigeratorId(data.activeRefrigeratorIds[0] ?? null);
     },
   });
