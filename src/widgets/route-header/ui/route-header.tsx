@@ -5,6 +5,7 @@ import { Lineicons } from "@lineiconshq/react-lineicons";
 import { usePathname, useRouter } from "next/navigation";
 
 import { NotificationBell } from "@/entities/notification";
+import { ReadAllNotificationsButton } from "@/features/read-all-notifications";
 import { runAppBackGuard } from "@/shared/lib/navigation-guard";
 import {
   markAppNavigationIntent,
@@ -48,7 +49,7 @@ export function RouteHeader({ mode }: RouteHeaderProps) {
     );
   }
 
-  const { backFallbackHref } = policy;
+  const { backFallbackHref, showReadAllNotifications } = policy;
 
   function goBack() {
     if ((readAppNavigationDepth() ?? 0) > 0) {
@@ -87,6 +88,9 @@ export function RouteHeader({ mode }: RouteHeaderProps) {
             focusable="false"
           />
         </button>
+      }
+      actions={
+        showReadAllNotifications ? <ReadAllNotificationsButton /> : undefined
       }
     />
   );
