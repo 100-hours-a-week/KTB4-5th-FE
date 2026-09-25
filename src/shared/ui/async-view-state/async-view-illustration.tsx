@@ -26,6 +26,7 @@ export function AsyncViewIllustration({ src }: AsyncViewIllustrationProps) {
         src={src}
         alt=""
         sizes="160px"
+        loading="eager"
         onLoad={() => setIsSettled(true)}
         onError={() => setIsSettled(true)}
         className={`size-full object-contain transition-opacity duration-300 ${
