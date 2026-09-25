@@ -3,6 +3,7 @@ import { requestJsonWithHeaders } from "@/shared/api";
 import type {
   IngredientCategory,
   IngredientDetail,
+  IngredientMeasureType,
   IngredientStorageType,
   IngredientWeightUnit,
 } from "../model/ingredient";
@@ -21,6 +22,42 @@ type IngredientDetailResponseDto = Omit<IngredientDetail, "weightValue"> & {
   weightValue: string | null;
 };
 
+type IngredientMergedItemResponseDto = {
+  ingredientId: number;
+  name: string;
+  measureType: IngredientMeasureType;
+  previousQuantity: number | null;
+  addedQuantity: number | null;
+  totalQuantity: number | null;
+  previousWeightValue: number | string | null;
+  addedWeightValue: number | string | null;
+  totalWeightValue: number | string | null;
+  weightUnit: IngredientWeightUnit;
+};
+
+type IngredientUpdateResponseDto = IngredientDetailResponseDto & {
+  mergedItems: IngredientMergedItemResponseDto[];
+};
+
+export type UpdateIngredientMergedItem = Omit<
+  IngredientMergedItemResponseDto,
+  "previousWeightValue" | "addedWeightValue" | "totalWeightValue"
+> & {
+  previousWeightValue: number | null;
+  addedWeightValue: number | null;
+  totalWeightValue: number | null;
+};
+
+export type UpdateIngredientResult = {
+  ingredient: IngredientDetail;
+  mergedItems: UpdateIngredientMergedItem[];
+  etag: string | null;
+};
+
+function toNumberOrNull(value: number | string | null): number | null {
+  return value === null ? null : Number(value);
+}
+
 export async function updateIngredient({
   ingredientId,
   etag,
@@ -29,20 +66,26 @@ export async function updateIngredient({
   ingredientId: string;
   etag: string;
   body: UpdateIngredientBody;
-}): Promise<{ ingredient: IngredientDetail; etag: string | null }> {
-  const response = await requestJsonWithHeaders<IngredientDetailResponseDto>(
+}): Promise<UpdateIngredientResult> {
+  const response = await requestJsonWithHeaders<IngredientUpdateResponseDto>(
     `/ingredients/${encodeURIComponent(ingredientId)}`,
     { method: "PATCH", headers: { "If-Match": etag }, json: body },
   );
 
+  const { mergedItems, ...ingredient } = response.body.data;
+
   return {
     ingredient: {
-      ...response.body.data,
+      ...ingredient,
       weightValue:
-        response.body.data.weightValue === null
-          ? null
-          : Number(response.body.data.weightValue),
+        ingredient.weightValue === null ? null : Number(ingredient.weightValue),
     },
+    mergedItems: mergedItems.map((item) => ({
+      ...item,
+      previousWeightValue: toNumberOrNull(item.previousWeightValue),
+      addedWeightValue: toNumberOrNull(item.addedWeightValue),
+      totalWeightValue: toNumberOrNull(item.totalWeightValue),
+    })),
     etag: response.headers.get("ETag"),
   };
 }

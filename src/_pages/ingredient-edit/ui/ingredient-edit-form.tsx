@@ -22,6 +22,7 @@ import { PageActionLayout } from "@/shared/ui/page-action-layout";
 import {
   LEAVE_DIALOG_DESCRIPTION,
   LEAVE_DIALOG_TITLE,
+  SAVE_MERGED_SUCCESS_MESSAGE,
   SAVE_SUCCESS_MESSAGE,
 } from "../model/edit-messages";
 import {
@@ -87,13 +88,14 @@ export function IngredientEditForm({
 
   async function submitEdit(values: IngredientEditFormValues) {
     if (isSubmitting) return;
-    if (!etag) {
+    if (!etag || etag.startsWith("W/")) {
       showAppToast({
         message: "재고 버전 정보가 없어요. 다시 불러와 주세요",
         variant: "error",
       });
       void queryClient.invalidateQueries({
-        queryKey: ingredientQueries.detail(refrigeratorId, ingredientId).queryKey,
+        queryKey: ingredientQueries.detail(refrigeratorId, ingredientId)
+          .queryKey,
       });
       return;
     }
@@ -107,13 +109,19 @@ export function IngredientEditForm({
       });
       queryClient.setQueryData(
         ingredientQueries.detail(refrigeratorId, ingredientId).queryKey,
-        result,
+        { ingredient: result.ingredient, etag: result.etag },
       );
       void queryClient.invalidateQueries({
         queryKey: ingredientQueries.byRefrigerator(refrigeratorId),
         refetchType: "inactive",
       });
-      showAppToast({ message: SAVE_SUCCESS_MESSAGE, variant: "success" });
+      showAppToast({
+        message:
+          result.mergedItems.length > 0
+            ? SAVE_MERGED_SUCCESS_MESSAGE
+            : SAVE_SUCCESS_MESSAGE,
+        variant: "success",
+      });
       leaveToDetail();
     } catch (error) {
       setIsSubmitting(false);
