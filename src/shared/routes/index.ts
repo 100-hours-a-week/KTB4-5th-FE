@@ -4,6 +4,7 @@ import {
 } from "./login-redirect-reason";
 
 export const routes = {
+  offline: "/~offline",
   home: "/",
   login: "/login",
   loginWithReason: (reason: LoginRedirectReason) =>

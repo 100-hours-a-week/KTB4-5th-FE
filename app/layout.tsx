@@ -5,6 +5,7 @@ import { AppToastProvider } from "@/_app/providers/app-toast-provider";
 import { CsrfBootstrapProvider } from "@/_app/providers/csrf-bootstrap-provider";
 import { NavigationHistoryTracker } from "@/_app/providers/navigation-history-tracker";
 import { QueryProvider } from "@/_app/providers/query-provider";
+import { SerwistProvider } from "@/_app/providers/serwist-provider";
 import { jetBrainsMono } from "@/_app/styles/fonts";
 import { siteConfig } from "@/shared/config";
 import "@/_app/styles/globals.css";
@@ -55,16 +56,18 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html lang="ko" className={jetBrainsMono.variable}>
       <body>
-        <QueryProvider>
-          <AppToastProvider />
-          <CsrfBootstrapProvider />
-          <Suspense fallback={null}>
-            <NavigationHistoryTracker />
-          </Suspense>
-          <div className="isolate mx-auto flex min-h-[100dvh] w-[min(100%,var(--app-max-width))] overflow-x-clip bg-app-bg [background-image:repeating-linear-gradient(180deg,transparent_0_25px,rgb(26_26_30_/_4.5%)_25px_26px)]">
-            {children}
-          </div>
-        </QueryProvider>
+        <SerwistProvider>
+          <QueryProvider>
+            <AppToastProvider />
+            <CsrfBootstrapProvider />
+            <Suspense fallback={null}>
+              <NavigationHistoryTracker />
+            </Suspense>
+            <div className="isolate mx-auto flex min-h-[100dvh] w-[min(100%,var(--app-max-width))] overflow-x-clip bg-app-bg [background-image:repeating-linear-gradient(180deg,transparent_0_25px,rgb(26_26_30_/_4.5%)_25px_26px)]">
+              {children}
+            </div>
+          </QueryProvider>
+        </SerwistProvider>
       </body>
     </html>
   );
