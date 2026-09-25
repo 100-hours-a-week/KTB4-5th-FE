@@ -7,6 +7,9 @@ import {
   getNotificationList,
   NOTIFICATION_LIST_LIMIT,
 } from "./get-notification-list";
+import { getUnreadNotificationCount } from "./get-unread-notification-count";
+
+export const NOTIFICATION_POLLING_INTERVAL_MS = 30_000;
 
 function retryNotificationList(failureCount: number, error: Error): boolean {
   return (
@@ -56,5 +59,22 @@ export const notificationQueries = {
       },
       retry: retryNotificationList,
       refetchOnWindowFocus: false,
+    }),
+  unreadCount: (userScope: string, refrigeratorId: string) =>
+    queryOptions({
+      queryKey: [
+        ...notificationQueries.byRefrigerator(userScope, refrigeratorId),
+        "unread-count",
+      ] as const,
+      queryFn: ({ signal }) =>
+        getUnreadNotificationCount({ refrigeratorId, signal }),
+      refetchInterval: (query) =>
+        query.state.status === "error"
+          ? false
+          : NOTIFICATION_POLLING_INTERVAL_MS,
+      refetchIntervalInBackground: false,
+      refetchOnWindowFocus: false,
+      staleTime: NOTIFICATION_POLLING_INTERVAL_MS,
+      retry: retryNotificationList,
     }),
 };

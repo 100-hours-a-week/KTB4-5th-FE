@@ -3,7 +3,12 @@ export {
   NOTIFICATION_LIST_LIMIT,
 } from "./api/get-notification-list";
 export type { NotificationListPage } from "./api/get-notification-list";
-export { notificationQueries } from "./api/notification.queries";
+export { getUnreadNotificationCount } from "./api/get-unread-notification-count";
+export type { UnreadNotificationCountResponse } from "./api/get-unread-notification-count";
+export {
+  notificationQueries,
+  NOTIFICATION_POLLING_INTERVAL_MS,
+} from "./api/notification.queries";
 export {
   rotateNotificationSessionScope,
   useNotificationSessionScope,
