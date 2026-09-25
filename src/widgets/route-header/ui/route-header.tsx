@@ -16,19 +16,17 @@ import {
   getRouteHeaderPolicy,
   type RouteHeaderMode,
 } from "../model/route-header-policy";
+import { useUnreadNotificationCount } from "../model/use-unread-notification-count";
 import { RefrigeratorHeaderTitle } from "./refrigerator-header-title";
 
 type RouteHeaderProps = {
   mode: RouteHeaderMode;
-  unreadNotificationCount?: number;
 };
 
-export function RouteHeader({
-  mode,
-  unreadNotificationCount,
-}: RouteHeaderProps) {
+export function RouteHeader({ mode }: RouteHeaderProps) {
   const pathname = usePathname();
   const router = useRouter();
+  const unreadNotificationCount = useUnreadNotificationCount();
   const policy = getRouteHeaderPolicy(pathname, mode);
 
   if (policy.kind === "tabs") {
