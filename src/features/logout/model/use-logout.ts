@@ -4,6 +4,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 
 import { setCurrentRefrigeratorId } from "@/entities/refrigerator";
 import { rotateNotificationSessionScope } from "@/entities/notification";
+import { releasePushSubscription } from "@/entities/push-subscription";
 import { ApiError, refreshCsrfToken } from "@/shared/api";
 import { routes } from "@/shared/routes";
 import { showAppToast } from "@/shared/ui/app-toast";
@@ -28,7 +29,10 @@ export function useLogout() {
   }
 
   return useMutation({
-    mutationFn: logout,
+    mutationFn: async () => {
+      await releasePushSubscription();
+      return logout();
+    },
     onSuccess: leaveSession,
     onError: (error) => {
       if (isAlreadyLoggedOut(error)) {
