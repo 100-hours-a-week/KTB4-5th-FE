@@ -3,6 +3,8 @@ export {
   NOTIFICATION_LIST_LIMIT,
 } from "./api/get-notification-list";
 export type { NotificationListPage } from "./api/get-notification-list";
+export { getNotificationPreferences } from "./api/get-notification-preferences";
+export type { NotificationPreferencesResponse } from "./api/get-notification-preferences";
 export { getNotificationStream } from "./api/get-notification-stream";
 export type { NotificationStream } from "./api/get-notification-stream";
 export { getUnreadNotificationCount } from "./api/get-unread-notification-count";
@@ -21,6 +23,14 @@ export {
 } from "./model/notification-session-scope";
 export { NOTIFICATION_TYPES } from "./model/notification";
 export type { Notification, NotificationType } from "./model/notification";
+export {
+  isExpirationNotificationEnabled,
+  NOTIFICATION_PREFERENCE_TYPES,
+} from "./model/notification-preference";
+export type {
+  NotificationPreference,
+  NotificationPreferenceType,
+} from "./model/notification-preference";
 export {
   DEFAULT_NOTIFICATION_LIST_FILTER,
   NOTIFICATION_LIST_FILTERS,
