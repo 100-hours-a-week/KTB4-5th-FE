@@ -3,8 +3,14 @@ export {
   NOTIFICATION_LIST_LIMIT,
 } from "./api/get-notification-list";
 export type { NotificationListPage } from "./api/get-notification-list";
+export { getNotificationStream } from "./api/get-notification-stream";
+export type { NotificationStream } from "./api/get-notification-stream";
 export { getUnreadNotificationCount } from "./api/get-unread-notification-count";
 export type { UnreadNotificationCountResponse } from "./api/get-unread-notification-count";
+export {
+  refreshNotificationLists,
+  refreshNotificationQueries,
+} from "./api/refresh-notification-queries";
 export {
   notificationQueries,
   NOTIFICATION_POLLING_INTERVAL_MS,

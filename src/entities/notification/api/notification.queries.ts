@@ -7,6 +7,7 @@ import {
   getNotificationList,
   NOTIFICATION_LIST_LIMIT,
 } from "./get-notification-list";
+import { getNotificationStream } from "./get-notification-stream";
 import { getUnreadNotificationCount } from "./get-unread-notification-count";
 
 export const NOTIFICATION_POLLING_INTERVAL_MS = 30_000;
@@ -59,6 +60,22 @@ export const notificationQueries = {
       },
       retry: retryNotificationList,
       refetchOnWindowFocus: false,
+    }),
+  stream: (userScope: string, refrigeratorId: string) =>
+    queryOptions({
+      queryKey: [
+        ...notificationQueries.byRefrigerator(userScope, refrigeratorId),
+        "stream",
+      ] as const,
+      queryFn: ({ signal }) =>
+        getNotificationStream({ refrigeratorId, signal }),
+      refetchInterval: (query) =>
+        query.state.status === "error"
+          ? false
+          : NOTIFICATION_POLLING_INTERVAL_MS,
+      refetchIntervalInBackground: false,
+      refetchOnWindowFocus: false,
+      retry: retryNotificationList,
     }),
   unreadCount: (userScope: string, refrigeratorId: string) =>
     queryOptions({
