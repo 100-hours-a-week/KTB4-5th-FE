@@ -30,6 +30,7 @@
   "devDependencies": {
     "@commitlint/cli": "20.5.3",
     "@commitlint/config-conventional": "20.5.3",
+    "@serwist/turbopack": "9.5.12",
     "@tailwindcss/postcss": "^4",
     "@testing-library/dom": "^10.4.2",
     "@testing-library/react": "16.3.3",
@@ -37,6 +38,7 @@
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "@vitejs/plugin-react": "^6.1.1",
+    "esbuild": "^0.28.2",
     "eslint": "^9.39.5",
     "eslint-config-next": "16.3.3",
     "eslint-config-prettier": "10.1.8",
@@ -44,6 +46,7 @@
     "jsdom": "^30.0.1",
     "lint-staged": "17.5.0",
     "prettier": "3.9.6",
+    "serwist": "9.5.12",
     "tailwindcss": "^4",
     "typescript": "^6.0.3",
     "typescript-eslint": "8.67.0",
