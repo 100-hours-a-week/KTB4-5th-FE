@@ -7,6 +7,7 @@ import {
   getNotificationList,
   NOTIFICATION_LIST_LIMIT,
 } from "./get-notification-list";
+import { getNotificationPreferences } from "./get-notification-preferences";
 import { getNotificationStream } from "./get-notification-stream";
 import { getUnreadNotificationCount } from "./get-unread-notification-count";
 
@@ -93,5 +94,16 @@ export const notificationQueries = {
       refetchOnWindowFocus: false,
       staleTime: NOTIFICATION_POLLING_INTERVAL_MS,
       retry: retryNotificationList,
+    }),
+  preferences: (userScope: string) =>
+    queryOptions({
+      queryKey: [
+        ...notificationQueries.all(),
+        userScope,
+        "preferences",
+      ] as const,
+      queryFn: ({ signal }) => getNotificationPreferences({ signal }),
+      retry: retryNotificationList,
+      refetchOnWindowFocus: false,
     }),
 };

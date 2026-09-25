@@ -8,6 +8,7 @@ import {
   useLoginOrSignup,
 } from "@/features/login";
 import type { LoginFormValues } from "@/features/login";
+import { resubscribePushNotificationsIfEnabled } from "@/features/manage-push-notifications";
 import { ApiError } from "@/shared/api";
 import { FieldHelperText } from "@/shared/ui/field-helper-text";
 
@@ -36,6 +37,7 @@ export function LoginForm() {
       if (isNewAccount) {
         showNotificationOnboarding();
       } else {
+        void resubscribePushNotificationsIfEnabled();
         enterHome();
       }
     } catch (error) {
