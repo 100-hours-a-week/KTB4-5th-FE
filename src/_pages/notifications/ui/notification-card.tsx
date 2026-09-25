@@ -7,7 +7,12 @@ import {
   DEFAULT_INGREDIENT_LIST_SORT,
   toIngredientListQueryString,
 } from "@/entities/ingredient";
-import type { Notification } from "@/entities/notification";
+import {
+  useNotificationSessionScope,
+  type Notification,
+} from "@/entities/notification";
+import { useCurrentRefrigeratorId } from "@/entities/refrigerator";
+import { useReadNotification } from "@/features/read-notification";
 import { routes } from "@/shared/routes";
 import { LinkCard } from "@/shared/ui/link-card";
 
@@ -30,10 +35,28 @@ function toNotificationHref(type: Notification["type"]) {
 
 export function NotificationCard({ notification }: NotificationCardProps) {
   const isUnread = notification.readAt === null;
+  const userScope = useNotificationSessionScope();
+  const refrigeratorId = useCurrentRefrigeratorId();
+  const readMutation = useReadNotification();
 
   return (
     <LinkCard
       href={toNotificationHref(notification.type)}
+      onClick={() => {
+        if (
+          !isUnread ||
+          readMutation.isPending ||
+          !userScope ||
+          !refrigeratorId
+        ) {
+          return;
+        }
+        readMutation.mutate({
+          notificationId: notification.notificationId,
+          userScope,
+          refrigeratorId,
+        });
+      }}
       title={
         <span className="flex min-w-0 items-center gap-2">
           {isUnread ? (

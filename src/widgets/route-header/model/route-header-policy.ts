@@ -13,6 +13,7 @@ export type RouteHeaderPolicy =
       kind: "flow";
       title: string;
       backFallbackHref: string;
+      showReadAllNotifications?: boolean;
     };
 
 const tabHeaderTitles: Record<string, string> = {
@@ -37,6 +38,7 @@ function getFlowHeaderPolicy(pathname: string): RouteHeaderPolicy {
       kind: "flow",
       title: "알림",
       backFallbackHref: routes.home,
+      showReadAllNotifications: true,
     };
   }
 
