@@ -1,1 +1,7 @@
-export { NotificationsPage as default } from "@/_pages/notifications";
+import { NotificationsPage } from "@/_pages/notifications";
+
+export default async function Page({
+  searchParams,
+}: PageProps<"/notifications">) {
+  return <NotificationsPage queryParams={await searchParams} />;
+}
