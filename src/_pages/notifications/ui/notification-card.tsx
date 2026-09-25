@@ -43,7 +43,14 @@ export function NotificationCard({ notification }: NotificationCardProps) {
     <LinkCard
       href={toNotificationHref(notification.type)}
       onClick={() => {
-        if (!isUnread || !userScope || !refrigeratorId) return;
+        if (
+          !isUnread ||
+          readMutation.isPending ||
+          !userScope ||
+          !refrigeratorId
+        ) {
+          return;
+        }
         readMutation.mutate({
           notificationId: notification.notificationId,
           userScope,
