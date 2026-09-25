@@ -23,12 +23,14 @@ const defaultOptions: QueryClientConfig["defaultOptions"] = {
 
 function createQueryClient(): QueryClient {
   const clientRef: { current: QueryClient | null } = { current: null };
+  let isRedirectingToLogin = false;
 
   const handleSessionExpired = (error: unknown) => {
-    if (!(error instanceof SessionExpiredError)) {
+    if (!(error instanceof SessionExpiredError) || isRedirectingToLogin) {
       return;
     }
 
+    isRedirectingToLogin = true;
     clientRef.current?.clear();
 
     // 이동 방식 매트릭스: 로그아웃 → 로그인은 replace. 뒤로가기로 이전
