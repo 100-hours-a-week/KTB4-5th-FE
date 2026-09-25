@@ -1,4 +1,4 @@
-import type { ReactNode } from "react";
+import type { MouseEventHandler, ReactNode } from "react";
 
 import { AppLink } from "@/shared/ui/app-link";
 
@@ -9,6 +9,7 @@ type LinkCardProps = {
   trailing?: ReactNode;
   trailingCaption?: ReactNode;
   className?: string;
+  onClick?: MouseEventHandler<HTMLAnchorElement>;
 };
 
 export function LinkCard({
@@ -18,10 +19,12 @@ export function LinkCard({
   title,
   trailing,
   trailingCaption,
+  onClick,
 }: LinkCardProps) {
   return (
     <AppLink
       href={href}
+      onClick={onClick}
       className={`flex items-center gap-3.5 rounded-[4px] bg-white px-[18px] py-4 no-underline shadow-app-sm hover:bg-app-neutral-100 active:bg-app-neutral-200 ${className}`}
     >
       <span className="min-w-0 flex-1">
