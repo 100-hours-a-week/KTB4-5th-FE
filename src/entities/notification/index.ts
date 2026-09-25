@@ -4,6 +4,10 @@ export {
 } from "./api/get-notification-list";
 export type { NotificationListPage } from "./api/get-notification-list";
 export { notificationQueries } from "./api/notification.queries";
+export {
+  rotateNotificationSessionScope,
+  useNotificationSessionScope,
+} from "./model/notification-session-scope";
 export { NOTIFICATION_TYPES } from "./model/notification";
 export type { Notification, NotificationType } from "./model/notification";
 export {
