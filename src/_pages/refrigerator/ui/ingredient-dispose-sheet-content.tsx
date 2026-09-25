@@ -17,7 +17,7 @@ import { FooterButton } from "@/shared/ui/footer-button";
 type IngredientDisposeBottomSheetContentProps = {
   ingredients: Ingredient[];
   onCancel: () => void;
-  onConfirm: (selectedCount: number) => void;
+  onConfirm: (ingredientIds: string[]) => void;
 };
 
 export function IngredientDisposeBottomSheetContent({
@@ -122,7 +122,7 @@ export function IngredientDisposeBottomSheetContent({
         </FooterButton>
         <FooterButton
           disabled={selectedCount === 0}
-          onClick={() => onConfirm(selectedCount)}
+          onClick={() => onConfirm(selectedIngredientIds)}
         >
           {selectedCount}종 폐기하기
         </FooterButton>
