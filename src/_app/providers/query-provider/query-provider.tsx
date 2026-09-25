@@ -11,6 +11,7 @@ import type { ReactNode } from "react";
 
 import { setCurrentRefrigeratorId } from "@/entities/refrigerator";
 import { rotateNotificationSessionScope } from "@/entities/notification";
+import { clearLocalPushSubscription } from "@/entities/push-subscription";
 import { SessionExpiredError } from "@/shared/api";
 import { loginRedirectReasons, routes } from "@/shared/routes";
 
@@ -37,6 +38,8 @@ function createQueryClient(): QueryClient {
     if (typeof window !== "undefined") {
       setCurrentRefrigeratorId(null);
       rotateNotificationSessionScope();
+      // 세션이 끊겨 서버 해제는 못 하지만, 다음 사용자가 이전 구독을 이어받지 않게 기기 흔적은 지운다.
+      void clearLocalPushSubscription();
       window.location.replace(
         routes.loginWithReason(loginRedirectReasons.sessionExpired),
       );
