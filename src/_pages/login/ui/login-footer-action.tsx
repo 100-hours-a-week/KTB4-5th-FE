@@ -49,7 +49,7 @@ export function LoginFooterAction() {
           />
           냉장고 만들고 있어요
         </Button>
-        <p className="mb-0 mt-2 text-[15px] text-app-ink/45">
+        <p className="mb-0 mt-2 text-[14px] text-app-ink/45">
           몇 초면 끝나요. 앱을 닫지 말아주세요
         </p>
       </div>

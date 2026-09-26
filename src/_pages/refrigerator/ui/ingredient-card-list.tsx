@@ -12,7 +12,7 @@ type IngredientCardListProps = {
 
 export function IngredientCardList({ ingredients }: IngredientCardListProps) {
   return (
-    <ul className="flex flex-col gap-3">
+    <ul className="flex flex-col gap-2">
       {ingredients.map((ingredient) => (
         <li key={ingredient.ingredientId}>
           <LinkCard

@@ -12,7 +12,7 @@ type RegisterMethodCardProps = {
 };
 
 const CARD_CLASS_NAME =
-  "flex items-center gap-3.5 rounded-[3px] px-5 py-[22px] no-underline";
+  "flex items-center gap-3 rounded-[3px] px-4 py-3.5 no-underline";
 
 export function RegisterMethodCard({
   href,
@@ -25,15 +25,15 @@ export function RegisterMethodCard({
     <>
       <span
         aria-hidden="true"
-        className="grid size-[46px] flex-none place-items-center rounded-[8px] border-[1.5px] border-dashed border-app-ink/30 text-app-ink/65"
+        className="grid size-10 flex-none place-items-center rounded-[8px] border-[1.5px] border-dashed border-app-ink/30 text-app-ink/65"
       >
-        <Lineicons icon={icon} size={22} strokeWidth={1.8} focusable="false" />
+        <Lineicons icon={icon} size={20} strokeWidth={1.8} focusable="false" />
       </span>
       <span className="min-w-0 flex-1">
-        <span className="block font-app-heading text-[19px] font-black leading-tight text-app-ink">
+        <span className="block font-app-heading text-[16px] font-black leading-tight text-app-ink">
           {title}
         </span>
-        <span className="mt-1 block text-[13px] leading-tight text-app-ink/55">
+        <span className="mt-0.5 block text-[12.5px] leading-tight text-app-ink/55">
           {description}
         </span>
       </span>

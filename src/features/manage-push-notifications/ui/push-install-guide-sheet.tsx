@@ -25,10 +25,10 @@ export function PushInstallGuideSheet({
 }: PushInstallGuideSheetProps) {
   return (
     <AppBottomSheet open={open} onDismiss={onDismiss}>
-      <AppBottomSheetTitle className="m-0 font-app-heading text-[19px] font-black leading-[1.35] tracking-normal">
+      <AppBottomSheetTitle className="m-0 font-app-heading text-[16px] font-black leading-[1.35] tracking-normal">
         홈 화면에 추가해 주세요
       </AppBottomSheetTitle>
-      <AppBottomSheetDescription className="m-[6px_0_14px] font-app-body text-[13px] leading-[1.35] text-app-ink/50">
+      <AppBottomSheetDescription className="m-[4px_0_12px] font-app-body text-[12.5px] leading-[1.35] text-app-ink/50">
         아이폰에서는 홈 화면에 추가한 앱에서만 알림을 받을 수 있어요.
       </AppBottomSheetDescription>
 
@@ -36,11 +36,11 @@ export function PushInstallGuideSheet({
         {installSteps.map((step, index) => (
           <li
             key={step}
-            className="flex items-center gap-3 font-app-body text-[14px] leading-[1.4] text-app-ink"
+            className="flex items-center gap-2.5 font-app-body text-[13px] leading-[1.4] text-app-ink"
           >
             <span
               aria-hidden="true"
-              className="grid size-6 shrink-0 place-items-center rounded-full bg-app-ink font-app-mono text-[12px] font-bold text-white"
+              className="grid size-5 shrink-0 place-items-center rounded-full bg-app-ink font-app-mono text-[11px] font-bold text-white"
             >
               {index + 1}
             </span>
@@ -49,8 +49,10 @@ export function PushInstallGuideSheet({
         ))}
       </ol>
 
-      <div className="mt-[18px] flex gap-[10px]">
-        <FooterButton onClick={onDismiss}>확인</FooterButton>
+      <div className="mt-4 flex gap-2">
+        <FooterButton size="sm" onClick={onDismiss}>
+          확인
+        </FooterButton>
       </div>
     </AppBottomSheet>
   );

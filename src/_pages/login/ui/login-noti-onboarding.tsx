@@ -9,7 +9,7 @@ export function LoginNotiOnboarding() {
 
       <div className="px-1 pt-7">
         <p className="mb-2 text-[13px] font-bold text-app-primary">알림 안내</p>
-        <h1 className="m-0 text-left text-[29px] leading-[1.35] text-app-ink">
+        <h1 className="m-0 text-left text-[24px] leading-[1.35] text-app-ink">
           매일 아침,
           <br />
           오늘 챙길 재료를
@@ -26,7 +26,7 @@ export function LoginNotiOnboarding() {
           />
           <div className="rounded-[4px] bg-white px-[18px] py-4 text-app-ink shadow-app-md">
             <div className="flex items-center justify-between gap-2">
-              <strong className="text-[17px] font-black">
+              <strong className="text-[15px] font-black">
                 매일 오전 8시 알림
               </strong>
               <Badge tone="primary" className="shrink-0">
@@ -39,8 +39,8 @@ export function LoginNotiOnboarding() {
           </div>
         </div>
 
-        <div className="rounded-[4px] border border-dashed border-app-ink/20 px-[18px] py-[15px]">
-          <strong className="text-[15px] font-bold">
+        <div className="rounded-[4px] border border-dashed border-app-ink/20 px-4 py-3">
+          <strong className="text-[14px] font-bold">
             유통기한이 3일 남은 재료부터 알려드려요
           </strong>
           <p className="mb-0 mt-1 text-[13px] leading-5 text-app-ink/55">

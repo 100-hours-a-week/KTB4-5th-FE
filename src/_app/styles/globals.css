@@ -72,18 +72,21 @@
   --color-forest: #2e5e4e;
 
   /* 색 · 시맨틱 역할 */
-  --color-bg: var(--color-canvas);
+  /* 앱 바탕 · 흰 카드와 구분되는 선에서 최대한 밝은 종이색 */
+  --color-bg: #fffdf7;
   --color-surface: color-mix(in srgb, var(--color-ink) 6%, var(--color-canvas));
   --color-text: var(--color-ink);
   --color-accent: var(--color-primary);
   --color-warning: var(--color-highlight);
   --color-fresh: var(--color-forest);
   --color-divider: color-mix(in srgb, var(--color-ink) 40%, transparent);
-  /* 손으로 남긴 메모처럼 보이는 누런 종이 면 */
-  --color-paper: color-mix(
-    in srgb,
-    var(--color-highlight) 10%,
-    var(--color-canvas)
+  /* 손으로 남긴 메모처럼 보이는 밝은 메모지 면 */
+  --color-paper: #ffeea6;
+  --color-paper-fold: linear-gradient(
+    135deg,
+    #fff6cf 0%,
+    #f3dc80 42%,
+    #d9bd5c 100%
   );
 
   /* 중성 램프 */
@@ -206,8 +209,8 @@
     color: var(--color-text);
     font-family: var(--font-body);
     font-weight: var(--font-weight-regular);
-    font-size: 15px;
-    line-height: 1.55;
+    font-size: 14px;
+    line-height: 1.5;
     -webkit-font-smoothing: antialiased;
     overscroll-behavior-y: none;
   }
@@ -218,7 +221,7 @@
     );
   }
 
-  /* 하단 action(약 48px)과 footer 여백(12px + 20px) 위로 토스트를 띄운다. */
+  /* 하단 action(약 50px)과 footer 여백(12px + 20px) 위로 토스트를 띄운다. */
   body:has([data-page-action-footer]) {
     --toast-bottom-offset: calc(104px + var(--safe-bottom));
   }
@@ -237,16 +240,16 @@
     text-align: left;
   }
   h1 {
-    font-size: 34px;
+    font-size: 28px;
   }
   h2 {
-    font-size: 26px;
+    font-size: 22px;
   }
   h3 {
-    font-size: 20px;
+    font-size: 18px;
   }
   h4 {
-    font-size: 17px;
+    font-size: 15px;
   }
 
   p {
