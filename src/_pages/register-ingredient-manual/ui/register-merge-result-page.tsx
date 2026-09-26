@@ -88,7 +88,7 @@ export function RegisterMergeResultPage() {
         }
       >
         <section className="px-5 pt-6">
-          <h2 className="m-0 font-app-heading text-[22px] font-black leading-[1.35]">
+          <h2 className="m-0 font-app-heading text-[19px] font-black leading-[1.35]">
             확인할 합산 결과가 없어요
           </h2>
           <p className="m-[8px_0_0] text-[14px] leading-[1.5] text-app-ink/55">
@@ -122,7 +122,7 @@ export function RegisterMergeResultPage() {
       }
     >
       <section className="px-5 pt-5 pb-6">
-        <h2 className="m-0 font-app-heading text-[22px] font-black leading-[1.35]">
+        <h2 className="m-0 font-app-heading text-[19px] font-black leading-[1.35]">
           기존 재료와 합쳐졌어요
         </h2>
         <p className="m-[6px_0_0] text-[14px] leading-[1.45] text-app-ink/50">
@@ -135,7 +135,7 @@ export function RegisterMergeResultPage() {
             <li key={item.ingredientId}>
               <NotePaper foldSize={22}>
                 <div className="px-4 pt-[17px] pr-5 pb-6">
-                  <strong className="block truncate font-app-heading text-[15px] font-black leading-[1.35]">
+                  <strong className="block truncate font-app-heading text-[14px] font-black leading-[1.35]">
                     {item.name}
                   </strong>
 
@@ -144,7 +144,7 @@ export function RegisterMergeResultPage() {
                     <span aria-hidden="true">+</span>
                     <span>추가 {formatMergedAmount(item, "added")}</span>
                     <span aria-hidden="true">=</span>
-                    <strong className="font-app-heading text-[15px] font-black text-app-ink">
+                    <strong className="font-app-heading text-[14px] font-black text-app-ink">
                       총 {formatMergedAmount(item, "total")}
                     </strong>
                   </div>

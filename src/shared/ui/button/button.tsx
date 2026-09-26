@@ -32,7 +32,7 @@ export function Button({
       type={type}
       disabled={disabled || loading}
       aria-busy={loading || undefined}
-      className={`inline-flex items-center justify-center gap-2 px-5 py-3 text-center font-app-heading text-base font-black transition-colors disabled:cursor-not-allowed disabled:bg-app-neutral-200 disabled:text-app-neutral-500 ${shapeClasses[shape]} ${variantClasses[variant]} ${className}`}
+      className={`inline-flex items-center justify-center gap-2 px-5 py-3 text-center font-app-heading text-[15px] font-black transition-colors disabled:cursor-not-allowed disabled:bg-app-neutral-200 disabled:text-app-neutral-500 ${shapeClasses[shape]} ${variantClasses[variant]} ${className}`}
     >
       {loading && (
         <span

@@ -1,13 +1,10 @@
-import type { StaticImageData } from "next/image";
 import type { ReactNode } from "react";
 
-import emptyIllustration from "@/shared/assets/illustrations/illustration-empty.png";
-import errorIllustration from "@/shared/assets/illustrations/illustration-error.png";
-import loadingIllustration from "@/shared/assets/illustrations/illustration-loading.png";
-
 import { AsyncViewIllustration } from "./async-view-illustration";
-
-export type AsyncViewStatus = "loading" | "error" | "empty";
+import {
+  type AsyncViewStatus,
+  asyncViewIllustrations,
+} from "./async-view-illustrations";
 
 type AsyncViewStateProps = {
   status: AsyncViewStatus;
@@ -15,12 +12,6 @@ type AsyncViewStateProps = {
   description?: string;
   action?: ReactNode;
   className?: string;
-};
-
-const illustrations: Record<AsyncViewStatus, StaticImageData> = {
-  loading: loadingIllustration,
-  error: errorIllustration,
-  empty: emptyIllustration,
 };
 
 export const asyncViewActionClassName =
@@ -63,11 +54,14 @@ export function AsyncViewState({
       className={`flex flex-col items-center px-5 py-10 text-center ${className}`}
     >
       {/* 상태가 바뀌면 이미지가 달라지므로 key로 스켈레톤 상태를 초기화한다. */}
-      <AsyncViewIllustration key={status} src={illustrations[status]} />
+      <AsyncViewIllustration
+        key={status}
+        src={asyncViewIllustrations[status]}
+      />
 
       {status === "loading" ? <LoadingDots /> : null}
 
-      <p className="mb-0 mt-3 font-app-heading text-[16px] font-black leading-tight text-app-ink">
+      <p className="mb-0 mt-3 font-app-heading text-[15px] font-black leading-tight text-app-ink">
         {title}
       </p>
 

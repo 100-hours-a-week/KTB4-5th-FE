@@ -25,24 +25,24 @@ export function LinkCard({
     <AppLink
       href={href}
       onClick={onClick}
-      className={`flex items-center gap-3.5 rounded-[4px] bg-white px-[18px] py-4 no-underline shadow-app-sm hover:bg-app-neutral-100 active:bg-app-neutral-200 ${className}`}
+      className={`flex items-center gap-3 rounded-[4px] bg-white px-4 py-3 no-underline shadow-app-sm hover:bg-app-neutral-100 active:bg-app-neutral-200 ${className}`}
     >
       <span className="min-w-0 flex-1">
-        <span className="block truncate font-app-heading text-[18px] font-black leading-tight text-app-ink">
+        <span className="block truncate font-app-heading text-[16px] font-black leading-tight text-app-ink">
           {title}
         </span>
         {description ? (
-          <span className="mt-1 block truncate text-[13px] leading-tight text-app-ink/55">
+          <span className="mt-0.5 block truncate text-[12.5px] leading-tight text-app-ink/55">
             {description}
           </span>
         ) : null}
       </span>
 
       {trailing || trailingCaption ? (
-        <span className="flex flex-none flex-col items-end gap-2">
+        <span className="flex flex-none flex-col items-end gap-1.5">
           {trailing}
           {trailingCaption ? (
-            <span className="text-[12px] leading-tight text-app-ink/55">
+            <span className="text-[11.5px] leading-tight text-app-ink/55">
               {trailingCaption}
             </span>
           ) : null}

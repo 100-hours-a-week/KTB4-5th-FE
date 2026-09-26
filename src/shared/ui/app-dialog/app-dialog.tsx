@@ -154,22 +154,23 @@ export function AppDialog({
         className="pointer-events-none absolute top-0 left-1/2 z-[1] h-5 w-[58px] -translate-x-1/2 -rotate-3 bg-[color-mix(in_srgb,var(--color-highlight)_80%,transparent)]"
         aria-hidden="true"
       />
-      <div className="relative max-h-[calc(100dvh_-_var(--safe-top)_-_var(--safe-bottom)_-_43px)] overflow-y-auto rounded-[4px] bg-white p-5 shadow-[0_4px_16px_color-mix(in_srgb,var(--color-ink)_16%,transparent)]">
+      <div className="relative max-h-[calc(100dvh_-_var(--safe-top)_-_var(--safe-bottom)_-_43px)] overflow-y-auto rounded-[4px] bg-white p-4 shadow-[0_4px_16px_color-mix(in_srgb,var(--color-ink)_16%,transparent)]">
         <h2
           id={titleId}
-          className="m-[5px_0_0] font-app-heading text-[19px] font-black leading-[1.35] tracking-normal"
+          className="m-[5px_0_0] font-app-heading text-[16px] font-black leading-[1.35] tracking-normal"
         >
           {title}
         </h2>
         <p
           id={descriptionId}
-          className="m-[5px_0_0] whitespace-pre-wrap font-app-body text-[13px] font-normal leading-[1.35] text-[color-mix(in_srgb,var(--color-ink)_60%,transparent)]"
+          className="m-[5px_0_0] whitespace-pre-wrap font-app-body text-[12.5px] font-normal leading-[1.35] text-[color-mix(in_srgb,var(--color-ink)_60%,transparent)]"
         >
           {description}
         </p>
-        <div className="mt-[18px] flex gap-[10px]">
+        <div className="mt-4 flex gap-2">
           {secondaryAction ? (
             <FooterButton
+              size="sm"
               ref={secondaryButtonRef}
               variant="secondary"
               disabled={secondaryAction.disabled}
@@ -179,6 +180,7 @@ export function AppDialog({
             </FooterButton>
           ) : null}
           <FooterButton
+            size="sm"
             ref={primaryButtonRef}
             disabled={primaryAction.disabled}
             onClick={primaryAction.onClick}

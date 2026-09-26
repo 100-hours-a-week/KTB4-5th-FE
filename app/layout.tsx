@@ -8,6 +8,7 @@ import { QueryProvider } from "@/_app/providers/query-provider";
 import { SerwistProvider } from "@/_app/providers/serwist-provider";
 import { jetBrainsMono } from "@/_app/styles/fonts";
 import { siteConfig } from "@/shared/config";
+import { AsyncViewIllustrationPreload } from "@/shared/ui/async-view-state";
 import "@/_app/styles/globals.css";
 
 export const metadata: Metadata = {
@@ -49,7 +50,7 @@ export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
   viewportFit: "cover",
-  themeColor: "#f7f5f2",
+  themeColor: "#fffdf7",
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
@@ -58,12 +59,13 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       <body>
         <SerwistProvider>
           <QueryProvider>
+            <AsyncViewIllustrationPreload />
             <AppToastProvider />
             <CsrfBootstrapProvider />
             <Suspense fallback={null}>
               <NavigationHistoryTracker />
             </Suspense>
-            <div className="isolate mx-auto flex min-h-[100dvh] w-[min(100%,var(--app-max-width))] overflow-x-clip bg-app-bg [background-image:repeating-linear-gradient(180deg,transparent_0_25px,rgb(26_26_30_/_4.5%)_25px_26px)]">
+            <div className="isolate mx-auto flex min-h-[100dvh] w-[min(100%,var(--app-max-width))] overflow-x-clip bg-app-bg [background-image:repeating-linear-gradient(180deg,transparent_0_25px,rgb(26_26_30_/_3%)_25px_26px)]">
               {children}
             </div>
           </QueryProvider>

@@ -12,7 +12,7 @@ export function AppHeader({ title, leading, actions }: AppHeaderProps) {
       {leading ? (
         <div className="flex flex-none items-center gap-app-2">{leading}</div>
       ) : null}
-      <h1 className="m-0 min-w-0 flex-1 truncate text-left font-app-heading text-[20px] font-black leading-[1.2] text-app-text">
+      <h1 className="m-0 min-w-0 flex-1 truncate text-left font-app-heading text-[18px] font-black leading-[1.2] text-app-text">
         {title}
       </h1>
       {actions ? (

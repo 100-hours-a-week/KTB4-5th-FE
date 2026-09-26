@@ -90,7 +90,7 @@ Next.js의 `app` 디렉터리와 FSD의 App 레이어는 이름이 충돌한다.
 | 같은 슬라이스 내부 import | 현재 파일 기준 상대 경로                                             | `../lib/map-ingredient-response`          |
 | 애플리케이션 화면 URL     | `src/shared/routes`의 상수 또는 생성 함수                            | `routes.ingredientDetail(ingredientId)`   |
 | 백엔드 API URL            | 데이터를 소유한 `entities/*/api` 또는 행위를 소유한 `features/*/api` | `/api/v1/fridges/${fridgeId}/ingredients` |
-| 화면에서 쓰는 이미지      | `src/shared/assets`에서 정적 import                                  | `@/shared/assets/logo/logo-stacked.png`   |
+| 화면에서 쓰는 이미지      | `src/shared/assets`에서 정적 import                                  | `@/shared/assets/logo/logo-stacked.webp`   |
 | `public/` 정적 자산 URL   | `/`로 시작하는 URL 경로                                              | `/icons/icon-192x192.png`                 |
 
 #### import 경로

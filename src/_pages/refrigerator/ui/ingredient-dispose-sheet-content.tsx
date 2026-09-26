@@ -61,16 +61,16 @@ export function IngredientDisposeBottomSheetContent({
 
   return (
     <>
-      <AppBottomSheetTitle className="m-0 font-app-heading text-[19px] font-black leading-[1.35] tracking-normal">
+      <AppBottomSheetTitle className="m-0 font-app-heading text-[16px] font-black leading-[1.35] tracking-normal">
         정리할 재료를 확인해 주세요
       </AppBottomSheetTitle>
-      <AppBottomSheetDescription className="m-[5px_0_0] font-app-body text-[13px] font-normal leading-[1.35] text-[color-mix(in_srgb,var(--color-ink)_60%,transparent)]">
+      <AppBottomSheetDescription className="m-[4px_0_0] font-app-body text-[12.5px] font-normal leading-[1.35] text-[color-mix(in_srgb,var(--color-ink)_60%,transparent)]">
         선택한 재료는 보유 수량 전부가 폐기돼요.
         <br />
         <span className="text-app-text">정리한 재료는 되돌릴 수 없어요.</span>
       </AppBottomSheetDescription>
 
-      <label className="mt-[18px] flex cursor-pointer items-center gap-4 rounded-[10px] bg-app-neutral-100 px-4 py-[13px]">
+      <label className="mt-[14px] flex cursor-pointer items-center gap-3 rounded-[10px] bg-app-neutral-100 px-3.5 py-2.5">
         <input
           type="checkbox"
           checked={isAllSelected}
@@ -78,10 +78,10 @@ export function IngredientDisposeBottomSheetContent({
           className="peer sr-only"
         />
         <CheckMark />
-        <span className="min-w-0 flex-1 font-app-heading text-[15px] font-black leading-[1.35]">
+        <span className="min-w-0 flex-1 font-app-heading text-[13px] font-black leading-[1.35]">
           전체 선택
         </span>
-        <span className="flex-none font-app-body text-[13px] text-app-neutral-600">
+        <span className="flex-none font-app-body text-[12px] text-app-neutral-600">
           {selectedCount}종 선택됨
         </span>
       </label>
@@ -92,7 +92,7 @@ export function IngredientDisposeBottomSheetContent({
       >
         {ingredients.map((ingredient) => (
           <li key={ingredient.ingredientId}>
-            <label className="flex cursor-pointer items-center gap-4 py-[18px]">
+            <label className="flex cursor-pointer items-center gap-3 py-3">
               <input
                 type="checkbox"
                 checked={checkedIds.has(ingredient.ingredientId)}
@@ -101,14 +101,14 @@ export function IngredientDisposeBottomSheetContent({
               />
               <CheckMark />
               <span className="flex min-w-0 flex-1 items-baseline gap-2">
-                <span className="truncate font-app-heading text-[15px] font-black leading-[1.35]">
+                <span className="truncate font-app-heading text-[13px] font-black leading-[1.35]">
                   {ingredient.name}
                 </span>
-                <span className="flex-none font-app-body text-[13px] text-app-neutral-600">
+                <span className="flex-none font-app-body text-[12px] text-app-neutral-600">
                   {formatIngredientAmount(ingredient)}
                 </span>
               </span>
-              <span className="flex-none font-app-body text-[13px] text-app-neutral-600">
+              <span className="flex-none font-app-body text-[12px] text-app-neutral-600">
                 {formatDaysUntilExpiration(ingredient.daysUntilExpiration)}
               </span>
             </label>
@@ -116,11 +116,12 @@ export function IngredientDisposeBottomSheetContent({
         ))}
       </ul>
 
-      <div className="mt-[18px] flex gap-[10px]">
-        <FooterButton variant="secondary" onClick={onCancel}>
+      <div className="mt-4 flex gap-2">
+        <FooterButton size="sm" variant="secondary" onClick={onCancel}>
           취소
         </FooterButton>
         <FooterButton
+          size="sm"
           disabled={selectedCount === 0}
           onClick={() => onConfirm(selectedIngredientIds)}
         >

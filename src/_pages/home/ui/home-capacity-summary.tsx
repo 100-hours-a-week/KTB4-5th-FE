@@ -54,9 +54,9 @@ export function HomeCapacitySummary({
             >
               보관 중인 재고 품목
             </h2>
-            <p className="mb-0 mt-1 font-app-heading text-[24px] font-black leading-none text-app-ink">
+            <p className="mb-0 mt-1 font-app-heading text-[22px] font-black leading-none text-app-ink">
               {stockTypeCount}
-              <span className="text-[15px] font-bold text-app-ink/45">
+              <span className="text-[14px] font-bold text-app-ink/45">
                 {" "}
                 / {stockTypeLimit}종
               </span>
