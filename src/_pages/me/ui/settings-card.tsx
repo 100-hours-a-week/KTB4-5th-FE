@@ -21,14 +21,14 @@ export function SettingsCard({
       aria-label={ariaLabel}
       disabled={disabled}
       onClick={onClick}
-      className="flex w-full items-center justify-between gap-4 rounded-[4px] bg-white px-[18px] py-4 text-left shadow-app-sm transition-colors hover:bg-app-neutral-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-app-primary active:bg-app-neutral-200 disabled:pointer-events-none disabled:opacity-50"
+      className="flex w-full items-center justify-between gap-3 rounded-[4px] bg-white px-4 py-3 text-left shadow-app-sm transition-colors hover:bg-app-neutral-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-app-primary active:bg-app-neutral-200 disabled:pointer-events-none disabled:opacity-50"
     >
       <span className="min-w-0">
-        <span className="block text-[15.5px] font-bold text-app-ink">
+        <span className="block text-[14.5px] font-bold text-app-ink">
           {title}
         </span>
         {description ? (
-          <span className="mt-1 block text-sm text-app-ink/55">
+          <span className="mt-0.5 block text-[12.5px] text-app-ink/55">
             {description}
           </span>
         ) : null}

@@ -21,12 +21,12 @@ export function IngredientExpiryStamp({
 }: IngredientExpiryStampProps) {
   return (
     <span
-      className={`inline-flex size-[60px] flex-none -rotate-9 flex-col items-center justify-center rounded-full border-[2.5px] opacity-90 ${statusColorClasses[status]} ${className}`}
+      className={`inline-flex size-12 flex-none -rotate-9 flex-col items-center justify-center rounded-full border-2 opacity-90 ${statusColorClasses[status]} ${className}`}
     >
-      <span className="font-app-heading text-[17px] font-black leading-none">
+      <span className="font-app-heading text-[14px] font-black leading-none">
         {INGREDIENT_STATUS_LABELS[status]}
       </span>
-      <span className="mt-[3px] whitespace-nowrap font-app-mono text-[10px] font-bold leading-none">
+      <span className="mt-0.5 whitespace-nowrap font-app-mono text-[9px] font-bold leading-none">
         {formatDaysUntilExpiration(daysUntilExpiration)}
       </span>
     </span>

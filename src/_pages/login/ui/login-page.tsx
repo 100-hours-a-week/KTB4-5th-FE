@@ -1,7 +1,7 @@
 import Image from "next/image";
 import { Suspense } from "react";
 
-import stackedLogo from "@/shared/assets/logo/logo-stacked.png";
+import stackedLogo from "@/shared/assets/logo/logo-stacked.webp";
 import { PageActionLayout } from "@/shared/ui/page-action-layout";
 
 import { LoginFlowProvider } from "../model/login-flow-provider";
@@ -29,7 +29,7 @@ export function LoginPage() {
                   priority
                   className="mx-auto size-[200px] rounded-2xl"
                 />
-                <p className="mb-0 mt-1 text-lg leading-[1.35] text-app-ink/60">
+                <p className="mb-0 mt-1 text-[16px] leading-[1.35] text-app-ink/60">
                   유통기한 걱정 없이,
                   <br />
                   냉장고 속 재료를 알뜰하게

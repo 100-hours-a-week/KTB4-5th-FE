@@ -66,7 +66,7 @@ export function RegisterIngredientPage() {
     <main className="flex min-h-0 min-w-0 flex-1 flex-col overflow-y-auto px-5 pt-6 pb-[calc(var(--space-6)+var(--safe-bottom))] [-webkit-overflow-scrolling:touch]">
       <h2
         id="register-method-heading"
-        className="mb-5 text-[28px] text-app-ink"
+        className="mb-5 text-[24px] text-app-ink"
       >
         어떻게 등록할까요?
       </h2>

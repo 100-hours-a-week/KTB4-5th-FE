@@ -33,10 +33,18 @@ export function IngredientEditPage({ ingredientId }: IngredientEditPageProps) {
   });
   const retry = useRetryControl();
 
-  if (refrigeratorId == null) {
+  if (refrigeratorId === null) {
     return (
       <EditStateLayout>
         <IngredientRefrigeratorRequiredState />
+      </EditStateLayout>
+    );
+  }
+
+  if (refrigeratorId === undefined) {
+    return (
+      <EditStateLayout>
+        <AsyncViewState status="loading" title="재고를 불러오는 중입니다" />
       </EditStateLayout>
     );
   }

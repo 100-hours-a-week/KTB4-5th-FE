@@ -5,7 +5,7 @@ import {
   type Ingredient,
   IngredientExpiryStamp,
 } from "@/entities/ingredient";
-import emptyIllustration from "@/shared/assets/illustrations/illustration-empty.png";
+import emptyIllustration from "@/shared/assets/illustrations/illustration-empty.webp";
 import { routes } from "@/shared/routes";
 import { LinkCard } from "@/shared/ui/link-card";
 
@@ -15,20 +15,20 @@ type HomeAttentionSectionProps = {
 
 function HomeAttentionEmpty() {
   return (
-    <div className="flex items-center gap-4 rounded-[4px] bg-white px-[18px] py-5 shadow-app-sm">
-      <span className="grid size-[62px] flex-none place-items-center rounded-full bg-app-warning/15">
+    <div className="flex items-center gap-3 rounded-[4px] bg-white px-4 py-3 shadow-app-sm">
+      <span className="grid size-12 flex-none place-items-center rounded-full bg-app-warning/15">
         <Image
           src={emptyIllustration}
           alt=""
-          sizes="64px"
-          className="size-16 flex-none object-contain"
+          sizes="48px"
+          className="size-12 flex-none object-contain"
         />
       </span>
       <div className="min-w-0">
-        <p className="mb-0 font-app-heading text-[17px] font-black text-app-ink">
+        <p className="mb-0 font-app-heading text-[15px] font-black text-app-ink">
           오늘 챙길 재료가 없어요
         </p>
-        <p className="mb-0 mt-1 break-keep text-[13px] leading-tight text-app-ink/55">
+        <p className="mb-0 mt-1 break-keep text-[12.5px] leading-tight text-app-ink/55">
           유효기간이 3일 안에 끝나는 재료가 생기면 여기에서 알려드릴게요
         </p>
       </div>
@@ -50,7 +50,7 @@ export function HomeAttentionSection({ items }: HomeAttentionSectionProps) {
           <HomeAttentionEmpty />
         ) : (
           <>
-            <ul className="mt-5 flex flex-col gap-3">
+            <ul className="mt-3 flex flex-col gap-2">
               {items.map((item) => (
                 <li key={item.ingredientId}>
                   <LinkCard

@@ -74,7 +74,7 @@ export function LoginForm() {
           autoComplete="username"
           aria-describedby="username-help"
           placeholder="아이디를 입력해주세요"
-          className="mt-1 w-full border-0 bg-transparent p-0 text-[17px] font-bold text-app-ink outline-none placeholder:text-app-neutral-400"
+          className="mt-1 w-full border-0 bg-transparent p-0 text-[16px] font-bold text-app-ink outline-none placeholder:text-app-neutral-400"
           {...register("loginId", {
             onChange: () => {
               if (getFieldState("password").error?.type === SERVER_ERROR_TYPE) {
@@ -103,7 +103,7 @@ export function LoginForm() {
           autoComplete="current-password"
           aria-describedby="password-help"
           placeholder="비밀번호를 입력해주세요"
-          className="mt-1 w-full border-0 bg-transparent p-0 text-[17px] font-bold text-app-ink outline-none placeholder:text-app-neutral-400"
+          className="mt-1 w-full border-0 bg-transparent p-0 text-[16px] font-bold text-app-ink outline-none placeholder:text-app-neutral-400"
           {...register("password")}
         />
         <FieldHelperText
@@ -113,7 +113,7 @@ export function LoginForm() {
         />
       </div>
 
-      <p className="mb-0 px-1 pt-0.5 text-[15px] leading-5 text-app-ink/60">
+      <p className="mb-0 px-1 pt-0.5 text-[14px] leading-5 text-app-ink/60">
         처음 보는 아이디면 그대로 가입돼요. 아이디가 냉장고 이름이 돼요!
       </p>
     </form>

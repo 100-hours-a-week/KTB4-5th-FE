@@ -76,11 +76,11 @@ export function IngredientSummaryCard({
       />
 
       <div className="relative z-[2] overflow-hidden rounded-[3px] bg-white shadow-[0_8px_22px_color-mix(in_srgb,var(--color-ink)_15%,transparent)]">
-        <div className="px-[22px] pb-4 pt-6">
+        <div className="px-5 pb-3 pt-5">
           <div className="flex flex-wrap items-center gap-[9px]">
             <h2
               id="ingredient-detail-name"
-              className="m-0 min-w-0 break-keep font-app-heading text-[30px] font-black leading-none text-app-ink"
+              className="m-0 min-w-0 break-keep font-app-heading text-[24px] font-black leading-none text-app-ink"
             >
               {ingredient.name}
             </h2>
@@ -91,9 +91,9 @@ export function IngredientSummaryCard({
             />
           </div>
 
-          <p className="m-[18px_0_0] flex items-baseline gap-3 border-y-[1.5px] border-app-ink/18 pb-3 pt-3.5">
+          <p className="m-[14px_0_0] flex items-baseline gap-3 border-y-[1.5px] border-app-ink/18 pb-2.5 pt-3">
             <span
-              className={`flex-none font-app-mono text-[46px] font-black leading-none tracking-[-0.03em] ${
+              className={`flex-none font-app-mono text-[36px] font-black leading-none tracking-[-0.03em] ${
                 ingredient.status === "EXPIRED"
                   ? "text-app-primary"
                   : "text-app-ink"
@@ -101,23 +101,23 @@ export function IngredientSummaryCard({
             >
               {formatDDay(ingredient.daysUntilExpiration)}
             </span>
-            <span className="min-w-0 flex-1 text-[15px] leading-[1.1] text-app-ink/70">
+            <span className="min-w-0 flex-1 text-[13.5px] leading-[1.1] text-app-ink/70">
               {formatExpirationDeadline(ingredient.expirationDate)}
             </span>
           </p>
         </div>
 
-        <dl className="m-0 px-[22px] pb-[18px]">
+        <dl className="m-0 px-5 pb-3.5">
           {rows.map((row) => (
             <div
               key={row.label}
-              className="flex items-baseline gap-2.5 border-b border-app-ink/8 py-2.5 last:border-b-0"
+              className="flex items-baseline gap-2.5 border-b border-app-ink/8 py-2 last:border-b-0"
             >
-              <dt className="w-[74px] flex-none text-[12.5px] text-app-ink/60">
+              <dt className="w-[74px] flex-none text-[12px] text-app-ink/60">
                 {row.label}
               </dt>
               <dd
-                className={`m-0 min-w-0 flex-1 text-[15px] leading-tight ${
+                className={`m-0 min-w-0 flex-1 text-[14px] leading-tight ${
                   row.muted ? "text-app-ink/55" : "font-bold text-app-ink"
                 }`}
               >

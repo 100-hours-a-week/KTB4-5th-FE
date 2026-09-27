@@ -32,7 +32,7 @@ const calendarClassNames = {
   month: "w-full",
   month_caption: "flex h-11 items-center justify-center",
   caption_label:
-    "font-app-heading text-[15px] font-black leading-none text-app-ink",
+    "font-app-heading text-[14px] font-black leading-none text-app-ink",
   nav: "absolute inset-x-0 top-0 flex h-11 items-center justify-between",
   button_previous:
     "grid size-11 cursor-pointer place-items-center rounded-full border-0 bg-transparent text-app-ink disabled:cursor-not-allowed disabled:text-app-ink/20",
@@ -47,7 +47,7 @@ const calendarClassNames = {
   week: "",
   day: "p-0.5 text-center align-middle",
   day_button:
-    "mx-auto grid size-10 cursor-pointer place-items-center rounded-full border-0 bg-transparent font-app-mono text-[14px] font-bold text-app-ink",
+    "mx-auto grid size-10 cursor-pointer place-items-center rounded-full border-0 bg-transparent font-app-mono text-[13px] font-bold text-app-ink",
   today: "[&>button]:text-app-primary",
   selected: "[&>button]:bg-app-ink [&>button]:text-white",
   disabled: "[&>button]:cursor-not-allowed [&>button]:text-app-ink/20",
@@ -67,10 +67,10 @@ export function ExpirationDateSheet({
 
   return (
     <AppBottomSheet open={open} onDismiss={onDismiss}>
-      <AppBottomSheetTitle className="m-0 font-app-heading text-[19px] font-black leading-[1.35] tracking-normal">
+      <AppBottomSheetTitle className="m-0 font-app-heading text-[16px] font-black leading-[1.35] tracking-normal">
         유통기한을 골라주세요
       </AppBottomSheetTitle>
-      <AppBottomSheetDescription className="m-[6px_0_14px] font-app-body text-[13px] leading-[1.35] text-app-ink/50">
+      <AppBottomSheetDescription className="m-[4px_0_12px] font-app-body text-[12.5px] leading-[1.35] text-app-ink/50">
         오늘부터 {EXPIRATION_MAX_YEARS}년 이내에서 고를 수 있어요. 고른 날짜의
         끝까지 유효해요. 지난 날짜는 선택할 수 없어요.
       </AppBottomSheetDescription>
@@ -98,8 +98,8 @@ export function ExpirationDateSheet({
         classNames={calendarClassNames}
       />
 
-      <div className="mt-[18px] flex gap-[10px]">
-        <FooterButton variant="secondary" onClick={onDismiss}>
+      <div className="mt-4 flex gap-2">
+        <FooterButton size="sm" variant="secondary" onClick={onDismiss}>
           닫기
         </FooterButton>
       </div>

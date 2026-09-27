@@ -9,11 +9,8 @@ import {
 } from "@tanstack/react-query";
 import type { ReactNode } from "react";
 
-import { setCurrentRefrigeratorId } from "@/entities/refrigerator";
-import { rotateNotificationSessionScope } from "@/entities/notification";
-import { clearLocalPushSubscription } from "@/entities/push-subscription";
+import { expireSession } from "@/_app/providers/session-expiry";
 import { SessionExpiredError } from "@/shared/api";
-import { loginRedirectReasons, routes } from "@/shared/routes";
 
 const defaultOptions: QueryClientConfig["defaultOptions"] = {
   queries: {
@@ -24,25 +21,10 @@ const defaultOptions: QueryClientConfig["defaultOptions"] = {
 
 function createQueryClient(): QueryClient {
   const clientRef: { current: QueryClient | null } = { current: null };
-  let isRedirectingToLogin = false;
 
   const handleSessionExpired = (error: unknown) => {
-    if (!(error instanceof SessionExpiredError) || isRedirectingToLogin) {
-      return;
-    }
-
-    isRedirectingToLogin = true;
-    clientRef.current?.clear();
-
-    // 이동 방식 매트릭스: 로그아웃 → 로그인은 replace. 뒤로가기로 이전
-    if (typeof window !== "undefined") {
-      setCurrentRefrigeratorId(null);
-      rotateNotificationSessionScope();
-      // 세션이 끊겨 서버 해제는 못 하지만, 다음 사용자가 이전 구독을 이어받지 않게 기기 흔적은 지운다.
-      void clearLocalPushSubscription();
-      window.location.replace(
-        routes.loginWithReason(loginRedirectReasons.sessionExpired),
-      );
+    if (error instanceof SessionExpiredError && clientRef.current) {
+      expireSession(clientRef.current);
     }
   };
 

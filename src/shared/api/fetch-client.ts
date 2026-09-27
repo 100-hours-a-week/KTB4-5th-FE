@@ -97,7 +97,7 @@ async function sendRequest(
     }
 
     const refreshed = await refreshSession();
-    if (refreshed) {
+    if (refreshed === "renewed") {
       return sendRequest(path, options, { ...retryState, authRetried: true });
     }
     throw new SessionExpiredError();

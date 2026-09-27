@@ -3,6 +3,8 @@
 import Image, { type StaticImageData } from "next/image";
 import { useState } from "react";
 
+import { ASYNC_VIEW_ILLUSTRATION_SIZES } from "./async-view-illustrations";
+
 type AsyncViewIllustrationProps = {
   src: StaticImageData;
 };
@@ -25,11 +27,11 @@ export function AsyncViewIllustration({ src }: AsyncViewIllustrationProps) {
       <Image
         src={src}
         alt=""
-        sizes="160px"
+        sizes={ASYNC_VIEW_ILLUSTRATION_SIZES}
         loading="eager"
         onLoad={() => setIsSettled(true)}
         onError={() => setIsSettled(true)}
-        className={`size-full object-contain transition-opacity duration-300 ${
+        className={`size-full object-contain transition-opacity duration-150 ${
           isSettled ? "opacity-100" : "opacity-0"
         }`}
       />
