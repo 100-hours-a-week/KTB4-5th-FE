@@ -23,12 +23,14 @@ export function proxy(request: NextRequest) {
     return NextResponse.next();
   }
 
-  return NextResponse.redirect(
-    new URL(
-      routes.loginWithReason(loginRedirectReasons.authRequired),
-      request.nextUrl,
-    ),
-  );
+  // 앱 첫 진입(홈)은 로그인 화면이 곧 시작 화면이라 안내하지 않는다.
+  // 링크·알림으로 특정 화면에 바로 들어온 경우에만 로그인이 필요하다고 알린다.
+  const loginPath =
+    request.nextUrl.pathname === routes.home
+      ? routes.login
+      : routes.loginWithReason(loginRedirectReasons.authRequired);
+
+  return NextResponse.redirect(new URL(loginPath, request.nextUrl));
 }
 
 export const config = {
