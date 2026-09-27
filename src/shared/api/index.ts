@@ -13,3 +13,5 @@ export {
   REFRESH_TOKEN_COOKIE_NAME,
 } from "./session-cookie";
 export { SessionExpiredError } from "./session-expired-error";
+export { refreshSession } from "./token-refresh";
+export type { SessionRefreshResult } from "./token-refresh";
