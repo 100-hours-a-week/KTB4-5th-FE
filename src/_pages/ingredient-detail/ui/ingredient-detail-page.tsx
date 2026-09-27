@@ -1,17 +1,100 @@
-import { PagePlaceholder } from "@/shared/ui/page-placeholder";
+"use client";
+
+import { useQuery } from "@tanstack/react-query";
+import type { ReactNode } from "react";
+
+import {
+  IngredientReadErrorState,
+  IngredientRefrigeratorRequiredState,
+  ingredientQueries,
+} from "@/entities/ingredient";
+import { useCurrentRefrigeratorId } from "@/entities/refrigerator";
+import { useRetryControl } from "@/shared/lib/use-retry-control";
+import { AsyncViewState } from "@/shared/ui/async-view-state";
+import { PageActionLayout } from "@/shared/ui/page-action-layout";
+
+import { IngredientDetailActions } from "./ingredient-detail-actions";
+import { IngredientMemoNote } from "./ingredient-memo-note";
+import { IngredientSummaryCard } from "./ingredient-summary-card";
 
 type IngredientDetailPageProps = {
   ingredientId: string;
 };
 
+function DetailStateLayout({ children }: { children: ReactNode }) {
+  return (
+    <main className="flex min-h-0 w-full flex-1 flex-col overflow-y-auto">
+      {children}
+    </main>
+  );
+}
+
 export function IngredientDetailPage({
   ingredientId,
 }: IngredientDetailPageProps) {
+  const refrigeratorId = useCurrentRefrigeratorId();
+  const { data, error, isPending, isError, isFetching, refetch } = useQuery({
+    ...ingredientQueries.detail(refrigeratorId ?? "", ingredientId),
+    enabled: Boolean(refrigeratorId),
+  });
+  const retryControl = useRetryControl();
+
+  // 서버 렌더와 hydration 직후에는 localStorage를 아직 읽지 못해 undefined다.
+  if (refrigeratorId === null) {
+    return (
+      <DetailStateLayout>
+        <IngredientRefrigeratorRequiredState />
+      </DetailStateLayout>
+    );
+  }
+
+  if (refrigeratorId === undefined) {
+    return (
+      <DetailStateLayout>
+        <AsyncViewState status="loading" title="재고를 불러오는 중입니다" />
+      </DetailStateLayout>
+    );
+  }
+
+  const retryingError = retryControl.retryingError;
+
+  if (retryingError !== null || isError) {
+    return (
+      <DetailStateLayout>
+        <IngredientReadErrorState
+          error={retryingError?.error ?? error}
+          resource="detail"
+          isFetching={retryingError !== null || isFetching}
+          failureCount={retryControl.failureCount}
+          cooldownSeconds={retryControl.cooldownSeconds}
+          onRetry={() => void retryControl.retry(error, refetch)}
+        />
+      </DetailStateLayout>
+    );
+  }
+
+  if (isPending) {
+    return (
+      <DetailStateLayout>
+        <AsyncViewState status="loading" title="재고를 불러오는 중입니다" />
+      </DetailStateLayout>
+    );
+  }
+
+  const { ingredient, etag } = data;
+
   return (
-    <PagePlaceholder
-      screenId="STOCK-002 · v1"
-      title="재고 상세"
-      description={`재료 ${ingredientId}의 정보와 삭제·만료 처리를 확인할 페이지입니다.`}
-    />
+    <PageActionLayout
+      action={
+        <IngredientDetailActions
+          ingredient={ingredient}
+          etag={etag}
+          refrigeratorId={refrigeratorId}
+        />
+      }
+    >
+      <IngredientSummaryCard ingredient={ingredient} />
+      <IngredientMemoNote status={ingredient.status} />
+    </PageActionLayout>
   );
 }

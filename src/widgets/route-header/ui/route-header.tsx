@@ -1,0 +1,97 @@
+"use client";
+
+import { ArrowLeftOutlined } from "@lineiconshq/free-icons";
+import { Lineicons } from "@lineiconshq/react-lineicons";
+import { usePathname, useRouter } from "next/navigation";
+
+import { NotificationBell } from "@/entities/notification";
+import { ReadAllNotificationsButton } from "@/features/read-all-notifications";
+import { runAppBackGuard } from "@/shared/lib/navigation-guard";
+import {
+  markAppNavigationIntent,
+  readAppNavigationDepth,
+} from "@/shared/lib/navigation-history";
+import { AppHeader } from "@/shared/ui/app-header";
+
+import {
+  getRouteHeaderPolicy,
+  type RouteHeaderMode,
+} from "../model/route-header-policy";
+import { useUnreadNotificationCount } from "../model/use-unread-notification-count";
+import { RefrigeratorHeaderTitle } from "./refrigerator-header-title";
+
+type RouteHeaderProps = {
+  mode: RouteHeaderMode;
+};
+
+export function RouteHeader({ mode }: RouteHeaderProps) {
+  const pathname = usePathname();
+  const router = useRouter();
+  const unreadNotificationCount = useUnreadNotificationCount();
+  const policy = getRouteHeaderPolicy(pathname, mode);
+
+  if (policy.kind === "tabs") {
+    return (
+      <AppHeader
+        title={
+          policy.showRefrigeratorName ? (
+            <RefrigeratorHeaderTitle fallback={policy.title} />
+          ) : (
+            policy.title
+          )
+        }
+        actions={
+          policy.showNotifications ? (
+            <NotificationBell unreadCount={unreadNotificationCount} />
+          ) : undefined
+        }
+      />
+    );
+  }
+
+  const { backFallbackHref, showReadAllNotifications } = policy;
+
+  function goBack() {
+    if ((readAppNavigationDepth() ?? 0) > 0) {
+      router.back();
+      return;
+    }
+
+    markAppNavigationIntent("replace", backFallbackHref);
+    router.replace(backFallbackHref);
+  }
+
+  // 작성 중 이탈 확인처럼 화면이 판단하는 업무 조건은 가드가 이동을 가로챈다.
+  function navigateBack() {
+    if (runAppBackGuard(goBack)) {
+      return;
+    }
+
+    goBack();
+  }
+
+  return (
+    <AppHeader
+      title={policy.title}
+      leading={
+        <button
+          className="grid size-[var(--tap-min)] place-items-center border-0 bg-transparent p-0 text-app-text hover:text-app-primary"
+          type="button"
+          onClick={navigateBack}
+          aria-label="이전 화면으로 이동"
+        >
+          <Lineicons
+            icon={ArrowLeftOutlined}
+            size={23}
+            strokeWidth={1.8}
+            aria-hidden="true"
+            focusable="false"
+          />
+        </button>
+      }
+      actions={
+        showReadAllNotifications ? <ReadAllNotificationsButton /> : undefined
+      }
+    />
+  );
+}

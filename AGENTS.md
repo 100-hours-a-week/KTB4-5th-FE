@@ -8,10 +8,15 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 
 <!-- END:nextjs-agent-rules -->
 
-# Project architecture
+# Project documentation
 
 Before adding, moving, or reviewing application code, read and follow
 [`docs/FSD_ARCHITECTURE.md`](docs/FSD_ARCHITECTURE.md).
+
+- When creating or reviewing reusable UI components, read and follow
+  [`docs/COMMON_COMPONENT_RULES.md`](docs/COMMON_COMPONENT_RULES.md).
+- When implementing or reviewing service-wide behavior and UI policies, read and
+  follow [`docs/SERVICE_COMMON_RULES.md`](docs/SERVICE_COMMON_RULES.md).
 
 - New application code must follow the documented Feature-Sliced Design layers,
   import direction, and public API rules.
@@ -19,5 +24,8 @@ Before adding, moving, or reviewing application code, read and follow
   code in the FSD structure under `src/`.
 - Respect the Server/Client module boundary and the separate ownership of the
   Next.js server cache and TanStack Query browser cache.
+- Send API-specific request DTOs directly. Handle successful responses as
+  `ApiResponse<T>` (`code`, `message`, `data`), and handle failures using RFC
+  9457 Problem Details with the service `code` (`DOMAIN-HTTP-NNN`).
 - Use only the approved project stack unless the user explicitly approves a
   change.

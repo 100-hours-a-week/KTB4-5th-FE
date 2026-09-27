@@ -1,15 +1,84 @@
-import { PagePlaceholder } from "@/shared/ui/page-placeholder";
+"use client";
 
-type IngredientEditPageProps = {
-  ingredientId: string;
-};
+import { useQuery } from "@tanstack/react-query";
+import type { ReactNode } from "react";
+
+import {
+  IngredientReadErrorState,
+  IngredientRefrigeratorRequiredState,
+  ingredientQueries,
+} from "@/entities/ingredient";
+import { useCurrentRefrigeratorId } from "@/entities/refrigerator";
+import { useRetryControl } from "@/shared/lib/use-retry-control";
+import { AsyncViewState } from "@/shared/ui/async-view-state";
+
+import { toIngredientEditTarget } from "../model/ingredient-edit-target";
+import { IngredientEditForm } from "./ingredient-edit-form";
+
+type IngredientEditPageProps = { ingredientId: string };
+
+function EditStateLayout({ children }: { children: ReactNode }) {
+  return (
+    <main className="flex min-h-0 w-full flex-1 flex-col overflow-y-auto">
+      {children}
+    </main>
+  );
+}
 
 export function IngredientEditPage({ ingredientId }: IngredientEditPageProps) {
+  const refrigeratorId = useCurrentRefrigeratorId();
+  const detailQuery = useQuery({
+    ...ingredientQueries.detail(refrigeratorId ?? "", ingredientId),
+    enabled: Boolean(refrigeratorId),
+  });
+  const retry = useRetryControl();
+
+  if (refrigeratorId === null) {
+    return (
+      <EditStateLayout>
+        <IngredientRefrigeratorRequiredState />
+      </EditStateLayout>
+    );
+  }
+
+  if (refrigeratorId === undefined) {
+    return (
+      <EditStateLayout>
+        <AsyncViewState status="loading" title="재고를 불러오는 중입니다" />
+      </EditStateLayout>
+    );
+  }
+
+  if (retry.retryingError !== null || detailQuery.isError) {
+    return (
+      <EditStateLayout>
+        <IngredientReadErrorState
+          error={retry.retryingError?.error ?? detailQuery.error}
+          resource="detail"
+          isFetching={retry.retryingError !== null || detailQuery.isFetching}
+          failureCount={retry.failureCount}
+          cooldownSeconds={retry.cooldownSeconds}
+          onRetry={() =>
+            void retry.retry(detailQuery.error, detailQuery.refetch)
+          }
+        />
+      </EditStateLayout>
+    );
+  }
+
+  if (detailQuery.isPending) {
+    return (
+      <EditStateLayout>
+        <AsyncViewState status="loading" title="재고를 불러오는 중입니다" />
+      </EditStateLayout>
+    );
+  }
+
   return (
-    <PagePlaceholder
-      screenId="STOCK-002 · v1"
-      title="재고 수정"
-      description={`재료 ${ingredientId}의 수량, 단위와 유통기한을 수정할 페이지입니다.`}
+    <IngredientEditForm
+      key={detailQuery.data.etag ?? ingredientId}
+      target={toIngredientEditTarget(detailQuery.data)}
+      refrigeratorId={refrigeratorId}
     />
   );
 }

@@ -39,3 +39,10 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# 문서
+/docs/troubleshooting
+
+# Serwist generated files
+public/sw*
+public/swe-worker*
