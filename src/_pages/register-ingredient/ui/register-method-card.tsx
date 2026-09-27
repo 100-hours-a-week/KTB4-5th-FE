@@ -9,6 +9,7 @@ type RegisterMethodCardProps = {
   title: string;
   description: string;
   disabled?: boolean;
+  onDisabledClick?: () => void;
 };
 
 const CARD_CLASS_NAME =
@@ -20,6 +21,7 @@ export function RegisterMethodCard({
   title,
   description,
   disabled = false,
+  onDisabledClick,
 }: RegisterMethodCardProps) {
   const content = (
     <>
@@ -43,9 +45,14 @@ export function RegisterMethodCard({
   if (disabled) {
     return (
       <NotePaper className="opacity-45">
-        <div aria-disabled="true" className={CARD_CLASS_NAME}>
+        <button
+          type="button"
+          aria-disabled="true"
+          onClick={onDisabledClick}
+          className={`${CARD_CLASS_NAME} w-full cursor-not-allowed border-0 bg-transparent text-left`}
+        >
           {content}
-        </div>
+        </button>
       </NotePaper>
     );
   }

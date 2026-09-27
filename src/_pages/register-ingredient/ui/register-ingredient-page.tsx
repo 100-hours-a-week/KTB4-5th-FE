@@ -2,6 +2,7 @@
 
 import { Pencil1Outlined } from "@lineiconshq/free-icons";
 import { useQuery } from "@tanstack/react-query";
+import { useRouter } from "next/navigation";
 
 import {
   DEFAULT_INGREDIENT_LIST_SORT,
@@ -12,11 +13,13 @@ import {
 import { useCurrentRefrigeratorId } from "@/entities/refrigerator";
 import { ApiError } from "@/shared/api";
 import { routes } from "@/shared/routes";
+import { showAppToast } from "@/shared/ui/app-toast";
 import {
   AsyncViewState,
   asyncViewActionClassName,
 } from "@/shared/ui/async-view-state";
 
+import { CAPACITY_CLEANUP_HREF } from "../model/capacity-cleanup-href";
 import { RegisterCapacityNotice } from "./register-capacity-notice";
 import { RegisterMethodCard } from "./register-method-card";
 
@@ -26,6 +29,7 @@ const CAPACITY_LIST_QUERY: IngredientListQuery = {
 };
 
 export function RegisterIngredientPage() {
+  const router = useRouter();
   const refrigeratorId = useCurrentRefrigeratorId();
   const {
     data: page,
@@ -36,6 +40,17 @@ export function RegisterIngredientPage() {
     enabled: Boolean(refrigeratorId),
   });
   const capacity = page ? getIngredientCapacity(page) : null;
+
+  const showCapacityLimitToast = () => {
+    showAppToast({
+      message: "정리 후 등록해 주세요",
+      variant: "error",
+      action: {
+        label: "정리하러 가기",
+        onClick: () => router.push(CAPACITY_CLEANUP_HREF),
+      },
+    });
+  };
 
   if (error && !page) {
     return (
@@ -87,6 +102,7 @@ export function RegisterIngredientPage() {
             title="직접 쓰기"
             description="재료 하나씩 정보를 직접 써요"
             disabled={capacity?.isLimitReached ?? false}
+            onDisabledClick={showCapacityLimitToast}
           />
         </li>
       </ul>
