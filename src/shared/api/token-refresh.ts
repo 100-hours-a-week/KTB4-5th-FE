@@ -1,9 +1,16 @@
 import { API_BASE_PATH } from "./api-base-path";
 import { CSRF_HEADER_NAME, ensureCsrfToken } from "./csrf";
 
-let refreshPromise: Promise<boolean> | null = null;
+/**
+ * - `renewed`: 새 access/refresh 쿠키를 받았다.
+ * - `rejected`: 서버가 refresh 토큰을 거절했다. 다시 로그인해야 한다.
+ * - `failed`: 네트워크·서버 오류로 판단하지 못했다. 세션은 그대로일 수 있다.
+ */
+export type SessionRefreshResult = "renewed" | "rejected" | "failed";
 
-export function refreshSession(): Promise<boolean> {
+let refreshPromise: Promise<SessionRefreshResult> | null = null;
+
+export function refreshSession(): Promise<SessionRefreshResult> {
   refreshPromise ??= performRefresh().finally(() => {
     refreshPromise = null;
   });
@@ -11,15 +18,15 @@ export function refreshSession(): Promise<boolean> {
   return refreshPromise;
 }
 
-async function performRefresh(): Promise<boolean> {
+async function performRefresh(): Promise<SessionRefreshResult> {
   if (typeof document === "undefined") {
-    return false;
+    return "failed";
   }
 
   try {
     const csrfToken = await ensureCsrfToken();
     if (!csrfToken) {
-      return false;
+      return "failed";
     }
 
     const response = await fetch(`${API_BASE_PATH}/auth/token-renewals`, {
@@ -28,8 +35,11 @@ async function performRefresh(): Promise<boolean> {
       headers: { [CSRF_HEADER_NAME]: csrfToken },
     });
 
-    return response.ok;
+    if (response.ok) {
+      return "renewed";
+    }
+    return response.status === 401 ? "rejected" : "failed";
   } catch {
-    return false;
+    return "failed";
   }
 }
