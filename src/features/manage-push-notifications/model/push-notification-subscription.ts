@@ -45,15 +45,11 @@ export type PushNotificationSupport =
   "supported" | "needs-install" | "unsupported";
 
 export function getPushNotificationSupport(): PushNotificationSupport {
-  if (isPushNotificationSupported()) {
-    return "supported";
-  }
-
   if (typeof window !== "undefined" && isIosDevice() && !isStandalone()) {
     return "needs-install";
   }
 
-  return "unsupported";
+  return isPushNotificationSupported() ? "supported" : "unsupported";
 }
 
 export function getPushNotificationPermission(): NotificationPermission | null {
@@ -130,7 +126,7 @@ function assertPushNotificationSupport(): void {
 }
 
 // iPadOS 13 이상은 데스크톱 Safari와 같은 Macintosh UA를 보내므로 터치 지원으로 구분한다.
-function isIosDevice(): boolean {
+export function isIosDevice(): boolean {
   const { maxTouchPoints, userAgent } = navigator;
 
   return (

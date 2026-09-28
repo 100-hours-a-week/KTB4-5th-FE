@@ -14,6 +14,7 @@ export type {
 } from "./model/push-notification-subscription";
 export { resubscribePushNotificationsIfEnabled } from "./model/resubscribe-push-notifications";
 export { PushInstallGuideSheet } from "./ui/push-install-guide-sheet";
+export { PushPermissionGuideSheet } from "./ui/push-permission-guide-sheet";
 export {
   pushNotificationStatusLabels,
   usePushNotificationSetting,
