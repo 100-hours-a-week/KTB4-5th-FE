@@ -1,4 +1,5 @@
 import { withSerwist } from "@serwist/turbopack";
+import { withSentryConfig } from "@sentry/nextjs/config";
 import type { NextConfig } from "next";
 
 // 로컬 전용 Dev Server 프록시
@@ -42,4 +43,15 @@ const nextConfig = withSerwist({
   },
 } satisfies NextConfig);
 
-export default nextConfig;
+export default withSentryConfig(nextConfig, {
+  org: "kakaotechbootcamp",
+  project: "dameokja-fe",
+  silent: !process.env.CI,
+  telemetry: false,
+  sourcemaps: { disable: true },
+  release: {
+    name: process.env.NEXT_PUBLIC_SENTRY_RELEASE,
+    create: false,
+    finalize: false,
+  },
+});
