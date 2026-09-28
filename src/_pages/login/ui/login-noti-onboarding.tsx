@@ -1,3 +1,9 @@
+import {
+  PUSH_INSTALL_GUIDE_DESCRIPTION,
+  PUSH_INSTALL_GUIDE_STEPS,
+  PUSH_INSTALL_GUIDE_TITLE,
+  PUSH_PERMISSION_SETTINGS_PATH,
+} from "@/features/manage-push-notifications/index.server";
 import { Badge } from "@/shared/ui/badge";
 
 import { LoginBackButton } from "./login-back-button";
@@ -34,17 +40,37 @@ export function LoginNotiOnboarding() {
               </Badge>
             </div>
             <p className="mb-0 mt-1 text-sm text-app-neutral-700">
-              가입하면 자동으로 켜져요
+              유통기한이 3일 남은 재료부터 알려드려요
+            </p>
+            <p className="mb-0 mt-1 text-sm text-app-neutral-700">
+              마이페이지에서 푸시 알림을 언제든 켜고 끌 수 있어요
             </p>
           </div>
         </div>
 
         <div className="rounded-[4px] border border-dashed border-app-ink/20 px-4 py-3">
-          <strong className="text-[14px] font-bold">
-            유통기한이 3일 남은 재료부터 알려드려요
-          </strong>
+          <strong className="text-[14px] font-bold">iOS 설정 안내:</strong>
           <p className="mb-0 mt-1 text-[13px] leading-5 text-app-ink/55">
-            알림 끄기와 시간 변경은 다음 버전에서 제공돼요
+            {PUSH_INSTALL_GUIDE_DESCRIPTION}
+          </p>
+          <ol className="m-0 mt-3 flex list-none flex-col gap-2 p-0">
+            {PUSH_INSTALL_GUIDE_STEPS.map((step, index) => (
+              <li
+                key={step}
+                className="flex items-center gap-2.5 text-[13px] leading-[1.4] text-app-ink"
+              >
+                <span
+                  aria-hidden="true"
+                  className="grid size-5 shrink-0 place-items-center rounded-full bg-app-ink font-app-mono text-[11px] font-bold text-white"
+                >
+                  {index + 1}
+                </span>
+                {step}
+              </li>
+            ))}
+          </ol>
+          <p className="mb-0 mt-3 text-[12.5px] leading-5 text-app-ink/55">
+            iOS 설정에서 차단했다면 설정에서 다시 허용해주세요
           </p>
         </div>
       </div>

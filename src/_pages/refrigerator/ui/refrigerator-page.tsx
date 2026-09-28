@@ -62,8 +62,6 @@ export function RefrigeratorPage({ queryParams }: RefrigeratorPageProps) {
       <IngredientControlsContainer
         query={query}
         filteredCount={firstPage?.filteredCount ?? 0}
-        ingredientsNum={firstPage?.ingredientsNum ?? 0}
-        refrigeratorCapacity={firstPage?.refrigeratorCapacity ?? 0}
         isLoading={!firstPage}
       />
 

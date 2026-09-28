@@ -18,15 +18,30 @@ const CREDENTIAL_ERROR_MESSAGE = "아이디 또는 비밀번호를 확인해 주
 const NETWORK_ERROR_MESSAGE = "인터넷 연결을 확인해 주세요";
 const SERVER_ERROR_MESSAGE = "잠시 후 다시 시도해 주세요";
 const SERVER_ERROR_TYPE = "server";
+const UNAVAILABLE_LOGIN_ID_CODE = "USER-422-002";
 
-function getLoginErrorMessage(error: unknown): string {
+type LoginError = {
+  field: keyof LoginFormValues;
+  message: string;
+};
+
+function getLoginError(error: unknown): LoginError {
   if (error instanceof ApiError) {
-    return [400, 401, 404, 422].includes(error.status)
-      ? CREDENTIAL_ERROR_MESSAGE
-      : SERVER_ERROR_MESSAGE;
+    if (error.code === UNAVAILABLE_LOGIN_ID_CODE) {
+      return { field: "loginId", message: error.problem.title };
+    }
+
+    return {
+      field: "password",
+      message: [400, 401, 404, 422].includes(error.status)
+        ? CREDENTIAL_ERROR_MESSAGE
+        : SERVER_ERROR_MESSAGE,
+    };
   }
-  if (error instanceof TypeError) return NETWORK_ERROR_MESSAGE;
-  return SERVER_ERROR_MESSAGE;
+  if (error instanceof TypeError) {
+    return { field: "password", message: NETWORK_ERROR_MESSAGE };
+  }
+  return { field: "password", message: SERVER_ERROR_MESSAGE };
 }
 
 export function LoginForm() {
@@ -52,9 +67,11 @@ export function LoginForm() {
         enterHome();
       }
     } catch (error) {
-      setError("password", {
+      const loginError = getLoginError(error);
+
+      setError(loginError.field, {
         type: SERVER_ERROR_TYPE,
-        message: getLoginErrorMessage(error),
+        message: loginError.message,
       });
     }
   }
@@ -82,6 +99,9 @@ export function LoginForm() {
           className="mt-1 w-full border-0 bg-transparent p-0 text-[16px] font-bold text-app-ink outline-none placeholder:text-app-neutral-400"
           {...register("loginId", {
             onChange: () => {
+              if (getFieldState("loginId").error?.type === SERVER_ERROR_TYPE) {
+                clearErrors("loginId");
+              }
               if (getFieldState("password").error?.type === SERVER_ERROR_TYPE) {
                 clearErrors("password");
               }
@@ -109,7 +129,13 @@ export function LoginForm() {
           aria-describedby="password-help"
           placeholder="비밀번호를 입력해주세요"
           className="mt-1 w-full border-0 bg-transparent p-0 text-[16px] font-bold text-app-ink outline-none placeholder:text-app-neutral-400"
-          {...register("password")}
+          {...register("password", {
+            onChange: () => {
+              if (getFieldState("password").error?.type === SERVER_ERROR_TYPE) {
+                clearErrors("password");
+              }
+            },
+          })}
         />
         <FieldHelperText
           id="password-help"
