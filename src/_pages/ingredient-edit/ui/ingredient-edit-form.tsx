@@ -2,7 +2,7 @@
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 
 import { ingredientQueries, updateIngredient } from "@/entities/ingredient";
@@ -68,6 +68,11 @@ export function IngredientEditForm({
     mode: "onChange",
     defaultValues: initialValues,
   });
+  const { trigger } = form;
+
+  useEffect(() => {
+    void trigger("name");
+  }, [trigger]);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isLeaving, setIsLeaving] = useState(false);
   const [isCancelConfirmOpen, setIsCancelConfirmOpen] = useState(false);

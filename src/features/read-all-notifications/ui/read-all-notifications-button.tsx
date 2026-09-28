@@ -11,7 +11,13 @@ import { showAppToast } from "@/shared/ui/app-toast";
 
 import { readAllNotifications } from "../api/read-all-notifications";
 
-export function ReadAllNotificationsButton() {
+type ReadAllNotificationsButtonProps = {
+  unreadCount?: number;
+};
+
+export function ReadAllNotificationsButton({
+  unreadCount,
+}: ReadAllNotificationsButtonProps) {
   const queryClient = useQueryClient();
   const refrigeratorId = useCurrentRefrigeratorId();
   const userScope = useNotificationSessionScope();
@@ -44,8 +50,11 @@ export function ReadAllNotificationsButton() {
     },
   });
 
+  const disabled =
+    !refrigeratorId || !userScope || mutation.isPending || unreadCount === 0;
+
   function handleClick() {
-    if (!refrigeratorId || !userScope || mutation.isPending) return;
+    if (disabled) return;
     mutation.mutate({ refrigeratorId, userScope });
   }
 
@@ -53,7 +62,7 @@ export function ReadAllNotificationsButton() {
     <button
       type="button"
       onClick={handleClick}
-      disabled={!refrigeratorId || !userScope || mutation.isPending}
+      disabled={disabled}
       className="min-h-[var(--tap-min)] border-0 bg-transparent px-1 text-[14px] font-bold text-app-ink hover:text-app-primary disabled:text-app-neutral-400"
     >
       모두 읽음

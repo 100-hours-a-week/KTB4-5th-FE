@@ -1,4 +1,7 @@
-import type { UpdateIngredientBody } from "@/entities/ingredient";
+import {
+  normalizeIngredientName,
+  type UpdateIngredientBody,
+} from "@/entities/ingredient";
 
 import type {
   IngredientEditFormInput,
@@ -11,7 +14,7 @@ export function toUpdateIngredientBody(
 ): UpdateIngredientBody {
   const body: UpdateIngredientBody = {};
 
-  if (values.name !== initial.name.trim()) body.name = values.name;
+  if (values.name !== normalizeIngredientName(initial.name)) body.name = values.name;
   if (values.storageType !== initial.storageType)
     body.storageType = values.storageType;
   if (values.expirationDate !== initial.expirationDate)
