@@ -9,25 +9,16 @@ import { IngredientSortFilter } from "./ingredient-sort-filter";
 type IngredientControlsContainerProps = {
   query: IngredientListQuery;
   filteredCount: number;
-  ingredientsNum: number;
-  refrigeratorCapacity: number;
   isLoading: boolean;
 };
 
 export function IngredientControlsContainer({
   filteredCount,
-  ingredientsNum,
-  refrigeratorCapacity,
   isLoading,
   query,
 }: IngredientControlsContainerProps) {
   const updateQuery = useIngredientListNavigation(query);
-  const remaining = refrigeratorCapacity - ingredientsNum;
-  const countText = isLoading
-    ? "재고 조회 중"
-    : query.filter === null
-      ? `전체 ${ingredientsNum}종 · 잔여 ${remaining}종`
-      : `총 ${filteredCount}종`;
+  const countText = isLoading ? "재고 조회 중" : `총 ${filteredCount}종`;
 
   return (
     <div className="flex-none">

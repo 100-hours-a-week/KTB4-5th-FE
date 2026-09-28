@@ -4,18 +4,31 @@ import {
   readPushSubscriptionId,
 } from "./push-subscription-id";
 
-export async function releasePushSubscription(): Promise<void> {
+export async function disablePushSubscription(): Promise<void> {
   const subscriptionId = readPushSubscriptionId();
 
   if (subscriptionId) {
-    try {
-      await deletePushSubscription(subscriptionId);
-    } catch {
-      // 서버에 남은 구독은 브라우저 구독이 사라져 발송이 실패하면 정리된다.
+    await deletePushSubscription(subscriptionId);
+  }
+
+  if (typeof navigator !== "undefined" && "serviceWorker" in navigator) {
+    const registration = await navigator.serviceWorker.getRegistration();
+    const subscription = await registration?.pushManager.getSubscription();
+
+    if (subscription && !(await subscription.unsubscribe())) {
+      throw new Error("브라우저 푸시 구독을 해제하지 못했습니다.");
     }
   }
 
-  await clearLocalPushSubscription();
+  clearPushSubscriptionId();
+}
+
+export async function releasePushSubscription(): Promise<void> {
+  try {
+    await disablePushSubscription();
+  } catch {
+    await clearLocalPushSubscription();
+  }
 }
 
 export async function clearLocalPushSubscription(): Promise<void> {

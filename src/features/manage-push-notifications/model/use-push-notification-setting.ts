@@ -8,12 +8,17 @@ import {
   notificationQueries,
   useNotificationSessionScope,
 } from "@/entities/notification";
-import { readPushSubscriptionId } from "@/entities/push-subscription";
+import {
+  disablePushSubscription,
+  markPushOptedOut,
+  readPushSubscriptionId,
+} from "@/entities/push-subscription";
 import { SessionExpiredError } from "@/shared/api";
 import { showAppToast } from "@/shared/ui/app-toast";
 
 import {
   getPushNotificationSupport,
+  isIosDevice,
   registerWebPush,
   requestPushPermission,
 } from "./push-notification-subscription";
@@ -22,21 +27,28 @@ import {
  * - `on`: 서버 알림 설정이 켜져 있고, 권한이 허용되고 이 기기의 구독이 서버에 등록됐다.
  * - `off`: 서버 알림 설정이 꺼졌거나, 권한 요청 전이거나 구독이 없다.
  * - `blocked`: OS·브라우저에서 알림 권한을 거부했다. 앱에서 다시 요청할 수 없다.
+ * - `blocked-ios`: 홈 화면 iOS 앱에서 알림 권한을 거부했다.
  * - `needs-install`: iOS에서 홈 화면에 추가해야 한다.
  * - `unsupported`: 이 환경에서는 푸시를 쓸 수 없다.
  */
 export type PushNotificationSettingStatus =
-  "on" | "off" | "blocked" | "needs-install" | "unsupported";
+  | "on"
+  | "off"
+  | "blocked"
+  | "blocked-ios"
+  | "needs-install"
+  | "unsupported";
 
 export const pushNotificationStatusLabels: Record<
   PushNotificationSettingStatus,
   string
 > = {
-  on: "켜짐",
-  off: "꺼짐",
-  blocked: "휴대폰 설정 확인 필요",
-  "needs-install": "꺼짐",
-  unsupported: "꺼짐",
+  on: "매일 오전 8시 · 푸시 수신 켜짐",
+  off: "매일 오전 8시 · 푸시 수신 꺼짐",
+  blocked: "브라우저에서 알림이 차단됐어요",
+  "blocked-ios": "iPhone 설정에서 알림을 허용해 주세요",
+  "needs-install": "iOS 홈 화면 추가가 필요해요",
+  unsupported: "이 브라우저에서는 푸시 알림을 지원하지 않아요",
 };
 
 async function readDeviceStatus(): Promise<PushNotificationSettingStatus> {
@@ -47,7 +59,7 @@ async function readDeviceStatus(): Promise<PushNotificationSettingStatus> {
   }
 
   if (Notification.permission === "denied") {
-    return "blocked";
+    return isIosDevice() ? "blocked-ios" : "blocked";
   }
 
   if (Notification.permission !== "granted") {
@@ -74,6 +86,7 @@ export function usePushNotificationSetting() {
     enabled: sessionScope !== undefined,
   });
   const [isGuideOpen, setIsGuideOpen] = useState(false);
+  const [isPermissionGuideOpen, setIsPermissionGuideOpen] = useState(false);
   const [isRequestingPermission, setIsRequestingPermission] = useState(false);
 
   const registerMutation = useMutation({
@@ -81,7 +94,7 @@ export function usePushNotificationSetting() {
     onSuccess: (result) => {
       if (result.status === "subscribed") {
         setDeviceStatus("on");
-        showAppToast({ message: "알림을 켰어요", variant: "success" });
+        showAppToast({ message: "푸시 수신을 켰어요", variant: "success" });
         return;
       }
 
@@ -93,7 +106,26 @@ export function usePushNotificationSetting() {
     },
   });
 
-  const isPending = isRequestingPermission || registerMutation.isPending;
+  const releaseMutation = useMutation({
+    mutationFn: disablePushSubscription,
+    onSuccess: () => {
+      markPushOptedOut();
+      setDeviceStatus("off");
+      showAppToast({ message: "푸시 수신을 껐어요", variant: "success" });
+    },
+    onError: () => {
+      showAppToast({
+        message: "푸시 수신을 끄지 못했어요",
+        variant: "error",
+        dedupeKey: "push-notification-disable-error",
+      });
+    },
+  });
+
+  const isPending =
+    isRequestingPermission ||
+    registerMutation.isPending ||
+    releaseMutation.isPending;
   const status = preferencesQuery.isLoading
     ? null
     : resolveStatus(
@@ -107,14 +139,29 @@ export function usePushNotificationSetting() {
   useEffect(() => {
     let ignore = false;
 
-    void readDeviceStatus()
-      .catch((): PushNotificationSettingStatus => "off")
-      .then((nextStatus) => {
-        if (!ignore) setDeviceStatus(nextStatus);
-      });
+    function refreshDeviceStatus() {
+      void readDeviceStatus()
+        .catch((): PushNotificationSettingStatus => "off")
+        .then((nextStatus) => {
+          if (!ignore) setDeviceStatus(nextStatus);
+        });
+    }
+
+    function refreshVisibleDeviceStatus() {
+      if (document.visibilityState === "visible") refreshDeviceStatus();
+    }
+
+    refreshDeviceStatus();
+    window.addEventListener("focus", refreshDeviceStatus);
+    document.addEventListener("visibilitychange", refreshVisibleDeviceStatus);
 
     return () => {
       ignore = true;
+      window.removeEventListener("focus", refreshDeviceStatus);
+      document.removeEventListener(
+        "visibilitychange",
+        refreshVisibleDeviceStatus,
+      );
     };
   }, []);
 
@@ -125,8 +172,14 @@ export function usePushNotificationSetting() {
       const permission = await requestPushPermission();
 
       if (permission === "denied") {
-        setDeviceStatus("blocked");
-        showBlockedToast();
+        const nextStatus = isIosDevice() ? "blocked-ios" : "blocked";
+
+        setDeviceStatus(nextStatus);
+        if (nextStatus === "blocked-ios") {
+          setIsPermissionGuideOpen(true);
+        } else {
+          showBlockedToast();
+        }
         return;
       }
 
@@ -157,7 +210,11 @@ export function usePushNotificationSetting() {
       case "blocked":
         showBlockedToast();
         return;
+      case "blocked-ios":
+        setIsPermissionGuideOpen(true);
+        return;
       case "on":
+        releaseMutation.mutate();
         return;
       case "off":
         void enable();
@@ -169,7 +226,9 @@ export function usePushNotificationSetting() {
     status,
     isPending,
     isGuideOpen,
+    isPermissionGuideOpen,
     closeGuide: () => setIsGuideOpen(false),
+    closePermissionGuide: () => setIsPermissionGuideOpen(false),
     handleClick,
   };
 }
@@ -185,7 +244,7 @@ function resolveStatus(
 
 function showEnableErrorToast() {
   showAppToast({
-    message: "알림을 켜지 못했어요",
+    message: "푸시 수신을 켜지 못했어요",
     variant: "error",
     dedupeKey: "push-notification-enable-error",
   });
@@ -193,7 +252,7 @@ function showEnableErrorToast() {
 
 function showBlockedToast() {
   showAppToast({
-    message: "휴대폰 설정에서 알림을 켜주세요",
+    message: "기기 또는 브라우저 설정에서 알림을 허용해 주세요",
     variant: "error",
     dedupeKey: "push-notification-blocked",
   });
