@@ -12,6 +12,7 @@ import {
   asyncViewActionClassName,
 } from "@/shared/ui/async-view-state";
 
+import { useDeferredLoading } from "../model/use-deferred-loading";
 import { useInfiniteScrollTrigger } from "../model/use-infinite-scroll-trigger";
 import { NOTIFICATION_EMPTY_STATES } from "../model/notification-empty-states";
 import { groupNotificationsByDate } from "../model/notification-groups";
@@ -87,9 +88,14 @@ export function NotificationListContainer({
     enabled: hasNextPage && !isFetching && !isFetchNextPageError,
     onLoadMore: onFetchNextPage,
   });
+  const { isLoadingVisible, isLoadingDeferred } = useDeferredLoading(isPending);
 
-  if (isPending) {
+  if (isLoadingVisible) {
     return <AsyncViewState status="loading" title="알림을 불러오는 중입니다" />;
+  }
+
+  if (isLoadingDeferred) {
+    return null;
   }
 
   if (isInitialError) {
