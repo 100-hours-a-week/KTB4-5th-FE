@@ -70,7 +70,7 @@ export function LoginNotiOnboarding() {
             ))}
           </ol>
           <p className="mb-0 mt-3 text-[12.5px] leading-5 text-app-ink/55">
-            아이폰 설정에서 차단했다면 설정에서 다시 허용해주세요
+            iOS 설정에서 차단했다면 설정에서 다시 허용해주세요
           </p>
         </div>
       </div>
