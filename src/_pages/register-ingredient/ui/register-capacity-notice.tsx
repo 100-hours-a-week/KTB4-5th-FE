@@ -1,7 +1,8 @@
-import { routes } from "@/shared/routes";
 import { AppLink } from "@/shared/ui/app-link";
 
 import type { IngredientCapacity } from "@/entities/ingredient";
+
+import { CAPACITY_CLEANUP_HREF } from "../model/capacity-cleanup-href";
 
 type RegisterCapacityNoticeProps = {
   capacity: IngredientCapacity;
@@ -33,7 +34,7 @@ export function RegisterCapacityNotice({
 
       {isLimitReached ? (
         <AppLink
-          href={routes.refrigerator}
+          href={CAPACITY_CLEANUP_HREF}
           className="mt-2 inline-block text-[12.5px] font-bold text-app-ink no-underline hover:text-app-primary"
         >
           냉장고 정리하러 가기 ›
