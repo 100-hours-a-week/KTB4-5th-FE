@@ -49,9 +49,8 @@ export function IngredientNameInput({
         name={name}
         type="text"
         autoComplete="off"
-        // 한글 IME 조합 중에도 특수문자·이모지가 확정되지 않도록 입력마다 걸러낸다.
         inputMode="text"
-        maxLength={TEXT_FIELD_MAX_LENGTH * 2}
+        maxLength={TEXT_FIELD_MAX_LENGTH}
         placeholder="예) 두부"
         value={value}
         onChange={(event) =>

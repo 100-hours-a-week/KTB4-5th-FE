@@ -16,7 +16,18 @@ import { useLoginFlow } from "../model/login-flow-provider";
 
 const CREDENTIAL_ERROR_MESSAGE = "아이디 또는 비밀번호를 확인해 주세요";
 const NETWORK_ERROR_MESSAGE = "인터넷 연결을 확인해 주세요";
+const SERVER_ERROR_MESSAGE = "잠시 후 다시 시도해 주세요";
 const SERVER_ERROR_TYPE = "server";
+
+function getLoginErrorMessage(error: unknown): string {
+  if (error instanceof ApiError) {
+    return [400, 401, 404, 422].includes(error.status)
+      ? CREDENTIAL_ERROR_MESSAGE
+      : SERVER_ERROR_MESSAGE;
+  }
+  if (error instanceof TypeError) return NETWORK_ERROR_MESSAGE;
+  return SERVER_ERROR_MESSAGE;
+}
 
 export function LoginForm() {
   const { enterHome, showNotificationOnboarding } = useLoginFlow();
@@ -41,15 +52,9 @@ export function LoginForm() {
         enterHome();
       }
     } catch (error) {
-      const isCredentialError =
-        error instanceof ApiError &&
-        [400, 401, 404, 422].includes(error.status);
-
       setError("password", {
         type: SERVER_ERROR_TYPE,
-        message: isCredentialError
-          ? CREDENTIAL_ERROR_MESSAGE
-          : NETWORK_ERROR_MESSAGE,
+        message: getLoginErrorMessage(error),
       });
     }
   }
