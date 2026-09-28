@@ -90,7 +90,9 @@ export function RouteHeader({ mode }: RouteHeaderProps) {
         </button>
       }
       actions={
-        showReadAllNotifications ? <ReadAllNotificationsButton /> : undefined
+        showReadAllNotifications ? (
+          <ReadAllNotificationsButton unreadCount={unreadNotificationCount} />
+        ) : undefined
       }
     />
   );
