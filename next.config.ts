@@ -46,13 +46,12 @@ const nextConfig = withSerwist({
 export default withSentryConfig(nextConfig, {
   org: "kakaotechbootcamp",
   project: "dameokja-fe",
-  authToken: process.env.SENTRY_AUTH_TOKEN,
   silent: !process.env.CI,
   telemetry: false,
-  sourcemaps: { disable: !process.env.SENTRY_AUTH_TOKEN },
+  sourcemaps: { disable: true },
   release: {
     name: process.env.NEXT_PUBLIC_SENTRY_RELEASE,
-    create: Boolean(process.env.SENTRY_AUTH_TOKEN),
-    finalize: Boolean(process.env.SENTRY_AUTH_TOKEN),
+    create: false,
+    finalize: false,
   },
 });

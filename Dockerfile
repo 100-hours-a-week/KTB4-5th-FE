@@ -1,4 +1,3 @@
-# syntax=docker/dockerfile:1
 FROM node:24-bookworm-slim AS base
 WORKDIR /app
 ENV HUSKY=0 NEXT_TELEMETRY_DISABLED=1
@@ -17,9 +16,7 @@ ENV NEXT_PUBLIC_API_BASE_URL=${NEXT_PUBLIC_API_BASE_URL} \
     NEXT_PUBLIC_SENTRY_DSN=${NEXT_PUBLIC_SENTRY_DSN} \
     NEXT_PUBLIC_SENTRY_ENVIRONMENT=${NEXT_PUBLIC_SENTRY_ENVIRONMENT} \
     NEXT_PUBLIC_SENTRY_RELEASE=${NEXT_PUBLIC_SENTRY_RELEASE}
-# 업로드 토큰은 빌드 명령에서만 사용하고 이미지에는 저장하지 않는다.
-RUN --mount=type=secret,id=SENTRY_AUTH_TOKEN,env=SENTRY_AUTH_TOKEN \
-    test -n "$NEXT_PUBLIC_API_BASE_URL" && pnpm build
+RUN test -n "$NEXT_PUBLIC_API_BASE_URL" && pnpm build
 
 FROM base AS dependencies
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./

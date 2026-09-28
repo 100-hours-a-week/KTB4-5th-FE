@@ -69,8 +69,6 @@ jobs:
             NEXT_PUBLIC_SENTRY_DSN=${{ env.NEXT_PUBLIC_SENTRY_DSN }}
             NEXT_PUBLIC_SENTRY_ENVIRONMENT=${{ github.event_name == 'pull_request' && 'test' || (github.ref_name == 'main' && 'production' || 'dev') }}
             NEXT_PUBLIC_SENTRY_RELEASE=${{ github.sha }}
-          secrets: |
-            SENTRY_AUTH_TOKEN=${{ github.event_name == 'push' && secrets.SENTRY_AUTH_TOKEN || '' }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
       - name: 배포 이미지 고정

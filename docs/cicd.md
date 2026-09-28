@@ -6,7 +6,7 @@
 
 FE 서버에는 배포 시 별도로 주입할 비밀 환경변수가 없으므로 `APP_ENV` Secret을 등록하지 않는다. 브라우저에 포함되는 공개 API 주소는 Repository Variable `DEV_API_BASE_URL`, `PROD_API_BASE_URL`로 관리하며 이미지 빌드 시 주입한다.
 
-Sentry는 Repository Variable `SENTRY_DSN`과 소스맵 업로드용 Secret `SENTRY_AUTH_TOKEN`을 사용한다. 공개 DSN·환경·release는 이미지 빌드 시 전달하고 서버 실행 이미지에도 같은 값을 저장한다. 업로드 토큰은 BuildKit secret으로 빌드 명령에만 전달한다. 등록할 값과 배포 확인 절차는 [Sentry 배포 설정](sentry.md)을 따른다.
+Sentry는 Repository Variable `SENTRY_DSN`만 사용한다. 공개 DSN·환경·release는 이미지 빌드 시 전달하고 서버 실행 이미지에도 같은 값을 저장한다. 등록할 값과 배포 확인 절차는 [Sentry 배포 설정](sentry.md)을 따른다.
 
 비공개 GHCR 이미지는 배포 Job의 단기 `GITHUB_TOKEN`으로 인증해 내려받으며, 별도의 PAT을 등록하지 않는다.
 
