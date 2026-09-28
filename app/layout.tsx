@@ -3,6 +3,7 @@ import { Suspense } from "react";
 
 import { AppToastProvider } from "@/_app/providers/app-toast-provider";
 import { CsrfBootstrapProvider } from "@/_app/providers/csrf-bootstrap-provider";
+import { GoogleAnalytics } from "@/_app/providers/google-analytics";
 import { NavigationHistoryTracker } from "@/_app/providers/navigation-history-tracker";
 import { QueryProvider } from "@/_app/providers/query-provider";
 import { SerwistProvider } from "@/_app/providers/serwist-provider";
@@ -70,6 +71,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
             </div>
           </QueryProvider>
         </SerwistProvider>
+        <GoogleAnalytics />
       </body>
     </html>
   );
