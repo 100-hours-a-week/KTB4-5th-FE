@@ -1,6 +1,9 @@
 import "client-only";
 
-import { savePushSubscriptionId } from "@/entities/push-subscription";
+import {
+  clearPushOptedOut,
+  savePushSubscriptionId,
+} from "@/entities/push-subscription";
 import { ApiError, SessionExpiredError } from "@/shared/api";
 
 import {
@@ -108,6 +111,7 @@ export async function registerWebPush(): Promise<RegisterWebPushResult> {
       serverKey,
     );
     savePushSubscriptionId(subscriptionId);
+    clearPushOptedOut();
 
     return { status: "subscribed", subscriptionId };
   } catch (cause) {

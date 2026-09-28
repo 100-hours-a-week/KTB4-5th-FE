@@ -4,6 +4,7 @@ import {
   getNotificationPreferences,
   isExpirationNotificationEnabled,
 } from "@/entities/notification";
+import { isPushOptedOut } from "@/entities/push-subscription";
 
 import {
   getPushNotificationSupport,
@@ -13,13 +14,15 @@ import {
 /**
  * 로그아웃 때 구독을 해제하므로 로그인 직후 다시 구독한다.
  * 권한 요청은 사용자 클릭에서만 할 수 있어 이미 허용된 기기만 대상으로 하고,
+ * 사용자가 이 기기에서 직접 끈 경우는 다시 켜지 않는다.
  * 로그인 흐름을 막지 않도록 실패는 조용히 넘긴다.
  */
 export async function resubscribePushNotificationsIfEnabled(): Promise<void> {
   try {
     if (
       getPushNotificationSupport() !== "supported" ||
-      Notification.permission !== "granted"
+      Notification.permission !== "granted" ||
+      isPushOptedOut()
     ) {
       return;
     }

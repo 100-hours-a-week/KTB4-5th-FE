@@ -10,6 +10,7 @@ import {
 } from "@/entities/notification";
 import {
   disablePushSubscription,
+  markPushOptedOut,
   readPushSubscriptionId,
 } from "@/entities/push-subscription";
 import { SessionExpiredError } from "@/shared/api";
@@ -108,6 +109,7 @@ export function usePushNotificationSetting() {
   const releaseMutation = useMutation({
     mutationFn: disablePushSubscription,
     onSuccess: () => {
+      markPushOptedOut();
       setDeviceStatus("off");
       showAppToast({ message: "푸시 수신을 껐어요", variant: "success" });
     },

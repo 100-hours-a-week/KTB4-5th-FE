@@ -1,4 +1,9 @@
 export {
+  clearPushOptedOut,
+  isPushOptedOut,
+  markPushOptedOut,
+} from "./model/push-opt-out";
+export {
   readPushSubscriptionId,
   savePushSubscriptionId,
 } from "./model/push-subscription-id";
