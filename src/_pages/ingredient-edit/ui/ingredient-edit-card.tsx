@@ -22,7 +22,7 @@ type IngredientEditCardProps = {
   measureType: IngredientEditFormInput["measureType"];
 };
 
-const NAME_HINT = "한글·영문·숫자 2~10자";
+const NAME_HINT = "한글·영문·숫자 1~10자";
 const QUANTITY_HINT = "1~100개 사이에서 수정할 수 있어요";
 const WEIGHT_HINT = "1~50,000 사이에서 수정할 수 있어요";
 const EXPIRATION_HINT = "기한은 4년 이내";
