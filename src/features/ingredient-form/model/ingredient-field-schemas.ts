@@ -36,7 +36,7 @@ export const ingredientNameSchema = z
       name.length < TEXT_FIELD_MIN_LENGTH ||
       name.length > TEXT_FIELD_MAX_LENGTH
     ) {
-      ctx.addIssue({ code: "custom", message: "2~10자로 입력해주세요" });
+      ctx.addIssue({ code: "custom", message: "1~10자로 입력해주세요" });
     }
   })
   .transform(normalizeIngredientName);

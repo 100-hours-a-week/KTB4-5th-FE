@@ -109,6 +109,8 @@ jobs:
           SSH_KNOWN_HOSTS: ${{ github.ref_name == 'main' && secrets.PROD_SSH_KNOWN_HOSTS || secrets.DEV_SSH_KNOWN_HOSTS }}
           GHCR_USER: ${{ github.actor }}
           GHCR_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # 프론트엔드 실행 환경변수는 개발과 운영에서 공통으로 사용한다.
+          APP_ENV: ${{ secrets.APP_ENV }}
           IMAGE: ${{ needs.build.outputs.image }}
         shell: bash
         run: |
@@ -124,13 +126,18 @@ jobs:
           test -n "$SSH_PRIVATE_KEY"
           test -n "$SSH_KNOWN_HOSTS"
           test -n "$GHCR_TOKEN"
+          if [[ -z "$APP_ENV" ]]; then
+            echo "::error::FE 저장소에 APP_ENV Secret을 등록하세요."
+            exit 1
+          fi
           umask 077
           key=$(mktemp)
           hosts=$(mktemp)
           trap 'rm -f "$key" "$hosts"' EXIT
           printf '%s\n' "$SSH_PRIVATE_KEY" > "$key"
           printf '%s\n' "$SSH_KNOWN_HOSTS" > "$hosts"
-          printf '%s\n' "$GHCR_TOKEN" | ssh -i "$key" -p "$DEPLOY_PORT" \
+          # 첫 줄은 GHCR 인증 토큰, 나머지는 프론트엔드 환경설정으로 전달한다.
+          { printf '%s\n' "$GHCR_TOKEN"; printf '%s\n' "$APP_ENV"; } | ssh -i "$key" -p "$DEPLOY_PORT" \
             -o BatchMode=yes -o StrictHostKeyChecking=yes \
             -o UserKnownHostsFile="$hosts" -o ConnectTimeout=15 \
             -o ServerAliveInterval=15 -o ServerAliveCountMax=4 \
