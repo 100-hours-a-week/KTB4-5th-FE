@@ -1,6 +1,7 @@
 import { cookies } from "next/headers";
 
 import { SessionGate } from "@/_app/providers/session-gate";
+import { BugReportFloatingButton } from "@/features/report-bug";
 import {
   ACCESS_TOKEN_COOKIE_NAME,
   REFRESH_TOKEN_COOKIE_NAME,
@@ -17,6 +18,7 @@ export default async function ProtectedLayout({ children }: LayoutProps<"/">) {
     <SessionGate needsRenewal={needsRenewal}>
       <NotificationPoller />
       {children}
+      <BugReportFloatingButton />
     </SessionGate>
   );
 }
