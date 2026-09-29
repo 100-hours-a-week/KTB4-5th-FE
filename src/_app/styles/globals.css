@@ -215,15 +215,23 @@
     overscroll-behavior-y: none;
   }
 
+  body {
+    --floating-action-bottom-offset: calc(20px + var(--safe-bottom));
+  }
+
   body:has([data-app-bottom-navigation]) {
     --toast-bottom-offset: calc(
       var(--tabbar-h) + var(--rule) + var(--safe-bottom) + 24px
+    );
+    --floating-action-bottom-offset: calc(
+      var(--tabbar-h) + var(--rule) + var(--safe-bottom) + 16px
     );
   }
 
   /* 하단 action(약 50px)과 footer 여백(12px + 20px) 위로 토스트를 띄운다. */
   body:has([data-page-action-footer]) {
     --toast-bottom-offset: calc(104px + var(--safe-bottom));
+    --floating-action-bottom-offset: calc(96px + var(--safe-bottom));
   }
 
   h1,
