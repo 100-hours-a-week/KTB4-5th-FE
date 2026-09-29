@@ -20,6 +20,7 @@ const screenshotExtensions: Record<string, string> = {
 const WEBHOOK_TIMEOUT_MS = 10_000;
 
 export type DiscordBugReport = {
+  reporterName: string;
   category: BugReportCategory;
   description: string;
   userId: string | null;
@@ -48,7 +49,8 @@ export async function sendDiscordBugReport(
   webhookUrl: string,
   report: DiscordBugReport,
 ): Promise<void> {
-  const { category, description, userId, context, screenshot } = report;
+  const { reporterName, category, description, userId, context, screenshot } =
+    report;
   const screenshotName = screenshot
     ? `screenshot.${screenshotExtensions[screenshot.type] ?? "png"}`
     : null;
@@ -64,6 +66,7 @@ export async function sendDiscordBugReport(
         color: categoryColors[category],
         timestamp: new Date().toISOString(),
         fields: [
+          field("이름", reporterName, true),
           field("사용자 ID", userId ?? "확인 불가", true),
           field(
             "환경",
