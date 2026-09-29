@@ -20,6 +20,8 @@ import {
   BUG_REPORT_CATEGORIES,
   BUG_REPORT_DESCRIPTION_HINT,
   BUG_REPORT_DESCRIPTION_MAX_LENGTH,
+  BUG_REPORT_REPORTER_NAME_EXAMPLE,
+  BUG_REPORT_REPORTER_NAME_MAX_LENGTH,
   BUG_REPORT_SCREENSHOT_TYPES,
   bugReportCategoryLabels,
   bugReportFormSchema,
@@ -28,6 +30,7 @@ import {
 import type { BugReportFormValues } from "../model/bug-report-form.schema";
 import { useSubmitBugReport } from "../model/use-submit-bug-report";
 
+const REPORTER_NAME_HINT = "올바른 이름이 아니면 쿠폰을 전달하기 어려워요";
 const SCREENSHOT_HINT = "선택 · 8MB 이하 이미지 1장";
 const RATE_LIMIT_MESSAGE = "잠시 후 다시 보내주세요";
 const NETWORK_ERROR_MESSAGE = "인터넷 연결을 확인해 주세요";
@@ -50,6 +53,8 @@ type BugReportSheetProps = {
 
 export function BugReportSheet({ open, onDismiss }: BugReportSheetProps) {
   const fieldId = useId();
+  const reporterNameId = `${fieldId}-reporter-name`;
+  const reporterNameHelperId = `${fieldId}-reporter-name-helper`;
   const categoryHelperId = `${fieldId}-category-helper`;
   const descriptionId = `${fieldId}-description`;
   const descriptionHelperId = `${fieldId}-description-helper`;
@@ -67,7 +72,7 @@ export function BugReportSheet({ open, onDismiss }: BugReportSheetProps) {
   } = useForm<BugReportFormValues>({
     resolver: zodResolver(bugReportFormSchema),
     mode: "onChange",
-    defaultValues: { description: "" },
+    defaultValues: { reporterName: "", description: "" },
   });
   const descriptionLength =
     useWatch({ control, name: "description" })?.length ?? 0;
@@ -132,8 +137,33 @@ export function BugReportSheet({ open, onDismiss }: BugReportSheetProps) {
       </AppBottomSheetDescription>
 
       <form noValidate onSubmit={handleSubmit(onSubmit)}>
+        <label htmlFor={reporterNameId} className="text-[13px] font-bold">
+          이름
+        </label>
+        <input
+          id={reporterNameId}
+          type="text"
+          autoComplete="off"
+          maxLength={BUG_REPORT_REPORTER_NAME_MAX_LENGTH}
+          disabled={isPending}
+          placeholder={BUG_REPORT_REPORTER_NAME_EXAMPLE}
+          aria-invalid={errors.reporterName ? true : undefined}
+          aria-describedby={reporterNameHelperId}
+          className={`mt-1 block min-h-[var(--tap-min)] w-full rounded-[4px] border-[1.5px] bg-white px-3 font-app-body text-[16px] text-app-ink outline-none placeholder:text-[14px] placeholder:text-app-ink/30 ${
+            errors.reporterName
+              ? "border-app-primary"
+              : "border-app-ink/25 focus:border-app-ink"
+          }`}
+          {...register("reporterName")}
+        />
+        <FieldHelperText
+          id={reporterNameHelperId}
+          hint={REPORTER_NAME_HINT}
+          error={errors.reporterName?.message}
+        />
+
         <fieldset
-          className="m-0 border-0 p-0"
+          className="m-0 mt-2 border-0 p-0"
           aria-describedby={categoryHelperId}
         >
           <legend className="mb-1 p-0 text-[13px] font-bold">유형</legend>

@@ -20,12 +20,14 @@ export type SubmitBugReportRequest = BugReportFormValues & {
 };
 
 export async function submitBugReport({
+  reporterName,
   category,
   description,
   screenshot,
   context,
 }: SubmitBugReportRequest): Promise<void> {
   const body = new FormData();
+  body.set("reporterName", reporterName);
   body.set("category", category);
   body.set("description", description);
   body.set("context", JSON.stringify(context));

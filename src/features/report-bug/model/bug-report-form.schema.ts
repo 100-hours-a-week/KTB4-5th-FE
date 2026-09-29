@@ -10,6 +10,10 @@ export const bugReportCategoryLabels = {
   ETC: "기타",
 } satisfies Record<BugReportCategory, string>;
 
+export const BUG_REPORT_REPORTER_NAME_MAX_LENGTH = 50;
+
+export const BUG_REPORT_REPORTER_NAME_EXAMPLE = "ojosama.five(오조사마)";
+
 export const BUG_REPORT_DESCRIPTION_MAX_LENGTH = 1000;
 
 // 디스코드 Webhook 첨부 한도(10MB) 안에서 요청 여유를 둔다.
@@ -25,6 +29,14 @@ export const BUG_REPORT_SCREENSHOT_TYPES = [
 export const BUG_REPORT_DESCRIPTION_HINT = `${BUG_REPORT_DESCRIPTION_MAX_LENGTH.toLocaleString("ko-KR")}자까지 입력할 수 있어요`;
 
 export const bugReportFormSchema = z.object({
+  reporterName: z
+    .string()
+    .trim()
+    .min(1, "이름을 입력해주세요")
+    .max(
+      BUG_REPORT_REPORTER_NAME_MAX_LENGTH,
+      `${BUG_REPORT_REPORTER_NAME_MAX_LENGTH}자까지 입력할 수 있어요`,
+    ),
   category: z.enum(BUG_REPORT_CATEGORIES, { error: "유형을 선택해주세요" }),
   description: z
     .string()

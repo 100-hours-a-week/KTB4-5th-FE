@@ -59,6 +59,7 @@ export async function postBugReport(request: NextRequest): Promise<Response> {
   }
 
   const fields = bugReportFormSchema.safeParse({
+    reporterName: formData.get("reporterName"),
     category: formData.get("category"),
     description: formData.get("description"),
   });
