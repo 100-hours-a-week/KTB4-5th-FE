@@ -30,6 +30,7 @@ export const ingredientQueries = {
     [...ingredientQueries.byRefrigerator(refrigeratorId), "detail"] as const,
   detail: (refrigeratorId: string, ingredientId: string) =>
     queryOptions({
+      meta: { monitoringOperation: "ingredient.detail" },
       queryKey: [
         ...ingredientQueries.details(refrigeratorId),
         ingredientId,
@@ -41,6 +42,7 @@ export const ingredientQueries = {
     [...ingredientQueries.byRefrigerator(refrigeratorId), "list"] as const,
   list: (refrigeratorId: string, query: IngredientListQuery) =>
     infiniteQueryOptions({
+      meta: { monitoringOperation: "ingredient.list" },
       queryKey: [...ingredientQueries.lists(refrigeratorId), query],
       queryFn: ({ pageParam, signal }) =>
         getIngredientList({ refrigeratorId, query, cursor: pageParam, signal }),
@@ -55,6 +57,7 @@ export const ingredientQueries = {
     ] as const,
   firstPage: (refrigeratorId: string, query: IngredientListQuery) =>
     queryOptions({
+      meta: { monitoringOperation: "ingredient.list" },
       queryKey: [...ingredientQueries.firstPages(refrigeratorId), query],
       queryFn: ({ signal }) =>
         getIngredientList({ refrigeratorId, query, cursor: null, signal }),
@@ -62,6 +65,7 @@ export const ingredientQueries = {
     }),
   allPages: (refrigeratorId: string, query: IngredientListQuery) =>
     queryOptions({
+      meta: { monitoringOperation: "ingredient.list" },
       queryKey: [
         ...ingredientQueries.byRefrigerator(refrigeratorId),
         "all-pages",

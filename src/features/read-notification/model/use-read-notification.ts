@@ -17,6 +17,7 @@ export function useReadNotification() {
   const queryClient = useQueryClient();
 
   return useMutation({
+    meta: { monitoringOperation: "notification.read" },
     mutationFn: ({ notificationId }: ReadNotificationRequest) =>
       readNotification(notificationId),
     onSuccess: (_data, request) => {

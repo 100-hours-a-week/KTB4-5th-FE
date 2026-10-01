@@ -22,6 +22,7 @@ export function ReadAllNotificationsButton({
   const refrigeratorId = useCurrentRefrigeratorId();
   const userScope = useNotificationSessionScope();
   const mutation = useMutation({
+    meta: { monitoringOperation: "notification.readAll" },
     mutationFn: ({
       refrigeratorId,
     }: {
