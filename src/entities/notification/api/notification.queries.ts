@@ -36,6 +36,7 @@ export const notificationQueries = {
     type: NotificationListFilter,
   ) =>
     infiniteQueryOptions({
+      meta: { monitoringOperation: "notification.list" },
       queryKey: [
         ...notificationQueries.lists(userScope, refrigeratorId),
         type,
@@ -64,6 +65,7 @@ export const notificationQueries = {
     }),
   stream: (userScope: string, refrigeratorId: string) =>
     queryOptions({
+      meta: { monitoringOperation: "notification.stream" },
       queryKey: [
         ...notificationQueries.byRefrigerator(userScope, refrigeratorId),
         "stream",
@@ -80,6 +82,7 @@ export const notificationQueries = {
     }),
   unreadCount: (userScope: string, refrigeratorId: string) =>
     queryOptions({
+      meta: { monitoringOperation: "notification.unreadCount" },
       queryKey: [
         ...notificationQueries.byRefrigerator(userScope, refrigeratorId),
         "unread-count",
@@ -97,6 +100,7 @@ export const notificationQueries = {
     }),
   preferences: (userScope: string) =>
     queryOptions({
+      meta: { monitoringOperation: "notification.preferences" },
       queryKey: [
         ...notificationQueries.all(),
         userScope,

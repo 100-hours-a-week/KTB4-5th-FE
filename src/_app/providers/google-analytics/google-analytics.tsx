@@ -3,7 +3,7 @@ import Script from "next/script";
 import { siteConfig } from "@/shared/config";
 
 export function GoogleAnalytics() {
-  if (process.env.NODE_ENV !== "production") {
+  if (process.env.NEXT_PUBLIC_SENTRY_ENVIRONMENT !== "production") {
     return null;
   }
 

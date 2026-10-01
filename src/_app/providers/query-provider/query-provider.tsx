@@ -9,6 +9,7 @@ import {
 } from "@tanstack/react-query";
 import type { ReactNode } from "react";
 
+import { reportOperationFailure } from "@/_app/monitoring/index.client";
 import { expireSession } from "@/_app/providers/session-expiry";
 import { SessionExpiredError } from "@/shared/api";
 
@@ -19,7 +20,7 @@ const defaultOptions: QueryClientConfig["defaultOptions"] = {
   },
 };
 
-function createQueryClient(): QueryClient {
+export function createQueryClient(): QueryClient {
   const clientRef: { current: QueryClient | null } = { current: null };
 
   const handleSessionExpired = (error: unknown) => {
@@ -30,8 +31,18 @@ function createQueryClient(): QueryClient {
 
   const client = new QueryClient({
     defaultOptions,
-    queryCache: new QueryCache({ onError: handleSessionExpired }),
-    mutationCache: new MutationCache({ onError: handleSessionExpired }),
+    queryCache: new QueryCache({
+      onError: (error, query) => {
+        handleSessionExpired(error);
+        reportOperationFailure(error, query.meta);
+      },
+    }),
+    mutationCache: new MutationCache({
+      onError: (error, _variables, _context, mutation) => {
+        handleSessionExpired(error);
+        reportOperationFailure(error, mutation.meta);
+      },
+    }),
   });
 
   clientRef.current = client;

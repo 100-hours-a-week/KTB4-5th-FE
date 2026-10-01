@@ -22,6 +22,7 @@ import {
   registerWebPush,
   requestPushPermission,
 } from "./push-notification-subscription";
+import { PushRegistrationFailure } from "./push-registration-failure";
 
 /**
  * - `on`: 서버 알림 설정이 켜져 있고, 권한이 허용되고 이 기기의 구독이 서버에 등록됐다.
@@ -32,12 +33,7 @@ import {
  * - `unsupported`: 이 환경에서는 푸시를 쓸 수 없다.
  */
 export type PushNotificationSettingStatus =
-  | "on"
-  | "off"
-  | "blocked"
-  | "blocked-ios"
-  | "needs-install"
-  | "unsupported";
+  "on" | "off" | "blocked" | "blocked-ios" | "needs-install" | "unsupported";
 
 export const pushNotificationStatusLabels: Record<
   PushNotificationSettingStatus,
@@ -90,15 +86,18 @@ export function usePushNotificationSetting() {
   const [isRequestingPermission, setIsRequestingPermission] = useState(false);
 
   const registerMutation = useMutation({
-    mutationFn: registerWebPush,
-    onSuccess: (result) => {
-      if (result.status === "subscribed") {
-        setDeviceStatus("on");
-        showAppToast({ message: "푸시 수신을 켰어요", variant: "success" });
-        return;
+    meta: { monitoringOperation: "push.register" },
+    mutationFn: async () => {
+      const result = await registerWebPush();
+      if (result.status === "error") {
+        throw new PushRegistrationFailure(result);
       }
 
-      showEnableErrorToast();
+      return result;
+    },
+    onSuccess: () => {
+      setDeviceStatus("on");
+      showAppToast({ message: "푸시 수신을 켰어요", variant: "success" });
     },
     onError: (error) => {
       // 세션 만료는 MutationCache가 로그인으로 보낸다.
@@ -107,6 +106,7 @@ export function usePushNotificationSetting() {
   });
 
   const releaseMutation = useMutation({
+    meta: { monitoringOperation: "push.disable" },
     mutationFn: disablePushSubscription,
     onSuccess: () => {
       markPushOptedOut();

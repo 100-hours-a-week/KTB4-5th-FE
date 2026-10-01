@@ -5,6 +5,7 @@ import type { NextConfig } from "next";
 // 로컬 전용 Dev Server 프록시
 const LOCAL_BACKEND_ORIGIN =
   process.env.BACKEND_ORIGIN ?? "http://localhost:8080";
+const SENTRY_AUTH_TOKEN = process.env.SENTRY_AUTH_TOKEN;
 
 const nextConfig = withSerwist({
   async headers() {
@@ -46,12 +47,16 @@ const nextConfig = withSerwist({
 export default withSentryConfig(nextConfig, {
   org: "kakaotechbootcamp",
   project: "dameokja-fe",
+  authToken: SENTRY_AUTH_TOKEN,
   silent: !process.env.CI,
   telemetry: false,
-  sourcemaps: { disable: true },
+  sourcemaps: {
+    disable: !SENTRY_AUTH_TOKEN,
+    deleteSourcemapsAfterUpload: true,
+  },
   release: {
     name: process.env.NEXT_PUBLIC_SENTRY_RELEASE,
-    create: false,
-    finalize: false,
+    create: Boolean(SENTRY_AUTH_TOKEN),
+    finalize: Boolean(SENTRY_AUTH_TOKEN),
   },
 });
