@@ -22,6 +22,7 @@ export function createRegisterIngredientsMutationOptions({
   mutationFn = registerIngredients,
 }: RegisterIngredientsMutationOptionsParams) {
   return mutationOptions({
+    meta: { monitoringOperation: "ingredient.register" },
     mutationFn,
     onSuccess: (result, { refrigeratorId }) => {
       void queryClient.invalidateQueries({

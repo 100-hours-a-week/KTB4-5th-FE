@@ -1,5 +1,6 @@
 "use client";
 
+import { useMutation } from "@tanstack/react-query";
 import { useFormContext } from "react-hook-form";
 
 import {
@@ -55,6 +56,10 @@ export function LoginForm() {
     formState: { errors },
   } = useFormContext<LoginFormValues>();
   const loginOrSignupMutation = useLoginOrSignup();
+  const resubscribeMutation = useMutation({
+    meta: { monitoringOperation: "push.resubscribe" },
+    mutationFn: resubscribePushNotificationsIfEnabled,
+  });
 
   async function onSubmit(values: LoginFormValues) {
     try {
@@ -63,7 +68,7 @@ export function LoginForm() {
       if (isNewAccount) {
         showNotificationOnboarding();
       } else {
-        void resubscribePushNotificationsIfEnabled();
+        resubscribeMutation.mutate();
         enterHome();
       }
     } catch (error) {
