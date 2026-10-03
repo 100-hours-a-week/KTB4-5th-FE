@@ -33,8 +33,7 @@ export function RegisterCompleteDialog({
     router.replace(href);
   }
 
-  const registeredTypeCount =
-    (result?.createdCount ?? 0) + (result?.mergedCount ?? 0);
+  const createdCount = result?.createdCount ?? 0;
   const {
     stockTypeCount: stockTypeCountAfter,
     stockTypeLimit,
@@ -59,7 +58,11 @@ export function RegisterCompleteDialog({
     <AppDialog
       open={result !== null}
       dismissBehavior="none"
-      title={`${registeredTypeCount}종을 등록했어요`}
+      title={
+        createdCount > 0
+          ? `새 재료 ${createdCount}종을 추가했어요`
+          : "기존 재료에 수량을 더했어요"
+      }
       description={`냉장고에 재료가 담겼습니다.\n등록 후 ${stockTypeCountAfter} / ${stockTypeLimit}종 · 잔여 ${remainingTypeCount}종`}
       secondaryAction={
         hasMergedItems
