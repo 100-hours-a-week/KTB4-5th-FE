@@ -19,7 +19,6 @@ export type RouteHeaderPolicy =
 const tabHeaderTitles: Record<string, string> = {
   [routes.home]: "홈",
   [routes.refrigerator]: "냉장고",
-  [routes.recommendations]: "추천",
   [routes.me]: "MY",
 };
 
