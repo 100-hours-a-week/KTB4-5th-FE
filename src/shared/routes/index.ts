@@ -11,7 +11,6 @@ export const routes = {
     `/login?${LOGIN_REDIRECT_REASON_PARAM}=${reason}`,
   refrigerator: "/refrigerator",
   notifications: "/notifications",
-  recommendations: "/recommendations",
   me: "/me",
   registerIngredient: "/refrigerator/register",
   registerIngredientManual: "/refrigerator/register/manual",
