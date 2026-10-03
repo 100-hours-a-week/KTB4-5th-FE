@@ -5,6 +5,7 @@ import { useMemo } from "react";
 
 import {
   ingredientQueries,
+  IngredientRefrigeratorRequiredState,
   parseIngredientListQuery,
   type RawQueryParams,
 } from "@/entities/ingredient";
@@ -84,19 +85,23 @@ export function RefrigeratorPage({ queryParams }: RefrigeratorPageProps) {
         className="min-h-0 flex-1 overflow-y-auto px-5 pt-4 pb-[calc(var(--space-6)+var(--safe-bottom))] [-webkit-overflow-scrolling:touch]"
         aria-label="재고 목록"
       >
-        <IngredientListContainer
-          query={query}
-          ingredients={ingredients}
-          scrollContainerRef={scrollContainerRef}
-          isPending={isPending}
-          isInitialError={isError && !data}
-          isFetchingNextPage={isFetchingNextPage}
-          isFetchNextPageError={isFetchNextPageError}
-          hasNextPage={Boolean(hasNextPage)}
-          onFetchNextPage={() => fetchNextPage({ cancelRefetch: false })}
-          onRetry={() => void refetch()}
-          error={error}
-        />
+        {refrigeratorId === null ? (
+          <IngredientRefrigeratorRequiredState />
+        ) : (
+          <IngredientListContainer
+            query={query}
+            ingredients={ingredients}
+            scrollContainerRef={scrollContainerRef}
+            isPending={isPending}
+            isInitialError={isError && !data}
+            isFetchingNextPage={isFetchingNextPage}
+            isFetchNextPageError={isFetchNextPageError}
+            hasNextPage={Boolean(hasNextPage)}
+            onFetchNextPage={() => fetchNextPage({ cancelRefetch: false })}
+            onRetry={() => void refetch()}
+            error={error}
+          />
+        )}
       </section>
     </main>
   );
