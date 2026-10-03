@@ -39,6 +39,8 @@ export function IngredientDetailActions({
   const [isExpireSheetOpen, setIsExpireSheetOpen] = useState(false);
   const [isPending, setIsPending] = useState(false);
   const submittingRef = useRef(false);
+  const actionLabel =
+    ingredient.status === "EXPIRED" ? "폐기 처리" : "삭제 처리";
 
   async function handleExpire() {
     if (submittingRef.current) {
@@ -171,7 +173,7 @@ export function IngredientDetailActions({
           aria-busy={isPending}
           className="flex-1 cursor-pointer rounded-[4px] border-0 bg-app-ink py-[15px] font-app-heading text-[14px] font-bold leading-[1.2] text-white hover:bg-app-neutral-800 active:bg-app-neutral-700 disabled:cursor-not-allowed disabled:opacity-45"
         >
-          {isPending ? "처리중..." : "만료 처리"}
+          {isPending ? "처리중..." : actionLabel}
         </button>
       </div>
 
@@ -182,6 +184,7 @@ export function IngredientDetailActions({
       >
         <IngredientExpireSheetContent
           ingredient={ingredient}
+          actionLabel={actionLabel}
           isPending={isPending}
           onCancel={() => setIsExpireSheetOpen(false)}
           onConfirm={() => void handleExpire()}

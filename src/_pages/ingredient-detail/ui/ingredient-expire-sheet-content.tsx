@@ -11,6 +11,7 @@ import { FooterButton } from "@/shared/ui/footer-button";
 
 type IngredientExpireSheetContentProps = {
   ingredient: IngredientDetail;
+  actionLabel: "삭제 처리" | "폐기 처리";
   isPending: boolean;
   onCancel: () => void;
   onConfirm: () => void;
@@ -35,6 +36,7 @@ function formatExpireAmount(ingredient: IngredientDetail) {
 
 export function IngredientExpireSheetContent({
   ingredient,
+  actionLabel,
   isPending,
   onCancel,
   onConfirm,
@@ -48,11 +50,12 @@ export function IngredientExpireSheetContent({
   return (
     <>
       <AppBottomSheetTitle className="m-0 font-app-heading text-[16px] font-black leading-[1.35] tracking-normal">
-        {ingredient.name} 만료 처리할까요?
+        {ingredient.name} {actionLabel}할까요?
       </AppBottomSheetTitle>
 
       <AppBottomSheetDescription className="m-[4px_0_0] font-app-body text-[12.5px] leading-[1.45] text-app-ink/55">
-        선택한 재료는 보유 수량 전부가 폐기돼요.
+        선택한 재료의 보유 수량 전부가
+        {actionLabel === "폐기 처리" ? " 폐기돼요." : " 삭제돼요."}
         <br />
         <span className="text-app-ink">정리한 재료는 되돌릴 수 없어요.</span>
       </AppBottomSheetDescription>
@@ -81,7 +84,7 @@ export function IngredientExpireSheetContent({
           onClick={handleSubmit}
           aria-busy={isPending}
         >
-          {isPending ? "처리중..." : "전체 처리하기"}
+          {isPending ? "처리중..." : `${actionLabel}하기`}
         </FooterButton>
       </div>
     </>
