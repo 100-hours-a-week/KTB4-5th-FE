@@ -71,6 +71,7 @@ jobs:
             NEXT_PUBLIC_SENTRY_DSN=${{ env.NEXT_PUBLIC_SENTRY_DSN }}
             NEXT_PUBLIC_SENTRY_ENVIRONMENT=${{ github.event_name == 'pull_request' && 'test' || (github.ref_name == 'main' && 'production' || 'dev') }}
             NEXT_PUBLIC_SENTRY_RELEASE=${{ github.sha }}
+            NEXT_PUBLIC_MSW=${{ github.event_name == 'push' && github.ref_name == 'dev' && 'true' || 'false' }}
           secrets: |
             SENTRY_AUTH_TOKEN=${{ github.event_name == 'push' && secrets.SENTRY_AUTH_TOKEN || '' }}
           cache-from: type=gha
