@@ -8,6 +8,7 @@ import {
   DEFAULT_INGREDIENT_LIST_SORT,
   getIngredientCapacity,
   ingredientQueries,
+  IngredientRefrigeratorRequiredState,
   type IngredientListQuery,
 } from "@/entities/ingredient";
 import { useCurrentRefrigeratorId } from "@/entities/refrigerator";
@@ -51,6 +52,14 @@ export function RegisterIngredientPage() {
       },
     });
   };
+
+  if (refrigeratorId === null) {
+    return (
+      <main className="flex min-h-0 min-w-0 flex-1 flex-col overflow-y-auto">
+        <IngredientRefrigeratorRequiredState />
+      </main>
+    );
+  }
 
   if (error && !page) {
     return (

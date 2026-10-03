@@ -5,6 +5,7 @@ import { useQuery } from "@tanstack/react-query";
 import {
   DEFAULT_INGREDIENT_LIST_SORT,
   ingredientQueries,
+  IngredientRefrigeratorRequiredState,
   type IngredientListQuery,
 } from "@/entities/ingredient";
 import { useCurrentRefrigeratorId } from "@/entities/refrigerator";
@@ -38,7 +39,9 @@ export function RegisterIngredientManualPage() {
 
   return (
     <main className="flex min-h-0 w-full flex-1 flex-col overflow-y-auto">
-      {isError ? (
+      {refrigeratorId === null ? (
+        <IngredientRefrigeratorRequiredState />
+      ) : isError ? (
         <AsyncViewState
           status="error"
           title="재고를 불러오지 못했어요"

@@ -10,6 +10,7 @@ import {
   useNotificationSessionScope,
   type RawQueryParams,
 } from "@/entities/notification";
+import { IngredientRefrigeratorRequiredState } from "@/entities/ingredient";
 import { useCurrentRefrigeratorId } from "@/entities/refrigerator";
 
 import { useNotificationListPaginationState } from "../model/use-notification-list-pagination-state";
@@ -70,21 +71,25 @@ export function NotificationsPage({ queryParams }: NotificationsPageProps) {
         aria-label="알림 목록"
         className="min-h-0 flex-1 overflow-y-auto px-5 pb-[calc(var(--space-6)+var(--safe-bottom))] [-webkit-overflow-scrolling:touch]"
       >
-        <NotificationListContainer
-          filter={filter}
-          notifications={notifications}
-          scrollContainerRef={scrollContainerRef}
-          isPending={isPending}
-          isInitialError={isError && !data}
-          isRefetchError={isRefetchError}
-          isFetchingNextPage={isFetchingNextPage}
-          isFetching={isFetching}
-          isFetchNextPageError={isFetchNextPageError}
-          hasNextPage={Boolean(hasNextPage)}
-          onFetchNextPage={() => fetchNextPage({ cancelRefetch: false })}
-          onRetry={() => void refetch()}
-          error={error}
-        />
+        {refrigeratorId === null ? (
+          <IngredientRefrigeratorRequiredState />
+        ) : (
+          <NotificationListContainer
+            filter={filter}
+            notifications={notifications}
+            scrollContainerRef={scrollContainerRef}
+            isPending={isPending}
+            isInitialError={isError && !data}
+            isRefetchError={isRefetchError}
+            isFetchingNextPage={isFetchingNextPage}
+            isFetching={isFetching}
+            isFetchNextPageError={isFetchNextPageError}
+            hasNextPage={Boolean(hasNextPage)}
+            onFetchNextPage={() => fetchNextPage({ cancelRefetch: false })}
+            onRetry={() => void refetch()}
+            error={error}
+          />
+        )}
       </section>
     </main>
   );
