@@ -4,7 +4,9 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
+    "dev:msw": "NEXT_PUBLIC_MSW=true pnpm dev",
     "build": "next build",
+    "build:start": "pnpm build && pnpm start -p 3000",
     "start": "next start",
     "test": "vitest run",
     "lint": "eslint",

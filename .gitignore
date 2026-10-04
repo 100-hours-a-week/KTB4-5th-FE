@@ -47,5 +47,7 @@ next-env.d.ts
 public/sw*
 public/swe-worker*
 
+.vscode/
+
 # Perf measurement output
 scripts/perf/out/
