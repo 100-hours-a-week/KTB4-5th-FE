@@ -55,10 +55,6 @@ export function getPushNotificationSupport(): PushNotificationSupport {
   return isPushNotificationSupported() ? "supported" : "unsupported";
 }
 
-export function getPushNotificationPermission(): NotificationPermission | null {
-  return isPushNotificationSupported() ? Notification.permission : null;
-}
-
 export type PushPermissionResult = "granted" | "denied" | "dismissed";
 
 // 사용자 제스처가 살아 있을 때 불러야 하므로 클릭 핸들러에서 가장 먼저 호출한다.
