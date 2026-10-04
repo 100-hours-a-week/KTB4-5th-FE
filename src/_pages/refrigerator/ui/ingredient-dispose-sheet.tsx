@@ -5,10 +5,9 @@ import { useRef, useState } from "react";
 
 import {
   disposeExpiredIngredients,
-  ingredientQueries,
+  invalidateIngredients,
   type Ingredient,
 } from "@/entities/ingredient";
-import { refrigeratorQueries } from "@/entities/refrigerator";
 import { AppBottomSheet } from "@/shared/ui/app-bottom-sheet";
 import { AppDialog } from "@/shared/ui/app-dialog";
 import { showAppToast } from "@/shared/ui/app-toast";
@@ -64,14 +63,7 @@ export function IngredientDisposeBottomSheet({
       await mutateAsync(pendingDisposal);
       setPendingDisposal(null);
 
-      void queryClient.invalidateQueries({
-        queryKey: ingredientQueries.byRefrigerator(
-          pendingDisposal.refrigeratorId,
-        ),
-      });
-      void queryClient.invalidateQueries({
-        queryKey: refrigeratorQueries.current().queryKey,
-      });
+      void invalidateIngredients(queryClient, pendingDisposal.refrigeratorId);
       showAppToast({
         message: "만료 재료 정리를 완료했어요.",
         variant: "success",
