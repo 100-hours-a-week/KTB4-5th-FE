@@ -1,5 +1,4 @@
 export {
-  getPushNotificationPermission,
   getPushNotificationSupport,
   isPushNotificationSupported,
   PushNotificationError,

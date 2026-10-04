@@ -39,7 +39,6 @@ export {
   hasIngredientListCondition,
   INGREDIENT_LIST_FILTERS,
   INGREDIENT_LIST_SORTS,
-  isStorageFilter,
   parseIngredientListQuery,
   toIngredientListQueryString,
 } from "./model/ingredient-list-query";

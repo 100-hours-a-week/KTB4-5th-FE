@@ -10,10 +10,7 @@ import {
   INGREDIENT_STORAGE_TYPE_LABELS,
   INGREDIENT_WEIGHT_UNIT_LABELS,
 } from "@/entities/ingredient";
-import {
-  IngredientFieldHelper,
-  IngredientFormFields,
-} from "@/features/ingredient-form";
+import { IngredientFieldHelper } from "@/features/ingredient-form";
 import { formatIsoDate } from "@/shared/lib/date";
 import { NotePaper } from "@/shared/ui/note-paper";
 
@@ -142,30 +139,31 @@ export function IngredientDraftCard({
             id={bodyId}
             className="border-t border-app-ink/15 px-5 pt-3.5 pb-7"
           >
-            <IngredientFormFields
-              nameField={
-                <div>
-                  <label
-                    htmlFor={`${idPrefix}-name`}
-                    className={FIELD_LABEL_CLASS_NAME}
-                  >
-                    재료 이름
-                  </label>
-                  <IngredientNameField
-                    id={`${idPrefix}-name`}
-                    index={index}
-                    describedBy={`${idPrefix}-name-help`}
-                  />
-                  <IngredientFieldHelper
-                    id={`${idPrefix}-name-help`}
-                    hint={NAME_HINT}
-                    error={draftErrors?.name?.message}
-                  />
+            <div>
+              <div>
+                <label
+                  htmlFor={`${idPrefix}-name`}
+                  className={FIELD_LABEL_CLASS_NAME}
+                >
+                  재료 이름
+                </label>
+                <IngredientNameField
+                  id={`${idPrefix}-name`}
+                  index={index}
+                  describedBy={`${idPrefix}-name-help`}
+                />
+                <IngredientFieldHelper
+                  id={`${idPrefix}-name-help`}
+                  hint={NAME_HINT}
+                  error={draftErrors?.name?.message}
+                />
+              </div>
+
+              <div className="mt-3 grid grid-cols-2 gap-4">
+                <div className="min-w-0">
+                  <StorageTypeField index={index} />
                 </div>
-              }
-              storageField={<StorageTypeField index={index} />}
-              quantityField={
-                <div>
+                <div className="min-w-0">
                   <label
                     htmlFor={`${idPrefix}-quantity`}
                     className={FIELD_LABEL_CLASS_NAME}
@@ -178,21 +176,22 @@ export function IngredientDraftCard({
                     describedBy={`${idPrefix}-quantity-help`}
                     disabled={quantityDisabled}
                   />
+                  <IngredientFieldHelper
+                    id={`${idPrefix}-quantity-help`}
+                    hint={
+                      quantityDisabled ? QUANTITY_DISABLED_HINT : QUANTITY_HINT
+                    }
+                    error={
+                      quantityDisabled
+                        ? undefined
+                        : draftErrors?.quantity?.message
+                    }
+                  />
                 </div>
-              }
-              quantityHelper={
-                <IngredientFieldHelper
-                  id={`${idPrefix}-quantity-help`}
-                  hint={quantityDisabled ? QUANTITY_DISABLED_HINT : QUANTITY_HINT}
-                  error={
-                    quantityDisabled
-                      ? undefined
-                      : draftErrors?.quantity?.message
-                  }
-                />
-              }
-              weightField={
-                <div>
+              </div>
+
+              <div className="mt-3 grid grid-cols-2 gap-4">
+                <div className="min-w-0">
                   <label
                     htmlFor={`${idPrefix}-weight`}
                     className={FIELD_LABEL_CLASS_NAME}
@@ -205,21 +204,17 @@ export function IngredientDraftCard({
                     describedBy={`${idPrefix}-weight-help`}
                     disabled={weightDisabled}
                   />
+                  <IngredientFieldHelper
+                    id={`${idPrefix}-weight-help`}
+                    hint={weightDisabled ? WEIGHT_DISABLED_HINT : WEIGHT_HINT}
+                    error={
+                      weightDisabled
+                        ? undefined
+                        : draftErrors?.weightValue?.message
+                    }
+                  />
                 </div>
-              }
-              weightHelper={
-                <IngredientFieldHelper
-                  id={`${idPrefix}-weight-help`}
-                  hint={weightDisabled ? WEIGHT_DISABLED_HINT : WEIGHT_HINT}
-                  error={
-                    weightDisabled
-                      ? undefined
-                      : draftErrors?.weightValue?.message
-                  }
-                />
-              }
-              expirationField={
-                <div>
+                <div className="min-w-0">
                   <span
                     id={`${idPrefix}-expiration-label`}
                     className={FIELD_LABEL_CLASS_NAME}
@@ -232,16 +227,14 @@ export function IngredientDraftCard({
                     index={index}
                     describedBy={`${idPrefix}-expiration-help`}
                   />
+                  <IngredientFieldHelper
+                    id={`${idPrefix}-expiration-help`}
+                    hint={EXPIRATION_HINT}
+                    error={draftErrors?.expirationDate?.message}
+                  />
                 </div>
-              }
-              expirationHelper={
-                <IngredientFieldHelper
-                  id={`${idPrefix}-expiration-help`}
-                  hint={EXPIRATION_HINT}
-                  error={draftErrors?.expirationDate?.message}
-                />
-              }
-            />
+              </div>
+            </div>
           </div>
         ) : null}
       </div>

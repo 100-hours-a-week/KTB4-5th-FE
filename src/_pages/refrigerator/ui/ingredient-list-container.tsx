@@ -8,13 +8,13 @@ import {
   type IngredientListQuery,
 } from "@/entities/ingredient";
 import { ApiError } from "@/shared/api";
+import { useInfiniteScrollTrigger } from "@/shared/lib/infinite-scroll";
 import {
   AsyncViewState,
   asyncViewActionClassName,
 } from "@/shared/ui/async-view-state";
 
 import { useIngredientListNavigation } from "../model/use-ingredient-list-navigation";
-import { useInfiniteScrollTrigger } from "../model/use-infinite-scroll-trigger";
 import { IngredientCardList } from "./ingredient-card-list";
 import { IngredientListEmpty } from "./ingredient-list-empty";
 
