@@ -66,7 +66,7 @@ export function IngredientEditPage({ ingredientId }: IngredientEditPageProps) {
     );
   }
 
-  if (detailQuery.isPending) {
+  if (detailQuery.isPending || !detailQuery.isFetchedAfterMount) {
     return (
       <EditStateLayout>
         <AsyncViewState status="loading" title="재고를 불러오는 중입니다" />
