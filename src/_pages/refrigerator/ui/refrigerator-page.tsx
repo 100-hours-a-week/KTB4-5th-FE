@@ -1,6 +1,6 @@
 "use client";
 
-import { useInfiniteQuery } from "@tanstack/react-query";
+import { useInfiniteQuery, useQueryClient } from "@tanstack/react-query";
 import { useMemo } from "react";
 
 import {
@@ -26,13 +26,30 @@ export function RefrigeratorPage({ queryParams }: RefrigeratorPageProps) {
     [queryParams],
   );
   const refrigeratorId = useCurrentRefrigeratorId();
-  const options = useMemo(
-    () => ({
+  const queryClient = useQueryClient();
+  const options = useMemo(() => {
+    const firstPageKey = ingredientQueries.firstPage(
+      refrigeratorId ?? "",
+      query,
+    ).queryKey;
+
+    const getFirstPageState = () => {
+      const state = queryClient.getQueryState(firstPageKey);
+      return state?.data && !state.isInvalidated ? state : undefined;
+    };
+
+    return {
       ...ingredientQueries.list(refrigeratorId ?? "", query),
       enabled: Boolean(refrigeratorId),
-    }),
-    [refrigeratorId, query],
-  );
+      initialData: () => {
+        const state = getFirstPageState();
+        return state?.data
+          ? { pages: [state.data], pageParams: [null] }
+          : undefined;
+      },
+      initialDataUpdatedAt: () => getFirstPageState()?.dataUpdatedAt,
+    };
+  }, [queryClient, refrigeratorId, query]);
   const {
     data,
     error,

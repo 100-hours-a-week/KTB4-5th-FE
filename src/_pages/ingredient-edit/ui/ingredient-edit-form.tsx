@@ -136,6 +136,9 @@ export function IngredientEditForm({
       ) {
         void invalidateIngredients(queryClient, refrigeratorId);
       }
+      if (error instanceof ApiError && error.status === 404) {
+        void invalidateIngredients(queryClient, refrigeratorId, ingredientId);
+      }
     }
   }
 
