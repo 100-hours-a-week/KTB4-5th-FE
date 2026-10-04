@@ -1,8 +1,3 @@
-import {
-  INGREDIENT_STORAGE_TYPES,
-  type IngredientStorageType,
-} from "./ingredient";
-
 export const INGREDIENT_LIST_FILTERS = [
   "REFRIGERATED",
   "FROZEN",
@@ -45,12 +40,6 @@ function readAllowedValue<T extends string>(
 ): T | null {
   const single = readSingleValue(value);
   return allowed.includes(single as T) ? (single as T) : null;
-}
-
-export function isStorageFilter(
-  filter: IngredientListFilter,
-): filter is IngredientStorageType {
-  return (INGREDIENT_STORAGE_TYPES as readonly string[]).includes(filter);
 }
 
 export function parseIngredientListQuery(
