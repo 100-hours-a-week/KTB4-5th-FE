@@ -1,7 +1,7 @@
 import { mutationOptions, type QueryClient } from "@tanstack/react-query";
 
 import {
-  ingredientQueries,
+  invalidateIngredients,
   registerIngredients,
   type RegisterBatchResult,
 } from "@/entities/ingredient";
@@ -25,9 +25,7 @@ export function createRegisterIngredientsMutationOptions({
     meta: { monitoringOperation: "ingredient.register" },
     mutationFn,
     onSuccess: (result, { refrigeratorId }) => {
-      void queryClient.invalidateQueries({
-        queryKey: ingredientQueries.byRefrigerator(refrigeratorId),
-      });
+      void invalidateIngredients(queryClient, refrigeratorId);
       onCompleted(result);
     },
     onError: (error) => {

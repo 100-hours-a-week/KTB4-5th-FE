@@ -6,7 +6,7 @@ import { useRef, useState } from "react";
 
 import {
   expireIngredient,
-  ingredientQueries,
+  invalidateIngredients,
   type ExpireIngredientBody,
   type IngredientDetail,
 } from "@/entities/ingredient";
@@ -53,12 +53,7 @@ export function IngredientDetailActions({
         variant: "error",
       });
       setIsExpireSheetOpen(false);
-      void queryClient.invalidateQueries({
-        queryKey: ingredientQueries.detail(
-          refrigeratorId,
-          ingredient.ingredientId,
-        ).queryKey,
-      });
+      void invalidateIngredients(queryClient, refrigeratorId);
       return;
     }
 
@@ -77,12 +72,7 @@ export function IngredientDetailActions({
         variant: "error",
       });
       setIsExpireSheetOpen(false);
-      void queryClient.invalidateQueries({
-        queryKey: ingredientQueries.detail(
-          refrigeratorId,
-          ingredient.ingredientId,
-        ).queryKey,
-      });
+      void invalidateIngredients(queryClient, refrigeratorId);
       return;
     }
 
@@ -96,21 +86,16 @@ export function IngredientDetailActions({
         body,
       });
       setIsExpireSheetOpen(false);
-      void queryClient.invalidateQueries({
-        queryKey: ingredientQueries.byRefrigerator(refrigeratorId),
-        refetchType: "inactive",
-      });
+      void invalidateIngredients(
+        queryClient,
+        refrigeratorId,
+        result.removed ? ingredient.ingredientId : undefined,
+      );
 
       showAppToast({ message: "재고를 처리했어요.", variant: "success" });
       if (!result.removed) {
         submittingRef.current = false;
         setIsPending(false);
-        void queryClient.invalidateQueries({
-          queryKey: ingredientQueries.detail(
-            refrigeratorId,
-            ingredient.ingredientId,
-          ).queryKey,
-        });
         return;
       }
 
@@ -129,19 +114,15 @@ export function IngredientDetailActions({
         (error.status === 412 || error.status === 428)
       ) {
         setIsExpireSheetOpen(false);
-        void queryClient.invalidateQueries({
-          queryKey: ingredientQueries.detail(
-            refrigeratorId,
-            ingredient.ingredientId,
-          ).queryKey,
-        });
+        void invalidateIngredients(queryClient, refrigeratorId);
       }
 
       if (error instanceof ApiError && error.status === 404) {
-        void queryClient.invalidateQueries({
-          queryKey: ingredientQueries.byRefrigerator(refrigeratorId),
-          refetchType: "inactive",
-        });
+        void invalidateIngredients(
+          queryClient,
+          refrigeratorId,
+          ingredient.ingredientId,
+        );
         const href = routes.refrigerator;
         markAppNavigationIntent("replace", href);
         router.replace(href);

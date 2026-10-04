@@ -5,7 +5,11 @@ import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 
-import { ingredientQueries, updateIngredient } from "@/entities/ingredient";
+import {
+  ingredientQueries,
+  invalidateIngredients,
+  updateIngredient,
+} from "@/entities/ingredient";
 import { ApiError } from "@/shared/api";
 import { FormProvider, useForm } from "react-hook-form";
 
@@ -98,10 +102,7 @@ export function IngredientEditForm({
         message: "재고 버전 정보가 없어요. 다시 불러와 주세요",
         variant: "error",
       });
-      void queryClient.invalidateQueries({
-        queryKey: ingredientQueries.detail(refrigeratorId, ingredientId)
-          .queryKey,
-      });
+      void invalidateIngredients(queryClient, refrigeratorId);
       return;
     }
 
@@ -116,10 +117,7 @@ export function IngredientEditForm({
         ingredientQueries.detail(refrigeratorId, ingredientId).queryKey,
         { ingredient: result.ingredient, etag: result.etag },
       );
-      void queryClient.invalidateQueries({
-        queryKey: ingredientQueries.byRefrigerator(refrigeratorId),
-        refetchType: "inactive",
-      });
+      void invalidateIngredients(queryClient, refrigeratorId);
       showAppToast({
         message:
           result.mergedItems.length > 0
@@ -136,10 +134,7 @@ export function IngredientEditForm({
         error instanceof ApiError &&
         (error.status === 412 || error.status === 428)
       ) {
-        void queryClient.invalidateQueries({
-          queryKey: ingredientQueries.detail(refrigeratorId, ingredientId)
-            .queryKey,
-        });
+        void invalidateIngredients(queryClient, refrigeratorId);
       }
     }
   }
