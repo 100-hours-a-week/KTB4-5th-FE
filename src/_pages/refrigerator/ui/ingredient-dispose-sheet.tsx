@@ -8,6 +8,7 @@ import {
   invalidateIngredients,
   type Ingredient,
 } from "@/entities/ingredient";
+import { ApiError } from "@/shared/api";
 import { AppBottomSheet } from "@/shared/ui/app-bottom-sheet";
 import { AppDialog } from "@/shared/ui/app-dialog";
 import { showAppToast } from "@/shared/ui/app-toast";
@@ -69,6 +70,13 @@ export function IngredientDisposeBottomSheet({
         variant: "success",
       });
     } catch (error) {
+      // 다른 기기에서 이미 정리했거나 바뀐 재고가 섞여 실패하면, 옛 목록이므로 다시 받는다.
+      if (
+        error instanceof ApiError &&
+        (error.status === 400 || error.status === 404)
+      ) {
+        void invalidateIngredients(queryClient, pendingDisposal.refrigeratorId);
+      }
       const message = getDisposeExpiredErrorMessage(error);
       if (message) {
         showAppToast({ message, variant: "error" });

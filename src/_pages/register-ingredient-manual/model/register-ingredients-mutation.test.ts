@@ -58,7 +58,7 @@ describe("register ingredients mutation lifecycle", () => {
     expect(onErrorMessage).not.toHaveBeenCalled();
   });
 
-  it("keeps submitted values and skips success effects after failure", async () => {
+  it("keeps submitted values, skips success effects, and refreshes stale capacity after failure", async () => {
     const queryClient = new QueryClient();
     const invalidateQueries = vi.spyOn(queryClient, "invalidateQueries");
     const onCompleted = vi.fn();
@@ -86,7 +86,9 @@ describe("register ingredients mutation lifecycle", () => {
     expect(onErrorMessage).toHaveBeenCalledWith(
       "냉장고 용량 또는 재고 합산 한도를 확인해 주세요",
     );
-    expect(invalidateQueries).not.toHaveBeenCalled();
+    expect(invalidateQueries).toHaveBeenCalledWith({
+      queryKey: ["refrigerators", VARIABLES.refrigeratorId, "ingredients"],
+    });
     expect(onCompleted).not.toHaveBeenCalled();
   });
 });
