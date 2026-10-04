@@ -9,7 +9,8 @@
     "test": "vitest run",
     "lint": "eslint",
     "lint:fix": "eslint --fix",
-    "prepare": "husky"
+    "prepare": "husky",
+    "perf": "node scripts/perf/perf.mjs"
   },
   "dependencies": {
     "@base-ui/react": "1.8.0",
@@ -46,6 +47,7 @@
     "jsdom": "^30.0.1",
     "lint-staged": "17.5.0",
     "msw": "^2.15.0",
+    "playwright-core": "1.63.0",
     "prettier": "3.9.6",
     "serwist": "9.5.12",
     "tailwindcss": "^4",
