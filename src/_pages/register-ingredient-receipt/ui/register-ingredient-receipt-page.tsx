@@ -56,34 +56,32 @@ export function RegisterIngredientReceiptPage() {
   return (
     <PageActionLayout
       action={
-        <>
+        <div className="relative flex gap-2">
           {isSlow ? (
             <p
               role="status"
-              className="m-0 mb-2 text-center text-[12.5px] text-app-ink/65"
+              className="absolute bottom-full left-1/2 m-0 mb-3 -translate-x-1/2 whitespace-nowrap rounded-full bg-app-ink/85 px-3.5 py-1.5 text-[12.5px] text-white"
             >
               조금만 기다려 주세요
             </p>
           ) : null}
-          <div className="flex gap-2">
+          <FooterButton
+            variant={photos.length > 0 ? "secondary" : "primary"}
+            disabled={isFull || isAnalyzing}
+            onClick={openCamera}
+          >
+            촬영
+          </FooterButton>
+          {photos.length > 0 ? (
             <FooterButton
-              variant={photos.length > 0 ? "secondary" : "primary"}
-              disabled={isFull || isAnalyzing}
-              onClick={openCamera}
+              aria-busy={isAnalyzing}
+              disabled={isAnalyzing}
+              onClick={analyze}
             >
-              촬영
+              {isAnalyzing ? "로딩 중" : "인식하기"}
             </FooterButton>
-            {photos.length > 0 ? (
-              <FooterButton
-                aria-busy={isAnalyzing}
-                disabled={isAnalyzing}
-                onClick={analyze}
-              >
-                {isAnalyzing ? "로딩 중" : "인식하기"}
-              </FooterButton>
-            ) : null}
-          </div>
-        </>
+          ) : null}
+        </div>
       }
     >
       <div id={PAGE_ID} className="px-5 pt-4 pb-6">
