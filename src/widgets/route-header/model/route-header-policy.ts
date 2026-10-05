@@ -57,6 +57,14 @@ function getFlowHeaderPolicy(pathname: string): RouteHeaderPolicy {
     };
   }
 
+  if (pathname === routes.registerIngredientReceipt) {
+    return {
+      kind: "flow",
+      title: "영수증 촬영",
+      backFallbackHref: routes.registerIngredient,
+    };
+  }
+
   if (pathname === routes.registerIngredientMergeResult) {
     return {
       kind: "flow",
