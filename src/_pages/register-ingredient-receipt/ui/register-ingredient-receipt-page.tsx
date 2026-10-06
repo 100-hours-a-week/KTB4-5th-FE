@@ -22,7 +22,7 @@ export function RegisterIngredientReceiptPage() {
   const inputRef = useRef<HTMLInputElement>(null);
   const { photos, isFull, shownIndex, showPhoto, addPhoto, removePhoto } =
     useReceiptPhotos();
-  const { isAnalyzing, isSlow, analyze } = useReceiptAnalysis();
+  const { isAnalyzing, analyze } = useReceiptAnalysis();
   const leaveDialog = useFormLeaveGuard({
     formId: PAGE_ID,
     isGuarded: photos.length > 0,
@@ -56,15 +56,7 @@ export function RegisterIngredientReceiptPage() {
   return (
     <PageActionLayout
       action={
-        <div className="relative flex gap-2">
-          {isSlow ? (
-            <p
-              role="status"
-              className="absolute bottom-full left-1/2 m-0 mb-3 -translate-x-1/2 whitespace-nowrap rounded-full bg-app-ink/85 px-3.5 py-1.5 text-[12.5px] text-white"
-            >
-              조금만 기다려 주세요
-            </p>
-          ) : null}
+        <div className="flex gap-2">
           <FooterButton
             variant={photos.length > 0 ? "secondary" : "primary"}
             disabled={isFull || isAnalyzing}

@@ -2,22 +2,24 @@
 
 import { useEffect, useState } from "react";
 
+import { showAppToast } from "@/shared/ui/app-toast";
+
 const SLOW_ANALYSIS_MS = 3000;
 
-/** OCR 분석 중 상태. 3초가 넘으면 isSlow로 보조 문구를 띄운다. */
+/** OCR 분석 중 상태. 3초가 넘으면 보조 문구를 토스트로 띄운다. */
 export function useReceiptAnalysis() {
   const [isAnalyzing, setIsAnalyzing] = useState(false);
-  const [isSlow, setIsSlow] = useState(false);
 
   useEffect(() => {
     if (!isAnalyzing) return;
 
-    const timer = window.setTimeout(() => setIsSlow(true), SLOW_ANALYSIS_MS);
+    const timer = window.setTimeout(
+      () =>
+        showAppToast({ message: "조금만 기다려 주세요", variant: "success" }),
+      SLOW_ANALYSIS_MS,
+    );
 
-    return () => {
-      window.clearTimeout(timer);
-      setIsSlow(false);
-    };
+    return () => window.clearTimeout(timer);
   }, [isAnalyzing]);
 
   function analyze() {
@@ -25,5 +27,5 @@ export function useReceiptAnalysis() {
     setIsAnalyzing(true);
   }
 
-  return { isAnalyzing, isSlow, analyze };
+  return { isAnalyzing, analyze };
 }
