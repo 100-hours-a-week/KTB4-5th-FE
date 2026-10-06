@@ -15,6 +15,7 @@ import { formatIsoDate } from "@/shared/lib/date";
 import { NotePaper } from "@/shared/ui/note-paper";
 
 import type { IngredientDraftFormInput } from "../model/ingredient-draft-form-schema";
+import { CategoryField } from "./category-field";
 import { ExpirationDateField } from "./expiration-date-field";
 import { FIELD_LABEL_CLASS_NAME } from "./field-styles";
 import { IngredientNameField } from "./ingredient-name-field";
@@ -141,6 +142,16 @@ export function IngredientDraftCard({
           >
             <div>
               <div>
+                <label
+                  htmlFor={`${idPrefix}-category`}
+                  className={FIELD_LABEL_CLASS_NAME}
+                >
+                  카테고리
+                </label>
+                <CategoryField id={`${idPrefix}-category`} index={index} />
+              </div>
+
+              <div className="mt-3">
                 <label
                   htmlFor={`${idPrefix}-name`}
                   className={FIELD_LABEL_CLASS_NAME}

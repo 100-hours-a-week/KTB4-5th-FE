@@ -2,9 +2,6 @@ import type { RegisterIngredientItem } from "@/entities/ingredient";
 
 import type { IngredientDraftValues } from "@/widgets/ingredient-draft-form";
 
-// 직접 쓰기 화면은 분류를 입력받지 않으므로 기타로 보낸다.
-const MANUAL_CATEGORY = "OTHER";
-
 export function toRegisterIngredientItems(
   drafts: readonly IngredientDraftValues[],
 ): RegisterIngredientItem[] {
@@ -14,7 +11,7 @@ export function toRegisterIngredientItems(
 
     return {
       name: draft.name,
-      category: MANUAL_CATEGORY,
+      category: draft.category,
       storageType: draft.storageType,
       measureType,
       quantity: measureType === "COUNT" ? draft.quantity : null,

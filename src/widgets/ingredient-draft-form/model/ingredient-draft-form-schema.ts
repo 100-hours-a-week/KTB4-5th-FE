@@ -1,6 +1,7 @@
 import { z } from "zod";
 
 import {
+  INGREDIENT_CATEGORIES,
   INGREDIENT_STORAGE_TYPES,
   type IngredientWeightUnit,
   normalizeIngredientName,
@@ -20,6 +21,7 @@ export const BATCH_LIMIT_MESSAGE = "한 번에 20건까지 등록할 수 있어�
 
 const ingredientDraftSchema = z
   .object({
+    category: z.enum(INGREDIENT_CATEGORIES),
     name: ingredientNameSchema,
     storageType: z.enum(INGREDIENT_STORAGE_TYPES),
     quantity: z
@@ -81,6 +83,7 @@ export type IngredientDraftValues = IngredientDraftFormValues["drafts"][number];
 
 export function createEmptyDraft(): IngredientDraft {
   return {
+    category: "OTHER",
     name: "",
     storageType: "REFRIGERATED",
     quantity: "",
@@ -95,6 +98,7 @@ export function hasAnyDraftInput(drafts: readonly IngredientDraft[]) {
 
   return drafts.some(
     (draft) =>
+      draft.category !== emptyDraft.category ||
       normalizeIngredientName(draft.name) !== "" ||
       draft.storageType !== emptyDraft.storageType ||
       draft.quantity !== emptyDraft.quantity ||

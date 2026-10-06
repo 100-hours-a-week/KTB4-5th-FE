@@ -19,12 +19,14 @@ export type {
   RegisterMergedItem,
 } from "./api/register-ingredients";
 export {
+  INGREDIENT_CATEGORIES,
   INGREDIENT_MEASURE_TYPES,
   INGREDIENT_REGISTRATION_SOURCES,
   INGREDIENT_STORAGE_TYPES,
 } from "./model/ingredient";
 export type {
   Ingredient,
+  IngredientCategory,
   IngredientDetail,
   IngredientMeasureType,
   IngredientRegistrationSource,
@@ -56,6 +58,7 @@ export {
   formatIngredientWeight,
 } from "./lib/format-ingredient";
 export {
+  INGREDIENT_CATEGORY_LABELS,
   INGREDIENT_MEASURE_TYPE_LABELS,
   INGREDIENT_LIST_FILTER_LABELS,
   INGREDIENT_LIST_SORT_LABELS,
