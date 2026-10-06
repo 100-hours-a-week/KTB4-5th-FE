@@ -65,6 +65,14 @@ function getFlowHeaderPolicy(pathname: string): RouteHeaderPolicy {
     };
   }
 
+  if (pathname === routes.registerIngredientReceiptResult) {
+    return {
+      kind: "flow",
+      title: "인식 결과",
+      backFallbackHref: routes.registerIngredientReceipt,
+    };
+  }
+
   if (pathname === routes.registerIngredientMergeResult) {
     return {
       kind: "flow",

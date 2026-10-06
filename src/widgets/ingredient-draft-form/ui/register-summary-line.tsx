@@ -9,17 +9,22 @@ import type { RegisterCapacity } from "../model/register-capacity";
 type RegisterSummaryLineProps = {
   id: string;
   capacity: RegisterCapacity;
+  showUnsetExpirationCount?: boolean;
 };
 
 export function RegisterSummaryLine({
   id,
   capacity,
+  showUnsetExpirationCount = false,
 }: RegisterSummaryLineProps) {
   const drafts = useWatch<IngredientDraftFormInput, "drafts">({
     name: "drafts",
   });
   const summary = summarizeDrafts(drafts ?? [], capacity);
   const mergingCount = new Set(summary.mergingNames).size;
+  const unsetExpirationCount = showUnsetExpirationCount
+    ? (drafts ?? []).filter((draft) => draft.expirationDate === "").length
+    : 0;
 
   return (
     <p
@@ -47,6 +52,11 @@ export function RegisterSummaryLine({
               <span className="text-app-ink/60">
                 {mergingCount}종은 기존 재료에 합쳐져요
               </span>
+            </>
+          ) : null}
+          {unsetExpirationCount > 0 ? (
+            <>
+              {" · "}유통기한 {unsetExpirationCount}건 미지정
             </>
           ) : null}
         </>

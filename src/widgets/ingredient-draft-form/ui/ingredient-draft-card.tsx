@@ -2,7 +2,7 @@
 
 import { ChevronDownOutlined, XmarkOutlined } from "@lineiconshq/free-icons";
 import { Lineicons } from "@lineiconshq/react-lineicons";
-import { useId } from "react";
+import { useId, type ReactNode } from "react";
 import { useFormState, useWatch } from "react-hook-form";
 
 import {
@@ -28,6 +28,7 @@ type IngredientDraftCardProps = {
   isExpanded: boolean;
   onToggle: () => void;
   onRemove: () => void;
+  badge?: ReactNode;
 };
 
 const DRAFT_ERROR_FIELDS = [
@@ -49,6 +50,7 @@ export function IngredientDraftCard({
   isExpanded,
   onToggle,
   onRemove,
+  badge,
 }: IngredientDraftCardProps) {
   const draft = useWatch<IngredientDraftFormInput, `drafts.${number}`>({
     name: `drafts.${index}`,
@@ -83,7 +85,7 @@ export function IngredientDraftCard({
     draft.expirationDate ? formatIsoDate(draft.expirationDate) : "기한 미정",
   ]
     .filter(Boolean)
-    .join(" · ");
+    .join("·");
 
   return (
     <NotePaper foldSize={isExpanded ? 28 : 20}>
@@ -101,12 +103,13 @@ export function IngredientDraftCard({
           </span>
           <span
             id={summaryId}
-            className={`min-w-0 flex-1 truncate font-app-body text-[14px] font-bold leading-tight ${
+            className={`min-w-0 flex-1 truncate font-app-body text-[12.5px] font-bold leading-tight ${
               errorMessage ? "text-app-primary" : "text-app-ink"
             }`}
           >
             {errorMessage && !isExpanded ? errorMessage : summary}
           </span>
+          {badge}
         </button>
 
         <Lineicons
