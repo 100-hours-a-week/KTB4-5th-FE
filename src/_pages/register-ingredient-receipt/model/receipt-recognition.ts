@@ -2,6 +2,7 @@ import {
   addDaysToIsoDate,
   getTodayInSeoul,
 } from "@/features/select-expiration-date";
+import { INGREDIENT_REGISTER_BATCH_LIMIT } from "@/shared/config";
 import {
   createEmptyDraft,
   type IngredientDraft,
@@ -22,7 +23,19 @@ export type ReceiptRecognitionResult = {
   photoCount: number;
   drafts: IngredientDraft[];
   hints: RecognitionHint[];
+  unreadCount: number;
 };
+
+export type MockRecognitionScenario = "default" | "fail" | "partial" | "over";
+
+export function limitRecognitionResult(result: ReceiptRecognitionResult) {
+  return {
+    ...result,
+    drafts: result.drafts.slice(0, INGREDIENT_REGISTER_BATCH_LIMIT),
+    hints: result.hints.slice(0, INGREDIENT_REGISTER_BATCH_LIMIT),
+    isTruncated: result.drafts.length > INGREDIENT_REGISTER_BATCH_LIMIT,
+  };
+}
 
 export function getRecognitionStatus(
   draft: IngredientDraft,
@@ -38,12 +51,46 @@ export function getRecognitionStatus(
 }
 
 // TODO: OCR API 연결 전 목업. 연결하면 응답을 이 모양으로 바꿔 넘긴다.
-export function createMockRecognitionResult(): ReceiptRecognitionResult {
+export function createMockRecognitionResult(
+  scenario: MockRecognitionScenario = "default",
+): ReceiptRecognitionResult {
   const today = getTodayInSeoul();
   const draft = (overrides: Partial<IngredientDraft>): IngredientDraft => ({
     ...createEmptyDraft(),
     ...overrides,
   });
+
+  if (scenario === "fail") {
+    return { photoCount: 1, drafts: [], hints: [], unreadCount: 6 };
+  }
+
+  if (scenario === "over") {
+    const names = [
+      "양파",
+      "감자",
+      "당근",
+      "오이",
+      "애호박",
+      "버섯",
+      "상추",
+      "깻잎",
+    ];
+    const drafts = Array.from({ length: 23 }, (_, index) =>
+      draft({
+        category: "VEGETABLE",
+        name: `${names[index % names.length]}${Math.floor(index / names.length) + 1}`,
+        quantity: "1",
+        expirationDate: addDaysToIsoDate(today, 7),
+      }),
+    );
+
+    return {
+      photoCount: 5,
+      drafts,
+      hints: drafts.map(() => null),
+      unreadCount: 0,
+    };
+  }
 
   return {
     photoCount: 3,
@@ -69,5 +116,6 @@ export function createMockRecognitionResult(): ReceiptRecognitionResult {
       }),
     ],
     hints: [null, "NEEDS_CHECK", "AI_ESTIMATED", null],
+    unreadCount: scenario === "partial" ? 2 : 0,
   };
 }

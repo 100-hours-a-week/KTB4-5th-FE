@@ -2,6 +2,7 @@
 
 import { FormProvider } from "react-hook-form";
 
+import { INGREDIENT_REGISTER_BATCH_LIMIT } from "@/shared/config";
 import { PageActionLayout } from "@/shared/ui/page-action-layout";
 import {
   EMPTY_DRAFTS_MESSAGE,
@@ -34,6 +35,7 @@ function ReceiptResultForm({ capacity }: { capacity: RegisterCapacity }) {
     statuses,
     hasUncertain,
     photoCount,
+    isTruncated,
     expandedIndex,
     toggle,
     removeDraft,
@@ -60,6 +62,12 @@ function ReceiptResultForm({ capacity }: { capacity: RegisterCapacity }) {
               <br />
               틀린 부분은 눌러서 고쳐 주세요
             </h2>
+            {isTruncated ? (
+              <p className="m-0 mt-3 rounded-[3px] bg-app-primary/10 px-4 py-3 text-[13px] leading-normal text-app-primary">
+                일부만 인식했어요. 한 번에 {INGREDIENT_REGISTER_BATCH_LIMIT}
+                건까지 불러와요.
+              </p>
+            ) : null}
             {hasUncertain ? (
               <p className="m-0 mt-3 rounded-[3px] bg-app-ink/5 px-4 py-3 text-[13px] leading-normal text-app-ink/60">
                 영수증 {photoCount}장에서 인식했어요. 유통기한은 직접 지정해

@@ -14,11 +14,16 @@ import {
 
 import {
   createMockRecognitionResult,
+  limitRecognitionResult,
   getRecognitionStatus,
 } from "./receipt-recognition";
+import { useReceiptResultStore } from "./use-receipt-result-store";
 
 export function useReceiptResultForm() {
-  const [result] = useState(createMockRecognitionResult);
+  const storedResult = useReceiptResultStore((state) => state.result);
+  const [result] = useState(() =>
+    limitRecognitionResult(storedResult ?? createMockRecognitionResult()),
+  );
   const [hints, setHints] = useState(result.hints);
   const form = useForm<
     IngredientDraftFormInput,
@@ -80,6 +85,7 @@ export function useReceiptResultForm() {
     statuses,
     hasUncertain: statuses.some((status) => status !== "RECOGNIZED"),
     photoCount: result.photoCount,
+    isTruncated: result.isTruncated,
     expandedIndex,
     toggle,
     removeDraft,
