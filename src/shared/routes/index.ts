@@ -14,6 +14,7 @@ export const routes = {
   me: "/me",
   registerIngredient: "/refrigerator/register",
   registerIngredientManual: "/refrigerator/register/manual",
+  registerIngredientReceipt: "/refrigerator/register/receipt",
   registerIngredientMergeResult: "/refrigerator/register/merge-result",
   ingredientDetail: (ingredientId: string) =>
     `/refrigerator/ingredients/${encodeURIComponent(ingredientId)}`,
