@@ -5,7 +5,7 @@ import { useFormState, useWatch } from "react-hook-form";
 import { FooterButton } from "@/shared/ui/footer-button";
 
 import { summarizeDrafts } from "../model/draft-summary";
-import type { ManualRegisterFormInput } from "../model/manual-register-form-schema";
+import type { IngredientDraftFormInput } from "../model/ingredient-draft-form-schema";
 import type { RegisterCapacity } from "../model/register-capacity";
 
 type RegisterSubmitButtonProps = {
@@ -19,10 +19,10 @@ export function RegisterSubmitButton({
   capacity,
   isSubmitting,
 }: RegisterSubmitButtonProps) {
-  const drafts = useWatch<ManualRegisterFormInput, "drafts">({
+  const drafts = useWatch<IngredientDraftFormInput, "drafts">({
     name: "drafts",
   });
-  const { isValid } = useFormState<ManualRegisterFormInput>();
+  const { isValid } = useFormState<IngredientDraftFormInput>();
   const summary = summarizeDrafts(drafts ?? [], capacity);
 
   return (

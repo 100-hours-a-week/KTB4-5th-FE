@@ -3,7 +3,7 @@
 import { useWatch } from "react-hook-form";
 
 import { summarizeDrafts } from "../model/draft-summary";
-import type { ManualRegisterFormInput } from "../model/manual-register-form-schema";
+import type { IngredientDraftFormInput } from "../model/ingredient-draft-form-schema";
 import type { RegisterCapacity } from "../model/register-capacity";
 
 type RegisterSummaryLineProps = {
@@ -11,12 +11,11 @@ type RegisterSummaryLineProps = {
   capacity: RegisterCapacity;
 };
 
-// 20건 상한과 100종 한도를 목록 위에 함께 보여준다.
 export function RegisterSummaryLine({
   id,
   capacity,
 }: RegisterSummaryLineProps) {
-  const drafts = useWatch<ManualRegisterFormInput, "drafts">({
+  const drafts = useWatch<IngredientDraftFormInput, "drafts">({
     name: "drafts",
   });
   const summary = summarizeDrafts(drafts ?? [], capacity);

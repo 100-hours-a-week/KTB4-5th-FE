@@ -14,7 +14,7 @@ import { IngredientFieldHelper } from "@/features/ingredient-form";
 import { formatIsoDate } from "@/shared/lib/date";
 import { NotePaper } from "@/shared/ui/note-paper";
 
-import type { ManualRegisterFormInput } from "../model/manual-register-form-schema";
+import type { IngredientDraftFormInput } from "../model/ingredient-draft-form-schema";
 import { ExpirationDateField } from "./expiration-date-field";
 import { FIELD_LABEL_CLASS_NAME } from "./field-styles";
 import { IngredientNameField } from "./ingredient-name-field";
@@ -49,10 +49,10 @@ export function IngredientDraftCard({
   onToggle,
   onRemove,
 }: IngredientDraftCardProps) {
-  const draft = useWatch<ManualRegisterFormInput, `drafts.${number}`>({
+  const draft = useWatch<IngredientDraftFormInput, `drafts.${number}`>({
     name: `drafts.${index}`,
   });
-  const { errors } = useFormState<ManualRegisterFormInput>({
+  const { errors } = useFormState<IngredientDraftFormInput>({
     name: `drafts.${index}`,
   });
   const idPrefix = useId();

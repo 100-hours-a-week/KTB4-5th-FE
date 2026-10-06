@@ -10,24 +10,25 @@ import { useCurrentRefrigeratorId } from "@/entities/refrigerator";
 import { INGREDIENT_REGISTER_BATCH_LIMIT } from "@/shared/config";
 import { showAppToast } from "@/shared/ui/app-toast";
 import { PageActionLayout } from "@/shared/ui/page-action-layout";
-
 import {
   BATCH_LIMIT_MESSAGE,
-  EMPTY_DRAFTS_MESSAGE,
   createEmptyDraft,
-  manualRegisterFormSchema,
-  type ManualRegisterFormInput,
-  type ManualRegisterFormValues,
-} from "../model/manual-register-form-schema";
+  EMPTY_DRAFTS_MESSAGE,
+  IngredientDraftCard,
+  ingredientDraftFormSchema,
+  type IngredientDraftFormInput,
+  type IngredientDraftFormValues,
+  type RegisterCapacity,
+  RegisterLeaveGuard,
+  RegisterSubmitButton,
+  RegisterSummaryLine,
+  useDraftExpansion,
+} from "@/widgets/ingredient-draft-form";
+
 import { createRegisterIngredientsMutationOptions } from "../model/register-ingredients-mutation";
-import type { RegisterCapacity } from "../model/register-capacity";
 import { toRegisterIngredientItems } from "../model/to-register-items";
 import { useRegisterResultStore } from "../model/use-register-result-store";
-import { IngredientDraftCard } from "./ingredient-draft-card";
 import { RegisterCompleteDialog } from "./register-complete-dialog";
-import { RegisterLeaveGuard } from "./register-leave-guard";
-import { RegisterSubmitButton } from "./register-submit-button";
-import { RegisterSummaryLine } from "./register-summary-line";
 
 const FORM_ID = "manual-register-form";
 const SUMMARY_ID = "manual-register-summary";
@@ -38,11 +39,11 @@ type ManualRegisterFormProps = {
 
 export function ManualRegisterForm({ capacity }: ManualRegisterFormProps) {
   const form = useForm<
-    ManualRegisterFormInput,
+    IngredientDraftFormInput,
     unknown,
-    ManualRegisterFormValues
+    IngredientDraftFormValues
   >({
-    resolver: zodResolver(manualRegisterFormSchema),
+    resolver: zodResolver(ingredientDraftFormSchema),
     mode: "onChange",
     defaultValues: { drafts: [createEmptyDraft()] },
   });
@@ -51,7 +52,8 @@ export function ManualRegisterForm({ capacity }: ManualRegisterFormProps) {
     name: "drafts",
   });
   // 화면에 처음 들어오면 빈 메모 한 장만 펼쳐 둔다. 한 번에 하나만 펼친다.
-  const [expandedIndex, setExpandedIndex] = useState<number | null>(0);
+  const { expandedIndex, expand, toggle, shiftAfterRemove } =
+    useDraftExpansion(0);
   const [completedResult, setCompletedResult] =
     useState<RegisterBatchResult | null>(null);
   const setRegisterResult = useRegisterResultStore((state) => state.setResult);
@@ -76,26 +78,16 @@ export function ManualRegisterForm({ capacity }: ManualRegisterFormProps) {
     append(createEmptyDraft(), {
       focusName: `drafts.${fields.length}.name`,
     });
-    setExpandedIndex(fields.length);
+    expand(fields.length);
   }
 
   function removeDraft(index: number) {
     remove(index);
-    setExpandedIndex((current) => {
-      if (current === null || current === index) {
-        return null;
-      }
-
-      return current > index ? current - 1 : current;
-    });
-  }
-
-  function toggleDraft(index: number) {
-    setExpandedIndex((current) => (current === index ? null : index));
+    shiftAfterRemove(index);
   }
 
   // 등록은 확인 모달 없이 기존 품목에 합산한다.
-  function submitDrafts(values: ManualRegisterFormValues) {
+  function submitDrafts(values: IngredientDraftFormValues) {
     if (registerMutation.isPending) {
       return;
     }
@@ -148,7 +140,7 @@ export function ManualRegisterForm({ capacity }: ManualRegisterFormProps) {
                   <IngredientDraftCard
                     index={index}
                     isExpanded={index === expandedIndex}
-                    onToggle={() => toggleDraft(index)}
+                    onToggle={() => toggle(index)}
                     onRemove={() => removeDraft(index)}
                   />
                 </li>

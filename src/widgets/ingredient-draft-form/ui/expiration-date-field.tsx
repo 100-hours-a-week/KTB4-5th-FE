@@ -4,7 +4,7 @@ import { useController } from "react-hook-form";
 
 import { IngredientExpirationDateInput } from "@/features/select-expiration-date";
 
-import type { ManualRegisterFormInput } from "../model/manual-register-form-schema";
+import type { IngredientDraftFormInput } from "../model/ingredient-draft-form-schema";
 
 type ExpirationDateFieldProps = {
   id: string;
@@ -13,7 +13,6 @@ type ExpirationDateFieldProps = {
   describedBy: string;
 };
 
-// 직접 타이핑을 막기 위해 입력칸을 두지 않고 캘린더로만 값을 받는다.
 export function ExpirationDateField({
   id,
   labelId,
@@ -23,11 +22,12 @@ export function ExpirationDateField({
   const {
     field: { ref, value, onChange, onBlur },
     fieldState,
-  } = useController<ManualRegisterFormInput, `drafts.${number}.expirationDate`>(
-    {
-      name: `drafts.${index}.expirationDate`,
-    },
-  );
+  } = useController<
+    IngredientDraftFormInput,
+    `drafts.${number}.expirationDate`
+  >({
+    name: `drafts.${index}.expirationDate`,
+  });
 
   return (
     <IngredientExpirationDateInput

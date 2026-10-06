@@ -4,7 +4,7 @@ import { useController } from "react-hook-form";
 
 import { IngredientQuantityInput } from "@/features/ingredient-form";
 
-import type { ManualRegisterFormInput } from "../model/manual-register-form-schema";
+import type { IngredientDraftFormInput } from "../model/ingredient-draft-form-schema";
 
 type QuantityFieldProps = {
   id: string;
@@ -22,7 +22,7 @@ export function QuantityField({
   const {
     field: { ref, name, value, onChange, onBlur },
     fieldState,
-  } = useController<ManualRegisterFormInput, `drafts.${number}.quantity`>({
+  } = useController<IngredientDraftFormInput, `drafts.${number}.quantity`>({
     name: `drafts.${index}.quantity`,
   });
 

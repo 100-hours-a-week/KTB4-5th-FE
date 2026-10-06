@@ -4,7 +4,7 @@ import { useController } from "react-hook-form";
 
 import { IngredientWeightInput } from "@/features/ingredient-form";
 
-import { type ManualRegisterFormInput } from "../model/manual-register-form-schema";
+import { type IngredientDraftFormInput } from "../model/ingredient-draft-form-schema";
 
 type WeightFieldProps = {
   id: string;
@@ -22,7 +22,7 @@ export function WeightField({
   const {
     field: { ref, name, value, onChange, onBlur },
     fieldState,
-  } = useController<ManualRegisterFormInput, `drafts.${number}.weightValue`>({
+  } = useController<IngredientDraftFormInput, `drafts.${number}.weightValue`>({
     name: `drafts.${index}.weightValue`,
   });
   const {
@@ -33,7 +33,7 @@ export function WeightField({
       onChange: onUnitChange,
       onBlur: onUnitBlur,
     },
-  } = useController<ManualRegisterFormInput, `drafts.${number}.weightUnit`>({
+  } = useController<IngredientDraftFormInput, `drafts.${number}.weightUnit`>({
     name: `drafts.${index}.weightUnit`,
   });
 
