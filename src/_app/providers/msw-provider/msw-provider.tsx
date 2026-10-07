@@ -2,15 +2,13 @@
 
 import { useEffect, type ReactNode } from "react";
 
-import { isMswEnabled } from "../../mocks/enabled";
-
-const enabled = isMswEnabled();
+import { isMswActive } from "../../mocks/enabled";
 
 let startPromise: Promise<unknown> | undefined;
 
 export function MswProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
-    if (!enabled) return;
+    if (!isMswActive()) return;
 
     startPromise ??= import("../../mocks/browser")
       .then(({ worker }) => worker.start({ onUnhandledRequest: "bypass" }))

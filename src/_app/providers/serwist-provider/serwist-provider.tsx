@@ -7,7 +7,7 @@ import {
 } from "@serwist/turbopack/react";
 import { useEffect, useRef, type ReactNode } from "react";
 
-import { isMswEnabled } from "../../mocks/enabled";
+import { isMswActive } from "../../mocks/enabled";
 
 type SerwistProviderProps = {
   children: ReactNode;
@@ -20,7 +20,7 @@ function RegisterServiceWorker() {
   const started = useRef(false);
 
   useEffect(() => {
-    if (!serwist || started.current) return;
+    if (!serwist || started.current || isMswActive()) return;
     started.current = true;
 
     void serwist.register().catch((cause: unknown) => {
@@ -45,10 +45,6 @@ function RegisterServiceWorker() {
 }
 
 export function SerwistProvider({ children }: SerwistProviderProps) {
-  if (isMswEnabled()) {
-    return children;
-  }
-
   return (
     <SerwistRuntimeProvider swUrl={swUrl} register={false}>
       <RegisterServiceWorker />
