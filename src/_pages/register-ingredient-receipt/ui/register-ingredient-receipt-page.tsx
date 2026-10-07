@@ -70,7 +70,7 @@ export function RegisterIngredientReceiptPage() {
             <FooterButton
               aria-busy={isAnalyzing}
               disabled={isAnalyzing}
-              onClick={analyze}
+              onClick={() => analyze(photos.map((photo) => photo.file))}
             >
               {isAnalyzing ? "로딩 중" : "인식하기"}
             </FooterButton>
