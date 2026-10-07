@@ -16,4 +16,7 @@ export const { dynamic, dynamicParams, revalidate, generateStaticParams, GET } =
     additionalPrecacheEntries: [{ url: routes.offline, revision }],
     swSrc: "app/sw.ts",
     useNativeEsbuild: true,
+    esbuildOptions: {
+      define: { "process.env.NODE_ENV": JSON.stringify(process.env.NODE_ENV) },
+    },
   });
