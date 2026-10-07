@@ -13,6 +13,7 @@ import {
   RECEIPT_PHOTO_TYPES,
   useReceiptPhotos,
 } from "../model/use-receipt-photos";
+import { ReceiptAnalysisFailureDialog } from "./receipt-analysis-failure-dialog";
 import { ReceiptPhotoStrip } from "./receipt-photo-strip";
 import { ReceiptPreview } from "./receipt-preview";
 
@@ -22,7 +23,8 @@ export function RegisterIngredientReceiptPage() {
   const inputRef = useRef<HTMLInputElement>(null);
   const { photos, isFull, shownIndex, showPhoto, addPhoto, removePhoto } =
     useReceiptPhotos();
-  const { isAnalyzing, analyze } = useReceiptAnalysis();
+  const { isAnalyzing, analyze, failure, dismissFailure, continueWithPartial } =
+    useReceiptAnalysis();
   const leaveDialog = useFormLeaveGuard({
     formId: PAGE_ID,
     isGuarded: photos.length > 0,
@@ -116,6 +118,11 @@ export function RegisterIngredientReceiptPage() {
       </div>
 
       <AppDialog {...leaveDialog} />
+      <ReceiptAnalysisFailureDialog
+        failure={failure}
+        onRetake={dismissFailure}
+        onContinue={continueWithPartial}
+      />
     </PageActionLayout>
   );
 }

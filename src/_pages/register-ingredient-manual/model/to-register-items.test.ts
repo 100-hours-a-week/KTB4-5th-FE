@@ -6,6 +6,7 @@ it("sends only the selected weight measurement", () => {
   expect(
     toRegisterIngredientItems([
       {
+        category: "OTHER",
         name: "두부",
         storageType: "REFRIGERATED",
         quantity: null,
@@ -32,6 +33,7 @@ it("sends only the selected weight measurement", () => {
 it("sends only the selected count measurement", () => {
   const result = toRegisterIngredientItems([
     {
+      category: "OTHER",
       name: "두부",
       storageType: "REFRIGERATED",
       quantity: 2,

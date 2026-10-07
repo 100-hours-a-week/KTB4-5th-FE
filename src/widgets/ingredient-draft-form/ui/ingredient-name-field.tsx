@@ -4,7 +4,7 @@ import { useController } from "react-hook-form";
 
 import { IngredientNameInput } from "@/features/ingredient-form";
 
-import type { ManualRegisterFormInput } from "../model/manual-register-form-schema";
+import type { IngredientDraftFormInput } from "../model/ingredient-draft-form-schema";
 
 type IngredientNameFieldProps = {
   id: string;
@@ -20,7 +20,7 @@ export function IngredientNameField({
   const {
     field: { ref, name, value, onChange, onBlur },
     fieldState,
-  } = useController<ManualRegisterFormInput, `drafts.${number}.name`>({
+  } = useController<IngredientDraftFormInput, `drafts.${number}.name`>({
     name: `drafts.${index}.name`,
   });
 

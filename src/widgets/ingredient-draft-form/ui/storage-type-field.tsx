@@ -4,7 +4,7 @@ import { useController } from "react-hook-form";
 
 import { IngredientStorageTypeField } from "@/features/ingredient-form";
 
-import type { ManualRegisterFormInput } from "../model/manual-register-form-schema";
+import type { IngredientDraftFormInput } from "../model/ingredient-draft-form-schema";
 
 type StorageTypeFieldProps = {
   index: number;
@@ -13,7 +13,7 @@ type StorageTypeFieldProps = {
 export function StorageTypeField({ index }: StorageTypeFieldProps) {
   const {
     field: { ref, name, value, onChange, onBlur },
-  } = useController<ManualRegisterFormInput, `drafts.${number}.storageType`>({
+  } = useController<IngredientDraftFormInput, `drafts.${number}.storageType`>({
     name: `drafts.${index}.storageType`,
   });
 

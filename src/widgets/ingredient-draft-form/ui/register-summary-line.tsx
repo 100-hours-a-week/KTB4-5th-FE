@@ -3,24 +3,28 @@
 import { useWatch } from "react-hook-form";
 
 import { summarizeDrafts } from "../model/draft-summary";
-import type { ManualRegisterFormInput } from "../model/manual-register-form-schema";
+import type { IngredientDraftFormInput } from "../model/ingredient-draft-form-schema";
 import type { RegisterCapacity } from "../model/register-capacity";
 
 type RegisterSummaryLineProps = {
   id: string;
   capacity: RegisterCapacity;
+  showUnsetExpirationCount?: boolean;
 };
 
-// 20건 상한과 100종 한도를 목록 위에 함께 보여준다.
 export function RegisterSummaryLine({
   id,
   capacity,
+  showUnsetExpirationCount = false,
 }: RegisterSummaryLineProps) {
-  const drafts = useWatch<ManualRegisterFormInput, "drafts">({
+  const drafts = useWatch<IngredientDraftFormInput, "drafts">({
     name: "drafts",
   });
   const summary = summarizeDrafts(drafts ?? [], capacity);
   const mergingCount = new Set(summary.mergingNames).size;
+  const unsetExpirationCount = showUnsetExpirationCount
+    ? (drafts ?? []).filter((draft) => draft.expirationDate === "").length
+    : 0;
 
   return (
     <p
@@ -48,6 +52,11 @@ export function RegisterSummaryLine({
               <span className="text-app-ink/60">
                 {mergingCount}종은 기존 재료에 합쳐져요
               </span>
+            </>
+          ) : null}
+          {unsetExpirationCount > 0 ? (
+            <>
+              {" · "}유통기한 {unsetExpirationCount}건 미지정
             </>
           ) : null}
         </>

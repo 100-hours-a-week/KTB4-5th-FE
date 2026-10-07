@@ -1,6 +1,7 @@
 import { z } from "zod";
 
 import {
+  INGREDIENT_CATEGORIES,
   INGREDIENT_STORAGE_TYPES,
   type IngredientWeightUnit,
   normalizeIngredientName,
@@ -13,13 +14,14 @@ import {
 import { ingredientExpirationDateSchema } from "@/features/select-expiration-date";
 import { INGREDIENT_REGISTER_BATCH_LIMIT } from "@/shared/config";
 
-export const MANUAL_WEIGHT_UNITS = ["G", "ML"] as const;
+export const DRAFT_WEIGHT_UNITS = ["G", "ML"] as const;
 
 export const EMPTY_DRAFTS_MESSAGE = "등록할 재료가 없어요";
 export const BATCH_LIMIT_MESSAGE = "한 번에 20건까지 등록할 수 있어요";
 
 const ingredientDraftSchema = z
   .object({
+    category: z.enum(INGREDIENT_CATEGORIES),
     name: ingredientNameSchema,
     storageType: z.enum(INGREDIENT_STORAGE_TYPES),
     quantity: z
@@ -36,7 +38,7 @@ const ingredientDraftSchema = z
       })
       .transform((value) => (value === "" ? null : Number(value))),
     weightValue: ingredientWeightValueSchema,
-    weightUnit: z.enum(MANUAL_WEIGHT_UNITS),
+    weightUnit: z.enum(DRAFT_WEIGHT_UNITS),
     expirationDate: ingredientExpirationDateSchema,
   })
   .superRefine((draft, ctx) => {
@@ -55,7 +57,6 @@ const ingredientDraftSchema = z
       });
     }
   })
-  // 무게를 비워 두면 단위도 고르지 않은 것이므로 NONE으로 보낸다.
   .transform((draft) => ({
     ...draft,
     weightUnit:
@@ -64,23 +65,25 @@ const ingredientDraftSchema = z
         : (draft.weightUnit as IngredientWeightUnit),
   }));
 
-export const manualRegisterFormSchema = z.object({
+export const ingredientDraftFormSchema = z.object({
   drafts: z
     .array(ingredientDraftSchema)
     .min(1, EMPTY_DRAFTS_MESSAGE)
     .max(INGREDIENT_REGISTER_BATCH_LIMIT, BATCH_LIMIT_MESSAGE),
 });
 
-export type ManualRegisterFormInput = z.input<typeof manualRegisterFormSchema>;
-export type ManualRegisterFormValues = z.output<
-  typeof manualRegisterFormSchema
+export type IngredientDraftFormInput = z.input<
+  typeof ingredientDraftFormSchema
 >;
-export type ManualIngredientDraft = ManualRegisterFormInput["drafts"][number];
-export type ManualIngredientDraftValues =
-  ManualRegisterFormValues["drafts"][number];
+export type IngredientDraftFormValues = z.output<
+  typeof ingredientDraftFormSchema
+>;
+export type IngredientDraft = IngredientDraftFormInput["drafts"][number];
+export type IngredientDraftValues = IngredientDraftFormValues["drafts"][number];
 
-export function createEmptyDraft(): ManualIngredientDraft {
+export function createEmptyDraft(): IngredientDraft {
   return {
+    category: "OTHER",
     name: "",
     storageType: "REFRIGERATED",
     quantity: "",
@@ -90,11 +93,12 @@ export function createEmptyDraft(): ManualIngredientDraft {
   };
 }
 
-export function hasAnyDraftInput(drafts: readonly ManualIngredientDraft[]) {
+export function hasAnyDraftInput(drafts: readonly IngredientDraft[]) {
   const emptyDraft = createEmptyDraft();
 
   return drafts.some(
     (draft) =>
+      draft.category !== emptyDraft.category ||
       normalizeIngredientName(draft.name) !== "" ||
       draft.storageType !== emptyDraft.storageType ||
       draft.quantity !== emptyDraft.quantity ||

@@ -4,6 +4,7 @@ export {
   ingredientQuantitySchema,
   ingredientWeightValueSchema,
 } from "./model/ingredient-field-schemas";
+export { IngredientCategoryField } from "./ui/ingredient-category-field";
 export { IngredientFieldHelper } from "./ui/ingredient-field-helper";
 export { IngredientNameInput } from "./ui/ingredient-name-input";
 export { IngredientQuantityInput } from "./ui/ingredient-quantity-input";
