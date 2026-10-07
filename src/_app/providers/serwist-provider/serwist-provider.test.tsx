@@ -21,7 +21,7 @@ vi.mock("@sentry/nextjs", () => ({
     callback({ setContext }),
   captureException,
 }));
-vi.mock("../../mocks/enabled", () => ({ isMswEnabled: () => false }));
+vi.mock("../../mocks/enabled", () => ({ isMswActive: () => false }));
 
 afterEach(() => {
   cleanup();
