@@ -7,6 +7,9 @@ export const routes = {
   offline: "/~offline",
   home: "/",
   login: "/login",
+  oauthLogin: "/oauth-login",
+  signupTerms: "/signup/terms",
+  signupProfile: "/signup/profile",
   loginWithReason: (reason: LoginRedirectReason) =>
     `/login?${LOGIN_REDIRECT_REASON_PARAM}=${reason}`,
   refrigerator: "/refrigerator",

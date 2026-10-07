@@ -8,6 +8,9 @@ import { loginRedirectReasons, routes } from "@/shared/routes";
 
 const PUBLIC_PATHS: ReadonlySet<string> = new Set([
   routes.login,
+  routes.oauthLogin,
+  routes.signupTerms,
+  routes.signupProfile,
   routes.offline,
 ]);
 
