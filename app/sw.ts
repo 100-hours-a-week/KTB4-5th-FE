@@ -76,7 +76,7 @@ const serwist = new Serwist({
   skipWaiting: true,
   clientsClaim: true,
   navigationPreload: true,
-  runtimeCaching: defaultCache,
+  runtimeCaching: process.env.NODE_ENV === "development" ? [] : defaultCache,
   fallbacks: {
     entries: [
       {
