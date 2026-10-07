@@ -1,3 +1,12 @@
+import type {
+  ImageAnalysis,
+  ImageAnalysisDisplayStatus,
+  ImageAnalysisItem,
+} from "@/entities/image";
+import {
+  INGREDIENT_CATEGORIES,
+  INGREDIENT_STORAGE_TYPES,
+} from "@/entities/ingredient";
 import {
   addDaysToIsoDate,
   getTodayInSeoul,
@@ -34,6 +43,54 @@ export function limitRecognitionResult(result: ReceiptRecognitionResult) {
     drafts: result.drafts.slice(0, INGREDIENT_REGISTER_BATCH_LIMIT),
     hints: result.hints.slice(0, INGREDIENT_REGISTER_BATCH_LIMIT),
     isTruncated: result.drafts.length > INGREDIENT_REGISTER_BATCH_LIMIT,
+  };
+}
+
+const RECOGNITION_HINTS = {
+  RECOGNIZED: null,
+  AI_ESTIMATED: "AI_ESTIMATED",
+  NEEDS_REVIEW: "NEEDS_CHECK",
+  UNRECOGNIZED: "NEEDS_CHECK",
+} satisfies Record<ImageAnalysisDisplayStatus, RecognitionHint>;
+
+function isOneOf<T extends string>(
+  values: readonly T[],
+  value: string | null | undefined,
+): value is T {
+  return values.includes(value as T);
+}
+
+function toDraft(item: ImageAnalysisItem): IngredientDraft {
+  const empty = createEmptyDraft();
+  const category = item.category?.value;
+  const storageType = item.storageType?.value;
+
+  return {
+    category: isOneOf(INGREDIENT_CATEGORIES, category)
+      ? category
+      : empty.category,
+    name: item.name?.value ?? "",
+    storageType: isOneOf(INGREDIENT_STORAGE_TYPES, storageType)
+      ? storageType
+      : empty.storageType,
+    quantity: item.quantity === null ? "" : String(item.quantity),
+    weightValue: item.weight ? String(item.weight.value) : "",
+    weightUnit: item.weight?.unit === "ML" ? "ML" : "G",
+    expirationDate: item.expiration?.date ?? "",
+  };
+}
+
+export function toRecognitionResult(
+  analysis: ImageAnalysis,
+): ReceiptRecognitionResult {
+  const items = analysis.results.flatMap((result) => result.items);
+
+  return {
+    photoCount: analysis.results.length,
+    drafts: items.map(toDraft),
+    hints: items.map((item) => RECOGNITION_HINTS[item.displayStatus]),
+    unreadCount: analysis.results.filter((result) => result.items.length === 0)
+      .length,
   };
 }
 

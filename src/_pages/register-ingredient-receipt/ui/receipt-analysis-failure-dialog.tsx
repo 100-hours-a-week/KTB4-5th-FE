@@ -42,7 +42,7 @@ export function ReceiptAnalysisFailureDialog({
     <AppDialog
       open={failure === "PARTIAL"}
       title="일부 품목을 읽지 못했어요"
-      description={`${result?.drafts.length ?? 0}개는 읽었고 ${result?.unreadCount ?? 0}줄은 읽지 못했어요. 읽은 품목만으로 계속할 수 있어요.`}
+      description={`${result?.drafts.length ?? 0}개는 읽었고 사진 ${result?.unreadCount ?? 0}장은 읽지 못했어요. 읽은 품목만으로 계속할 수 있어요.`}
       secondaryAction={{ label: "다시 촬영", onClick: onRetake }}
       primaryAction={{ label: "계속 진행", onClick: onContinue }}
     />
