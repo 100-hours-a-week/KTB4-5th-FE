@@ -1,6 +1,7 @@
 "use client";
 
 import {
+  INGREDIENT_CATEGORY_LABELS,
   INGREDIENT_QUANTITY_UNIT,
   INGREDIENT_STORAGE_TYPE_LABELS,
   INGREDIENT_WEIGHT_UNIT_LABELS,
@@ -30,6 +31,7 @@ function formatStock(values: IngredientEditFormInput) {
 
   return [
     values.name.trim() || "이름 없음",
+    INGREDIENT_CATEGORY_LABELS[values.category],
     INGREDIENT_STORAGE_TYPE_LABELS[values.storageType],
     amount,
     values.expirationDate ? formatIsoDate(values.expirationDate) : "기한 미정",

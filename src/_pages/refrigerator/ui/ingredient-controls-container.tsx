@@ -25,7 +25,9 @@ export function IngredientControlsContainer({
       <div className="px-5 pt-4">
         <IngredientFilterSection
           filter={query.filter}
+          category={query.category}
           onFilterChange={(filter) => updateQuery({ filter })}
+          onCategoryChange={(category) => updateQuery({ category })}
         />
       </div>
 
