@@ -26,6 +26,7 @@ import { RegisterMethodCard } from "./register-method-card";
 
 const CAPACITY_LIST_QUERY: IngredientListQuery = {
   filter: null,
+  category: null,
   sort: DEFAULT_INGREDIENT_LIST_SORT,
 };
 

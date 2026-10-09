@@ -11,7 +11,7 @@ import {
 
 import { ApiError } from "@/shared/api";
 
-const INVALID_INGREDIENT_LIST_CURSOR_CODE = "REFRIGERATOR-400-008";
+const INVALID_INGREDIENT_LIST_CURSOR_CODE = "INGREDIENT-400-004";
 const scrollPositions = new Map<string, number>();
 
 type UseIngredientListPaginationStateParams = {

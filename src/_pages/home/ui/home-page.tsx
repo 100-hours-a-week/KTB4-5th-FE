@@ -21,6 +21,7 @@ import { HomeRecommendationNotice } from "./home-recommendation-notice";
 
 const HOME_LIST_QUERY: IngredientListQuery = {
   filter: null,
+  category: null,
   sort: DEFAULT_INGREDIENT_LIST_SORT,
 };
 

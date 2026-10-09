@@ -5,5 +5,5 @@ import {
 import { routes } from "@/shared/routes";
 
 export const CAPACITY_CLEANUP_HREF = `${routes.refrigerator}?${toIngredientListQueryString(
-  { filter: "EXPIRED", sort: DEFAULT_INGREDIENT_LIST_SORT },
+  { filter: "EXPIRED", category: null, sort: DEFAULT_INGREDIENT_LIST_SORT },
 )}`;

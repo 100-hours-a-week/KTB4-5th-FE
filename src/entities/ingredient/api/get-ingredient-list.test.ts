@@ -40,7 +40,7 @@ it("normalizes decimal weight strings while retaining the registered count", asy
 
   const result = await getIngredientList({
     refrigeratorId: "1",
-    query: { filter: null, sort: "EXPIRATION_ASC" },
+    query: { filter: null, category: null, sort: "EXPIRATION_ASC" },
   });
   expect(result.ingredients[0]).toMatchObject({
     quantity: 2,

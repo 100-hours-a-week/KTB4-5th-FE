@@ -1,3 +1,8 @@
+import {
+  INGREDIENT_CATEGORIES,
+  type IngredientCategory,
+} from "./ingredient";
+
 export const INGREDIENT_LIST_FILTERS = [
   "REFRIGERATED",
   "FROZEN",
@@ -19,6 +24,7 @@ export const DEFAULT_INGREDIENT_LIST_SORT: IngredientListSort =
 
 export type IngredientListQuery = {
   filter: IngredientListFilter | null;
+  category: IngredientCategory | null;
   sort: IngredientListSort;
 };
 
@@ -26,6 +32,7 @@ export type RawQueryParams = Record<string, string | string[] | undefined>;
 
 const INGREDIENT_LIST_QUERY_KEYS = {
   filter: "filter",
+  category: "category",
   sort: "sort",
 } as const;
 
@@ -50,6 +57,10 @@ export function parseIngredientListQuery(
       queryParams[INGREDIENT_LIST_QUERY_KEYS.filter],
       INGREDIENT_LIST_FILTERS,
     ),
+    category: readAllowedValue(
+      queryParams[INGREDIENT_LIST_QUERY_KEYS.category],
+      INGREDIENT_CATEGORIES,
+    ),
     sort:
       readAllowedValue(
         queryParams[INGREDIENT_LIST_QUERY_KEYS.sort],
@@ -67,6 +78,10 @@ export function toIngredientListQueryString(
     queryParams.set(INGREDIENT_LIST_QUERY_KEYS.filter, query.filter);
   }
 
+  if (query.category) {
+    queryParams.set(INGREDIENT_LIST_QUERY_KEYS.category, query.category);
+  }
+
   if (query.sort !== DEFAULT_INGREDIENT_LIST_SORT) {
     queryParams.set(INGREDIENT_LIST_QUERY_KEYS.sort, query.sort);
   }
@@ -77,5 +92,5 @@ export function toIngredientListQueryString(
 export function hasIngredientListCondition(
   query: IngredientListQuery,
 ): boolean {
-  return query.filter !== null;
+  return query.filter !== null || query.category !== null;
 }

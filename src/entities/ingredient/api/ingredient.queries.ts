@@ -10,7 +10,7 @@ function retryIngredientList(failureCount: number, error: Error): boolean {
     !(
       error instanceof ApiError &&
       error.status === 400 &&
-      error.code === "REFRIGERATOR-400-008"
+      error.code === "INGREDIENT-400-004"
     ) && failureCount < 2
   );
 }

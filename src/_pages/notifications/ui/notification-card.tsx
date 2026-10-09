@@ -25,6 +25,7 @@ function toNotificationHref(type: Notification["type"]) {
 
   const queryString = toIngredientListQueryString({
     filter: type,
+    category: null,
     sort: DEFAULT_INGREDIENT_LIST_SORT,
   });
 
