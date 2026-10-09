@@ -4,6 +4,7 @@ import { hashKey, useQueryClient, type QueryKey } from "@tanstack/react-query";
 import {
   useCallback,
   useEffect,
+  useLayoutEffect,
   useRef,
   type RefObject,
   type UIEvent,
@@ -49,7 +50,7 @@ export function useIngredientListPaginationState({
     void queryClient.resetQueries({ queryKey, exact: true });
   }, [error, queryClient, queryKey, scrollKey]);
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     if (previousScrollKey.current !== scrollKey) {
       scrollPositions.delete(scrollKey);
       void queryClient.resetQueries({ queryKey, exact: true });

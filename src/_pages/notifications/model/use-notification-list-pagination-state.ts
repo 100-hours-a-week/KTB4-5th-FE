@@ -3,7 +3,7 @@
 import { hashKey, useQueryClient, type QueryKey } from "@tanstack/react-query";
 import {
   useCallback,
-  useEffect,
+  useLayoutEffect,
   useRef,
   type RefObject,
   type UIEvent,
@@ -24,7 +24,7 @@ export function useNotificationListPaginationState(
   const scrollKey = hashKey(queryKey);
   const previousScrollKey = useRef(scrollKey);
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     if (previousScrollKey.current !== scrollKey) {
       scrollPositions.delete(scrollKey);
       void queryClient.resetQueries({ queryKey, exact: true });
