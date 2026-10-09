@@ -234,6 +234,12 @@
     --floating-action-bottom-offset: calc(96px + var(--safe-bottom));
   }
 
+  /* 하단 action이 두 줄(버튼 약 50px + 간격 10px 추가)이면 그만큼 더 띄운다. */
+  body:has([data-page-action-rows="2"]) {
+    --toast-bottom-offset: calc(164px + var(--safe-bottom));
+    --floating-action-bottom-offset: calc(156px + var(--safe-bottom));
+  }
+
   h1,
   h2,
   h3,

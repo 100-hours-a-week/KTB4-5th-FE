@@ -3,6 +3,7 @@ import { http, HttpResponse } from "msw";
 import type { ApiResponse } from "@/shared/api";
 
 import { imageAnalysisHandlers } from "./image-analysis-handlers";
+import { shareHandlers } from "./share-handlers";
 
 export const handlers = [
   http.get("*/api/v1/mock/health", () =>
@@ -13,4 +14,5 @@ export const handlers = [
     }),
   ),
   ...imageAnalysisHandlers,
+  ...shareHandlers,
 ];
