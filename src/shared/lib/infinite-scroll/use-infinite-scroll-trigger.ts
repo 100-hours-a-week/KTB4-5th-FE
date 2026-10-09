@@ -43,7 +43,7 @@ export function useInfiniteScrollTrigger({
           .then(() => onLoadMoreRef.current())
           .then(resumeObserving, resumeObserving);
       },
-      { root, rootMargin: "200px" },
+      { root, rootMargin: "0px 0px 200% 0px" },
     );
 
     observer.observe(trigger);
