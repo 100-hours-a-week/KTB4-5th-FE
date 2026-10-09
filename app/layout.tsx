@@ -9,6 +9,7 @@ import { MswProvider } from "@/_app/providers/msw-provider";
 import { NavigationHistoryTracker } from "@/_app/providers/navigation-history-tracker";
 import { QueryProvider } from "@/_app/providers/query-provider";
 import { SerwistProvider } from "@/_app/providers/serwist-provider";
+import { OAuthReturnHandler } from "@/features/oauth-login";
 import { jetBrainsMono } from "@/_app/styles/fonts";
 import { siteConfig } from "@/shared/config";
 import { AsyncViewIllustrationPreload } from "@/shared/ui/async-view-state";
@@ -66,6 +67,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
               <AsyncViewIllustrationPreload />
               <AppToastProvider />
               <CsrfBootstrapProvider />
+              <OAuthReturnHandler />
               <Suspense fallback={null}>
                 <NavigationHistoryTracker />
               </Suspense>

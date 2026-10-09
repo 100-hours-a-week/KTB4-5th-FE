@@ -3,11 +3,7 @@
 import { useMutation } from "@tanstack/react-query";
 import { useFormContext } from "react-hook-form";
 
-import {
-  LOGIN_ID_HINT,
-  PASSWORD_HINT,
-  useLoginOrSignup,
-} from "@/features/login";
+import { LOGIN_ID_HINT, PASSWORD_HINT, useLogin } from "@/features/login";
 import type { LoginFormValues } from "@/features/login";
 import { resubscribePushNotificationsIfEnabled } from "@/features/manage-push-notifications";
 import { ApiError } from "@/shared/api";
@@ -19,7 +15,6 @@ const CREDENTIAL_ERROR_MESSAGE = "아이디 또는 비밀번호를 확인해 주
 const NETWORK_ERROR_MESSAGE = "인터넷 연결을 확인해 주세요";
 const SERVER_ERROR_MESSAGE = "잠시 후 다시 시도해 주세요";
 const SERVER_ERROR_TYPE = "server";
-const UNAVAILABLE_LOGIN_ID_CODE = "USER-422-002";
 
 type LoginError = {
   field: keyof LoginFormValues;
@@ -28,10 +23,6 @@ type LoginError = {
 
 function getLoginError(error: unknown): LoginError {
   if (error instanceof ApiError) {
-    if (error.code === UNAVAILABLE_LOGIN_ID_CODE) {
-      return { field: "loginId", message: error.problem.title };
-    }
-
     return {
       field: "password",
       message: [400, 401, 404, 422].includes(error.status)
@@ -46,7 +37,7 @@ function getLoginError(error: unknown): LoginError {
 }
 
 export function LoginForm() {
-  const { enterHome, showNotificationOnboarding } = useLoginFlow();
+  const { enterHome } = useLoginFlow();
   const {
     register,
     handleSubmit,
@@ -55,7 +46,7 @@ export function LoginForm() {
     getFieldState,
     formState: { errors },
   } = useFormContext<LoginFormValues>();
-  const loginOrSignupMutation = useLoginOrSignup();
+  const loginMutation = useLogin();
   const resubscribeMutation = useMutation({
     meta: { monitoringOperation: "push.resubscribe" },
     mutationFn: resubscribePushNotificationsIfEnabled,
@@ -63,14 +54,9 @@ export function LoginForm() {
 
   async function onSubmit(values: LoginFormValues) {
     try {
-      const { isNewAccount } = await loginOrSignupMutation.mutateAsync(values);
-
-      if (isNewAccount) {
-        showNotificationOnboarding();
-      } else {
-        resubscribeMutation.mutate();
-        enterHome();
-      }
+      await loginMutation.mutateAsync(values);
+      resubscribeMutation.mutate();
+      enterHome();
     } catch (error) {
       const loginError = getLoginError(error);
 
@@ -148,10 +134,6 @@ export function LoginForm() {
           error={errors.password?.message}
         />
       </div>
-
-      <p className="mb-0 px-1 pt-0.5 text-[14px] leading-5 text-app-ink/60">
-        처음 보는 아이디면 그대로 가입돼요. 아이디가 냉장고 이름이 돼요!
-      </p>
     </form>
   );
 }

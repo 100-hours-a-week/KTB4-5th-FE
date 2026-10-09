@@ -12,15 +12,27 @@ export type TermId = (typeof TERMS)[number]["id"];
 type SignupDraftState = {
   agreed: Partial<Record<TermId, boolean>>;
   nickname: string;
+  nicknameError: string | null;
+  notificationEnabled: boolean;
   setAgreed: (agreed: Partial<Record<TermId, boolean>>) => void;
   setNickname: (nickname: string) => void;
+  setNicknameError: (message: string) => void;
+  setNotificationEnabled: (enabled: boolean) => void;
   reset: () => void;
 };
 
-export const useSignupDraftStore = create<SignupDraftState>((set) => ({
+const INITIAL_DRAFT = {
   agreed: {},
   nickname: "",
+  nicknameError: null,
+  notificationEnabled: true,
+};
+
+export const useSignupDraftStore = create<SignupDraftState>((set) => ({
+  ...INITIAL_DRAFT,
   setAgreed: (agreed) => set({ agreed }),
-  setNickname: (nickname) => set({ nickname }),
-  reset: () => set({ agreed: {}, nickname: "" }),
+  setNickname: (nickname) => set({ nickname, nicknameError: null }),
+  setNicknameError: (nicknameError) => set({ nicknameError }),
+  setNotificationEnabled: (notificationEnabled) => set({ notificationEnabled }),
+  reset: () => set(INITIAL_DRAFT),
 }));

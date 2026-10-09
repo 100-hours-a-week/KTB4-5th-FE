@@ -23,7 +23,7 @@ export function SignupTermsPage() {
 
   function leaveSignup() {
     reset();
-    router.replace(routes.oauthLogin);
+    router.replace(routes.login);
   }
 
   function toggleAll(checked: boolean) {

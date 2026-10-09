@@ -3,7 +3,15 @@
 import { ArrowLeftOutlined } from "@lineiconshq/free-icons";
 import { Lineicons } from "@lineiconshq/react-lineicons";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 
+import {
+  isValidNickname,
+  NICKNAME_DISALLOWED_CHARS,
+  NICKNAME_HINT,
+  NICKNAME_LENGTH_ERROR,
+  NICKNAME_MAX_LENGTH,
+} from "@/features/oauth-signup";
 import { routes } from "@/shared/routes";
 import { AppHeader } from "@/shared/ui/app-header";
 import { Button } from "@/shared/ui/button";
@@ -11,19 +19,14 @@ import { PageActionLayout } from "@/shared/ui/page-action-layout";
 
 import { useSignupDraftStore } from "../model/use-signup-draft-store";
 
-const NICKNAME_DISALLOWED_CHARS = /[^ㄱ-ㅎㅏ-ㅣ가-힣a-zA-Z0-9]/g;
-const NICKNAME_PATTERN = /^[가-힣a-zA-Z0-9]{2,10}$/;
-const NICKNAME_HINT = "2~10자 · 한글/영문/숫자 · 특수문자 불가 · 금칙어 사용 불가";
-const NICKNAME_LENGTH_ERROR = "최소 2글자, 최대 10글자 사이로 입력해주세요.";
-const OAUTH_EMAIL = "kakao-account@example.com";
-
 export function SignupProfilePage() {
+  const router = useRouter();
   const nickname = useSignupDraftStore((state) => state.nickname);
+  const serverError = useSignupDraftStore((state) => state.nicknameError);
   const setNickname = useSignupDraftStore((state) => state.setNickname);
 
-  const isNicknameValid = NICKNAME_PATTERN.test(nickname);
   const nicknameError =
-    nickname.length === 1 ? NICKNAME_LENGTH_ERROR : undefined;
+    serverError ?? (nickname.length === 1 ? NICKNAME_LENGTH_ERROR : null);
 
   return (
     <PageActionLayout
@@ -32,7 +35,8 @@ export function SignupProfilePage() {
           variant="highlight"
           shape="note"
           className="w-full shadow-app-md"
-          disabled={!isNicknameValid}
+          disabled={!isValidNickname(nickname) || serverError !== null}
+          onClick={() => router.push(routes.signupNotification)}
         >
           다음
         </Button>
@@ -42,7 +46,7 @@ export function SignupProfilePage() {
         title="정보 입력"
         leading={
           <Link
-            href={routes.signupTerms}
+            href={routes.signup}
             aria-label="약관 동의로 돌아가기"
             className="grid size-[var(--tap-min)] place-items-center text-app-text hover:text-app-primary"
           >
@@ -78,7 +82,7 @@ export function SignupProfilePage() {
                 event.target.value.replace(NICKNAME_DISALLOWED_CHARS, ""),
               )
             }
-            maxLength={10}
+            maxLength={NICKNAME_MAX_LENGTH}
             autoComplete="nickname"
             aria-describedby="nickname-help"
             aria-invalid={nicknameError ? true : undefined}
@@ -91,16 +95,6 @@ export function SignupProfilePage() {
             className={`mb-0 mt-1 text-sm leading-5 ${nicknameError ? "text-app-primary" : "text-app-ink/50"}`}
           >
             {nicknameError ?? NICKNAME_HINT}
-          </p>
-        </div>
-
-        <div>
-          <p className="m-0 text-[15px] font-bold text-app-ink">이메일</p>
-          <p className="m-0 mt-2 rounded-[4px] bg-app-neutral-200 px-4 py-[14px] text-[16px] font-bold text-app-neutral-500">
-            {OAUTH_EMAIL}
-          </p>
-          <p className="mb-0 mt-1 text-sm leading-5 text-app-ink/50">
-            카카오 계정에서 자동 입력됩니다 (수정 불가)
           </p>
         </div>
       </div>
