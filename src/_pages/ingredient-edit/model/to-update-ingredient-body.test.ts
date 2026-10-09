@@ -4,6 +4,7 @@ import { toUpdateIngredientBody } from "./to-update-ingredient-body";
 
 const initial = {
   name: "두부",
+  category: "TOFU_BEAN" as const,
   measureType: "WEIGHT" as const,
   storageType: "REFRIGERATED" as const,
   quantity: "1",

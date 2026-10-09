@@ -42,6 +42,7 @@ export async function getIngredientList({
   });
 
   if (query.filter) params.set("filter", query.filter);
+  if (query.category) params.set("category", query.category);
   params.set("sort", query.sort);
   if (cursor !== null && cursor !== undefined) params.set("cursor", cursor);
 

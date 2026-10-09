@@ -3,6 +3,7 @@ import type { ReactNode } from "react";
 import {
   formatIngredientQuantity,
   formatIngredientWeight,
+  INGREDIENT_CATEGORY_LABELS,
   INGREDIENT_STORAGE_TYPE_LABELS,
   IngredientExpiryStamp,
   type IngredientDetail,
@@ -37,6 +38,10 @@ export function IngredientSummaryCard({
   );
 
   const rows: DetailRow[] = [
+    {
+      label: "카테고리",
+      value: INGREDIENT_CATEGORY_LABELS[ingredient.category],
+    },
     {
       label: "등록일",
       value: formatIsoDate(ingredient.createdDate),
