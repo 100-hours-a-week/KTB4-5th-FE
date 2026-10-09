@@ -12,15 +12,19 @@ import { isApiResponse, readProblem } from "./response-parsing";
 import { SessionExpiredError } from "./session-expired-error";
 import { refreshSession } from "./token-refresh";
 
+function isSignupRequest(path: string, method: string): boolean {
+  return method === "POST" && (path === "/users" || path === "/users/oauth");
+}
+
 function changesAuthentication(path: string, method: string): boolean {
   return (
     (path === "/auth/sessions" && (method === "POST" || method === "DELETE")) ||
-    (path === "/users" && method === "POST")
+    isSignupRequest(path, method)
   );
 }
 
 function isAuthEndpoint(path: string, method: string): boolean {
-  return path.startsWith("/auth/") || (path === "/users" && method === "POST");
+  return path.startsWith("/auth/") || isSignupRequest(path, method);
 }
 
 type RetryState = {
