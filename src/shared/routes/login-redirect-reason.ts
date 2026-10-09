@@ -3,6 +3,8 @@ export const LOGIN_REDIRECT_REASON_PARAM = "reason";
 export const loginRedirectReasons = {
   authRequired: "auth-required",
   sessionExpired: "session-expired",
+  signupExpired: "signup-expired",
+  alreadyRegistered: "already-registered",
 } as const;
 
 export type LoginRedirectReason =
