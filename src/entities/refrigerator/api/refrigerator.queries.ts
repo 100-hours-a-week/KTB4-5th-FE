@@ -6,6 +6,7 @@ import {
   getCurrentRefrigerators,
   type RefrigeratorStatus,
 } from "./get-current-refrigerators";
+import { getRefrigeratorMembers } from "./get-refrigerator-members";
 
 export const refrigeratorQueries = {
   all: () => ["refrigerators"] as const,
@@ -16,5 +17,15 @@ export const refrigeratorQueries = {
       retry: (failureCount, error) =>
         !(error instanceof ApiError && error.status === 401) &&
         failureCount < 2,
+    }),
+  members: (refrigeratorId: string) =>
+    queryOptions({
+      queryKey: [
+        ...refrigeratorQueries.all(),
+        refrigeratorId,
+        "members",
+      ] as const,
+      queryFn: ({ signal }) =>
+        getRefrigeratorMembers({ refrigeratorId, signal }),
     }),
 };

@@ -12,3 +12,8 @@ export {
   useCurrentRefrigeratorRecovery,
 } from "./model/current-refrigerator";
 export type { Refrigerator } from "./model/refrigerator";
+export type {
+  RefrigeratorMember,
+  RefrigeratorMemberRole,
+  RefrigeratorMembers,
+} from "./model/refrigerator-member";
