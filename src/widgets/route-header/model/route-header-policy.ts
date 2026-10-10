@@ -41,6 +41,30 @@ function getFlowHeaderPolicy(pathname: string): RouteHeaderPolicy {
     };
   }
 
+  if (pathname === routes.refrigeratorShare) {
+    return {
+      kind: "flow",
+      title: "냉장고 공유",
+      backFallbackHref: routes.me,
+    };
+  }
+
+  if (pathname === routes.refrigeratorShareInvite) {
+    return {
+      kind: "flow",
+      title: "초대 코드",
+      backFallbackHref: routes.refrigeratorShare,
+    };
+  }
+
+  if (pathname === routes.refrigeratorShareJoin) {
+    return {
+      kind: "flow",
+      title: "냉장고 참여",
+      backFallbackHref: routes.refrigeratorShare,
+    };
+  }
+
   if (pathname === routes.registerIngredient) {
     return {
       kind: "flow",
