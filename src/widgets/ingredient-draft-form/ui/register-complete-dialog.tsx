@@ -11,16 +11,17 @@ import { markAppNavigationIntent } from "@/shared/lib/navigation-history";
 import { routes } from "@/shared/routes";
 import { AppDialog } from "@/shared/ui/app-dialog";
 
+import { useRegisterResultStore } from "../model/use-register-result-store";
+
 type RegisterCompleteDialogProps = {
   result: RegisterBatchResult | null;
-  onViewMergeResult: (result: RegisterBatchResult) => void;
 };
 
 export function RegisterCompleteDialog({
   result,
-  onViewMergeResult,
 }: RegisterCompleteDialogProps) {
   const router = useRouter();
+  const setRegisterResult = useRegisterResultStore((state) => state.setResult);
   const [isLeaving, setIsLeaving] = useState(false);
 
   function leaveTo(href: string) {
@@ -46,7 +47,7 @@ export function RegisterCompleteDialog({
 
   function handlePrimaryAction() {
     if (hasMergedItems && result) {
-      onViewMergeResult(result);
+      setRegisterResult(result);
       leaveTo(routes.registerIngredientMergeResult);
       return;
     }

@@ -6,11 +6,8 @@ import type {
 import {
   INGREDIENT_CATEGORIES,
   INGREDIENT_STORAGE_TYPES,
+  type IngredientRegistrationSource,
 } from "@/entities/ingredient";
-import {
-  addDaysToIsoDate,
-  getTodayInSeoul,
-} from "@/features/select-expiration-date";
 import { INGREDIENT_REGISTER_BATCH_LIMIT } from "@/shared/config";
 import {
   createEmptyDraft,
@@ -32,16 +29,16 @@ export type ReceiptRecognitionResult = {
   photoCount: number;
   drafts: IngredientDraft[];
   hints: RecognitionHint[];
+  sources: IngredientRegistrationSource[];
   unreadCount: number;
 };
-
-export type MockRecognitionScenario = "default" | "fail" | "partial" | "over";
 
 export function limitRecognitionResult(result: ReceiptRecognitionResult) {
   return {
     ...result,
     drafts: result.drafts.slice(0, INGREDIENT_REGISTER_BATCH_LIMIT),
     hints: result.hints.slice(0, INGREDIENT_REGISTER_BATCH_LIMIT),
+    sources: result.sources.slice(0, INGREDIENT_REGISTER_BATCH_LIMIT),
     isTruncated: result.drafts.length > INGREDIENT_REGISTER_BATCH_LIMIT,
   };
 }
@@ -62,21 +59,20 @@ function isOneOf<T extends string>(
 
 function toDraft(item: ImageAnalysisItem): IngredientDraft {
   const empty = createEmptyDraft();
-  const category = item.category?.value;
-  const storageType = item.storageType?.value;
+  const { category, storageType } = item;
 
   return {
     category: isOneOf(INGREDIENT_CATEGORIES, category)
       ? category
       : empty.category,
-    name: item.name?.value ?? "",
+    name: item.name ?? "",
     storageType: isOneOf(INGREDIENT_STORAGE_TYPES, storageType)
       ? storageType
       : empty.storageType,
     quantity: item.quantity === null ? "" : String(item.quantity),
     weightValue: item.weight ? String(item.weight.value) : "",
     weightUnit: item.weight?.unit === "ML" ? "ML" : "G",
-    expirationDate: item.expiration?.date ?? "",
+    expirationDate: item.expiration ?? "",
   };
 }
 
@@ -84,11 +80,17 @@ export function toRecognitionResult(
   analysis: ImageAnalysis,
 ): ReceiptRecognitionResult {
   const items = analysis.results.flatMap((result) => result.items);
+  const sources = analysis.results.flatMap((result) =>
+    result.items.map(() =>
+      result.documentType === "RECEIPT" ? "RECEIPT" : "FOOD_IMAGE",
+    ),
+  );
 
   return {
     photoCount: analysis.results.length,
     drafts: items.map(toDraft),
     hints: items.map((item) => RECOGNITION_HINTS[item.displayStatus]),
+    sources,
     unreadCount: analysis.results.filter((result) => result.items.length === 0)
       .length,
   };
@@ -105,74 +107,4 @@ export function getRecognitionStatus(
 
   if (isMissing) return "UNRECOGNIZED";
   return hint ?? "RECOGNIZED";
-}
-
-// TODO: OCR API 연결 전 목업. 연결하면 응답을 이 모양으로 바꿔 넘긴다.
-export function createMockRecognitionResult(
-  scenario: MockRecognitionScenario = "default",
-): ReceiptRecognitionResult {
-  const today = getTodayInSeoul();
-  const draft = (overrides: Partial<IngredientDraft>): IngredientDraft => ({
-    ...createEmptyDraft(),
-    ...overrides,
-  });
-
-  if (scenario === "fail") {
-    return { photoCount: 1, drafts: [], hints: [], unreadCount: 6 };
-  }
-
-  if (scenario === "over") {
-    const names = [
-      "양파",
-      "감자",
-      "당근",
-      "오이",
-      "애호박",
-      "버섯",
-      "상추",
-      "깻잎",
-    ];
-    const drafts = Array.from({ length: 23 }, (_, index) =>
-      draft({
-        category: "VEGETABLE",
-        name: `${names[index % names.length]}${Math.floor(index / names.length) + 1}`,
-        quantity: "1",
-        expirationDate: addDaysToIsoDate(today, 7),
-      }),
-    );
-
-    return {
-      photoCount: 5,
-      drafts,
-      hints: drafts.map(() => null),
-      unreadCount: 0,
-    };
-  }
-
-  return {
-    photoCount: 3,
-    drafts: [
-      draft({ category: "DAIRY", name: "우유", quantity: "1" }),
-      draft({
-        category: "TOFU_BEAN",
-        name: "두부",
-        quantity: "2",
-        expirationDate: addDaysToIsoDate(today, 5),
-      }),
-      draft({
-        category: "DAIRY",
-        name: "계란",
-        quantity: "10",
-        expirationDate: addDaysToIsoDate(today, 14),
-      }),
-      draft({
-        category: "VEGETABLE",
-        name: "대파",
-        quantity: "3",
-        expirationDate: addDaysToIsoDate(today, 7),
-      }),
-    ],
-    hints: [null, "NEEDS_CHECK", "AI_ESTIMATED", null],
-    unreadCount: scenario === "partial" ? 2 : 0,
-  };
 }
