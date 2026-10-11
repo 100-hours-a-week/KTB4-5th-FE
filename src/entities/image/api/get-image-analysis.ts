@@ -8,18 +8,16 @@ export type ImageAnalysisDisplayStatus =
   | "NEEDS_REVIEW"
   | "AI_ESTIMATED";
 
-type ScoredValue<T> = { value: T; confidence: number } | null;
-
 export type ImageAnalysisItem = {
   itemId: string;
   displayStatus: ImageAnalysisDisplayStatus;
-  name: ScoredValue<string>;
-  category: ScoredValue<string>;
-  storageType: ScoredValue<string>;
+  name: string | null;
+  category: string | null;
+  storageType: string | null;
   measureType: string | null;
   quantity: number | null;
-  weight: { value: number; unit: string; confidence: number } | null;
-  expiration: { date: string; confidence: number } | null;
+  weight: { value: number; unit: string } | null;
+  expiration: string | null;
   reviewReasons: string[];
 };
 
@@ -33,7 +31,8 @@ export type ImageAnalysisError = {
 export type ImageAnalysisImageResult = {
   imageObjectKey: string;
   status: ImageAnalysisStatus;
-  recognitionStatus: "RECOGNIZED" | "UNRECOGNIZED" | null;
+  recognitionStatus: ImageAnalysisDisplayStatus | null;
+  documentType: "RECEIPT" | null;
   items: ImageAnalysisItem[];
   error: ImageAnalysisError | null;
 };

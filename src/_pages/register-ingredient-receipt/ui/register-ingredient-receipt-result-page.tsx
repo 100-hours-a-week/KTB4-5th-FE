@@ -1,34 +1,55 @@
 "use client";
 
+import { useRouter } from "next/navigation";
+import { useEffect } from "react";
 import { FormProvider } from "react-hook-form";
 
 import { INGREDIENT_REGISTER_BATCH_LIMIT } from "@/shared/config";
+import { routes } from "@/shared/routes";
 import { PageActionLayout } from "@/shared/ui/page-action-layout";
 import {
   EMPTY_DRAFTS_MESSAGE,
   IngredientDraftCard,
   type RegisterCapacity,
   RegisterCapacityBoundary,
+  RegisterCompleteDialog,
   RegisterLeaveGuard,
   RegisterSubmitButton,
   RegisterSummaryLine,
 } from "@/widgets/ingredient-draft-form";
 
+import type { ReceiptRecognitionResult } from "../model/receipt-recognition";
 import { useReceiptResultForm } from "../model/use-receipt-result-form";
+import { useReceiptResultStore } from "../model/use-receipt-result-store";
 import { RecognitionStatusChip } from "./recognition-status-chip";
 
 const FORM_ID = "receipt-result-form";
 const SUMMARY_ID = "receipt-result-summary";
 
 export function RegisterIngredientReceiptResultPage() {
+  const router = useRouter();
+  const result = useReceiptResultStore((state) => state.result);
+
+  useEffect(() => {
+    if (!result) router.replace(routes.registerIngredientReceipt);
+  }, [result, router]);
+
+  if (!result) return null;
+
   return (
     <RegisterCapacityBoundary>
-      {(capacity) => <ReceiptResultForm capacity={capacity} />}
+      {(capacity) => <ReceiptResultForm capacity={capacity} result={result} />}
     </RegisterCapacityBoundary>
   );
 }
 
-function ReceiptResultForm({ capacity }: { capacity: RegisterCapacity }) {
+function ReceiptResultForm({
+  capacity,
+  result,
+}: {
+  capacity: RegisterCapacity;
+  result: ReceiptRecognitionResult;
+}) {
   const {
     form,
     fields,
@@ -40,7 +61,9 @@ function ReceiptResultForm({ capacity }: { capacity: RegisterCapacity }) {
     toggle,
     removeDraft,
     submit,
-  } = useReceiptResultForm();
+    isRegistering,
+    completedResult,
+  } = useReceiptResultForm(result);
 
   return (
     <FormProvider {...form}>
@@ -50,7 +73,7 @@ function ReceiptResultForm({ capacity }: { capacity: RegisterCapacity }) {
             <RegisterSubmitButton
               formId={FORM_ID}
               capacity={capacity}
-              isSubmitting={false}
+              isSubmitting={isRegistering}
             />
           </div>
         }
@@ -119,9 +142,10 @@ function ReceiptResultForm({ capacity }: { capacity: RegisterCapacity }) {
       </PageActionLayout>
       <RegisterLeaveGuard
         formId={FORM_ID}
-        isRegistered={false}
+        isRegistered={completedResult !== null}
         description="지금 나가면 인식한 내용이 사라져요"
       />
+      <RegisterCompleteDialog result={completedResult} />
     </FormProvider>
   );
 }

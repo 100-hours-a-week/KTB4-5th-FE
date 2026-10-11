@@ -13,8 +13,7 @@ import { routes } from "@/shared/routes";
 import { FooterButton } from "@/shared/ui/footer-button";
 import { NotePaper } from "@/shared/ui/note-paper";
 import { PageActionLayout } from "@/shared/ui/page-action-layout";
-
-import { useRegisterResultStore } from "../model/use-register-result-store";
+import { useRegisterResultStore } from "@/widgets/ingredient-draft-form";
 
 type AmountKey = "previous" | "added" | "total";
 

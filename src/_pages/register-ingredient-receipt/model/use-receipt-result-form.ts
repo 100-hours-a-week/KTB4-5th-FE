@@ -10,21 +10,22 @@ import {
   type IngredientDraftFormInput,
   type IngredientDraftFormValues,
   useDraftExpansion,
+  useRegisterIngredients,
 } from "@/widgets/ingredient-draft-form";
 
 import {
-  createMockRecognitionResult,
   limitRecognitionResult,
   getRecognitionStatus,
+  type ReceiptRecognitionResult,
 } from "./receipt-recognition";
-import { useReceiptResultStore } from "./use-receipt-result-store";
 
-export function useReceiptResultForm() {
-  const storedResult = useReceiptResultStore((state) => state.result);
-  const [result] = useState(() =>
-    limitRecognitionResult(storedResult ?? createMockRecognitionResult()),
-  );
+export function useReceiptResultForm(
+  recognitionResult: ReceiptRecognitionResult,
+) {
+  const [result] = useState(() => limitRecognitionResult(recognitionResult));
   const [hints, setHints] = useState(result.hints);
+  const [sources, setSources] = useState(result.sources);
+  const { register, isRegistering, completedResult } = useRegisterIngredients();
   const form = useForm<
     IngredientDraftFormInput,
     unknown,
@@ -68,15 +69,17 @@ export function useReceiptResultForm() {
   function removeDraft(index: number) {
     remove(index);
     setHints((current) => current.filter((_, i) => i !== index));
+    setSources((current) => current.filter((_, i) => i !== index));
     shiftAfterRemove(index);
   }
 
-  function submitDrafts() {
-    // TODO: 등록 API 연결 전이라 막아 둔다.
-    showAppToast({
-      message: "영수증 등록은 아직 준비 중이에요",
-      variant: "error",
-    });
+  function submitDrafts(values: IngredientDraftFormValues) {
+    register(
+      values.drafts.map((draft, index) => ({
+        ...draft,
+        registrationSource: sources[index],
+      })),
+    );
   }
 
   return {
@@ -90,5 +93,7 @@ export function useReceiptResultForm() {
     toggle,
     removeDraft,
     submit: form.handleSubmit(submitDrafts),
+    isRegistering,
+    completedResult,
   };
 }
