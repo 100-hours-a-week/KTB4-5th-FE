@@ -1,9 +1,12 @@
 "use client";
 
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useRef, useState } from "react";
 
-import { useCurrentRefrigeratorId } from "@/entities/refrigerator";
+import {
+  refrigeratorQueries,
+  useCurrentRefrigeratorId,
+} from "@/entities/refrigerator";
 import { createInviteCode } from "@/features/share-refrigerator";
 import { showAppToast } from "@/shared/ui/app-toast";
 import {
@@ -29,20 +32,36 @@ function useNow(enabled: boolean): number {
 }
 
 export function RefrigeratorInvitePage() {
-  const refrigeratorId = useCurrentRefrigeratorId();
-  const { data, isError, isPending, mutate } = useMutation({
-    mutationFn: createInviteCode,
+  const queryClient = useQueryClient();
+  const refrigeratorId = useCurrentRefrigeratorId() ?? "";
+  const invitationQuery = useQuery({
+    ...refrigeratorQueries.invitation(refrigeratorId),
+    enabled: Boolean(refrigeratorId),
   });
-  const requestedRef = useRef(false);
+  const createMutation = useMutation({
+    mutationFn: createInviteCode,
+    onSuccess: () =>
+      queryClient.invalidateQueries({
+        queryKey: refrigeratorQueries.invitation(refrigeratorId).queryKey,
+      }),
+  });
+  const handledUpdateRef = useRef(0);
+  const data = invitationQuery.data;
   const now = useNow(Boolean(data));
+  const createCode = () => createMutation.mutate(refrigeratorId);
+
+  const { dataUpdatedAt } = invitationQuery;
+  const { mutate } = createMutation;
 
   useEffect(() => {
-    if (!refrigeratorId || requestedRef.current) return;
-    requestedRef.current = true;
+    if (data !== null || handledUpdateRef.current === dataUpdatedAt) return;
+    handledUpdateRef.current = dataUpdatedAt;
     mutate(refrigeratorId);
-  }, [mutate, refrigeratorId]);
+  }, [data, dataUpdatedAt, mutate, refrigeratorId]);
 
-  if (isError) {
+  if (invitationQuery.isError || createMutation.isError) {
+    const isRetrying = invitationQuery.isFetching || createMutation.isPending;
+
     return (
       <ShareStateLayout>
         <AsyncViewState
@@ -52,11 +71,15 @@ export function RefrigeratorInvitePage() {
           action={
             <button
               type="button"
-              disabled={isPending}
-              onClick={() => refrigeratorId && mutate(refrigeratorId)}
+              disabled={isRetrying}
+              onClick={() =>
+                invitationQuery.isError
+                  ? void invitationQuery.refetch()
+                  : createCode()
+              }
               className={asyncViewActionClassName}
             >
-              {isPending ? "로딩 중" : "다시 시도"}
+              {isRetrying ? "로딩 중" : "다시 시도"}
             </button>
           }
         />
@@ -67,7 +90,10 @@ export function RefrigeratorInvitePage() {
   if (!data) {
     return (
       <ShareStateLayout>
-        <AsyncViewState status="loading" title="초대 코드를 만드는 중입니다" />
+        <AsyncViewState
+          status="loading"
+          title="초대 코드를 불러오는 중입니다"
+        />
       </ShareStateLayout>
     );
   }
@@ -100,8 +126,8 @@ export function RefrigeratorInvitePage() {
       action={
         isExpired ? (
           <FooterButton
-            disabled={isPending || !refrigeratorId}
-            onClick={() => refrigeratorId && mutate(refrigeratorId)}
+            disabled={createMutation.isPending}
+            onClick={createCode}
           >
             새 코드 만들기
           </FooterButton>
@@ -139,8 +165,8 @@ export function RefrigeratorInvitePage() {
         </section>
 
         <p className="m-0 mt-3 break-keep text-[12.5px] leading-5 text-app-ink/55">
-          코드는 24시간 동안 유효하고, 한 번 사용하면 사라져요. 만료되면 새로
-          만들 수 있어요.
+          코드는 5분 동안 유효하고, 한 번 사용하면 사라져요. 만료되면 새로 만들
+          수 있어요.
         </p>
       </div>
     </PageActionLayout>

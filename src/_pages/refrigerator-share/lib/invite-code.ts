@@ -17,7 +17,7 @@ export function formatRemainingTime(remainingMs: number): string {
   const minutes = Math.floor((totalSeconds % 3600) / 60);
   const seconds = totalSeconds % 60;
 
-  return [hours, minutes, seconds]
+  return (hours > 0 ? [hours, minutes, seconds] : [minutes, seconds])
     .map((value) => String(value).padStart(2, "0"))
     .join(":");
 }
