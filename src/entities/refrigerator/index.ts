@@ -17,3 +17,4 @@ export type {
   RefrigeratorMemberRole,
   RefrigeratorMembers,
 } from "./model/refrigerator-member";
+export type { RefrigeratorInvitation } from "./model/refrigerator-invitation";

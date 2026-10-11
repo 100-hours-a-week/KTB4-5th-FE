@@ -1,7 +1,5 @@
 import { requestJson, requestNoContent } from "@/shared/api";
 
-const INVITE_CODE_TTL_MS = 24 * 60 * 60 * 1000;
-
 type InviteCodeDto = {
   code: string;
 };
@@ -14,26 +12,18 @@ type JoinRefrigeratorDto = {
   refrigeratorId: string | number;
 };
 
-export type InviteCode = {
-  code: string;
-  expiresAt: string;
-};
-
 const membersPath = (refrigeratorId: string) =>
   `/refrigerators/${encodeURIComponent(refrigeratorId)}/members`;
 
 export async function createInviteCode(
   refrigeratorId: string,
-): Promise<InviteCode> {
+): Promise<string> {
   const { data } = await requestJson<InviteCodeDto>(
     `/refrigerators/${encodeURIComponent(refrigeratorId)}/invitations`,
     { method: "POST" },
   );
 
-  return {
-    code: data.code,
-    expiresAt: new Date(Date.now() + INVITE_CODE_TTL_MS).toISOString(),
-  };
+  return data.code;
 }
 
 export async function joinRefrigerator(inviteCode: string): Promise<string> {
