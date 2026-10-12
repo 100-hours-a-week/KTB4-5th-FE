@@ -88,7 +88,7 @@ export function IngredientDisposeBottomSheetContent({
 
       <ul
         aria-label="만료 재료"
-        className="mx-4 divide-y divide-app-neutral-200"
+        className="ml-4 max-h-[45dvh] pr-4 divide-y divide-app-neutral-200 overflow-y-auto overscroll-contain"
       >
         {ingredients.map((ingredient) => (
           <li key={ingredient.ingredientId}>
