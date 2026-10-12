@@ -12,6 +12,7 @@ import {
 import { useCurrentRefrigeratorId } from "@/entities/refrigerator";
 
 import { useIngredientListPaginationState } from "../model/use-ingredient-list-pagination-state";
+import { useIngredientListPrefetch } from "../model/use-ingredient-list-prefetch";
 import { IngredientControlsContainer } from "./ingredient-controls-container";
 import { IngredientDisposeBanner } from "./ingredient-dispose-banner";
 import { IngredientListContainer } from "./ingredient-list-container";
@@ -68,6 +69,12 @@ export function RefrigeratorPage({ queryParams }: RefrigeratorPageProps) {
     },
   );
 
+  const prefetch = useIngredientListPrefetch(
+    refrigeratorId,
+    query,
+    Boolean(data),
+  );
+
   const firstPage = data?.pages[0];
   const ingredients = data?.pages.flatMap((page) => page.ingredients) ?? [];
   const canDisposeExpired =
@@ -81,6 +88,7 @@ export function RefrigeratorPage({ queryParams }: RefrigeratorPageProps) {
         query={query}
         filteredCount={firstPage?.filteredCount ?? 0}
         isLoading={!firstPage}
+        onPrefetch={prefetch}
       />
 
       <div className="flex-none px-5 pt-4">

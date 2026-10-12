@@ -18,12 +18,14 @@ type IngredientControlsContainerProps = {
   query: IngredientListQuery;
   filteredCount: number;
   isLoading: boolean;
+  onPrefetch: (patch: Partial<IngredientListQuery>) => void;
 };
 
 export function IngredientControlsContainer({
   filteredCount,
   isLoading,
   query,
+  onPrefetch,
 }: IngredientControlsContainerProps) {
   const [searchTerm, setSearchTerm] = useState(query.keyword ?? "");
   const [syncedKeyword, setSyncedKeyword] = useState(query.keyword);
@@ -118,6 +120,8 @@ export function IngredientControlsContainer({
           category={query.category}
           onFilterChange={(filter) => updateQuery({ filter })}
           onCategoryChange={(category) => updateQuery({ category })}
+          onFilterIntent={(filter) => onPrefetch({ filter })}
+          onCategoryIntent={(category) => onPrefetch({ category })}
         />
       </div>
 

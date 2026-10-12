@@ -8,6 +8,7 @@ type FilterChipProps = {
   tone?: FilterChipTone;
   disabled?: boolean;
   onClick?: () => void;
+  onPointerDown?: () => void;
   className?: string;
 };
 
@@ -21,6 +22,7 @@ export function FilterChip({
   className = "",
   disabled = false,
   onClick,
+  onPointerDown,
   selected = false,
   tone = "ink",
 }: FilterChipProps) {
@@ -30,6 +32,7 @@ export function FilterChip({
       aria-pressed={selected}
       disabled={disabled}
       onClick={onClick}
+      onPointerDown={onPointerDown}
       className={`inline-flex min-h-[var(--tap-min)] flex-none items-center bg-transparent p-0 disabled:cursor-not-allowed disabled:opacity-40 ${className}`}
     >
       <span
