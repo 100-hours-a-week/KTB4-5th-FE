@@ -21,7 +21,7 @@ export function IngredientListEmpty({
       <AsyncViewState
         status="empty"
         title="조건에 맞는 재료가 없어요"
-        description="필터를 바꾸면 다른 재료를 찾을 수 있어요"
+        description="검색어나 필터를 바꾸면 다른 재료를 찾을 수 있어요"
         action={
           <button
             type="button"

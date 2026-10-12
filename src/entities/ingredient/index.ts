@@ -42,6 +42,7 @@ export {
   INGREDIENT_LIST_FILTERS,
   INGREDIENT_LIST_SORTS,
   parseIngredientListQuery,
+  toIngredientListKeyword,
   toIngredientListQueryString,
 } from "./model/ingredient-list-query";
 export type {
