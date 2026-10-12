@@ -13,6 +13,7 @@ type MockMember = {
 
 const SCENARIOS: readonly Scenario[] = ["owner", "member", "alone", "full"];
 const MEMBER_MAX = 4;
+const INVITATION_TTL_MS = 5 * 60 * 1000;
 
 const JOIN_FAILURES: Record<string, { status: number; code: string }> = {
   MYOWN0: { status: 400, code: "REFRIGERATOR-400-001" },
@@ -24,6 +25,7 @@ const JOIN_FAILURES: Record<string, { status: number; code: string }> = {
 
 let scenario: Scenario = "owner";
 let members = createMembers(scenario);
+let invitation: { code: string; expiresAt: string } | null = null;
 
 function member(
   userId: string,
@@ -104,11 +106,21 @@ export const shareHandlers = [
       memberNum: members.length,
     });
   }),
-  http.post("*/api/v1/refrigerators/:refrigeratorId/invitations", () =>
-    ok("REFRIGERATOR-200-002", "초대코드 발급 성공", {
+  http.get("*/api/v1/refrigerators/:refrigeratorId/invitations", () => {
+    if (invitation && Date.parse(invitation.expiresAt) <= Date.now()) {
+      invitation = null;
+    }
+    return ok("REFRIGERATOR-200-006", "초대코드 조회 성공", invitation);
+  }),
+  http.post("*/api/v1/refrigerators/:refrigeratorId/invitations", () => {
+    invitation = {
       code: Math.random().toString(36).slice(2, 8).toUpperCase(),
-    }),
-  ),
+      expiresAt: new Date(Date.now() + INVITATION_TTL_MS).toISOString(),
+    };
+    return ok("REFRIGERATOR-200-002", "초대코드 발급 성공", {
+      code: invitation.code,
+    });
+  }),
   http.post("*/api/v1/refrigerators/members", async ({ request }) => {
     const { inviteCode } = (await request.json()) as { inviteCode: string };
     const failure = JOIN_FAILURES[inviteCode];
