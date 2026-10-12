@@ -3,6 +3,7 @@
 import { useState } from "react";
 
 import type { Ingredient } from "@/entities/ingredient";
+import { showAppToast } from "@/shared/ui/app-toast";
 
 import { IngredientDisposeBottomSheet } from "./ingredient-dispose-sheet";
 
@@ -10,14 +11,32 @@ type IngredientDisposeBannerProps = {
   refrigeratorId: string;
   expiredCount: number;
   expiredIngredients: Ingredient[];
+  onLoadAll: () => Promise<boolean>;
 };
 
 export function IngredientDisposeBanner({
   refrigeratorId,
   expiredCount,
   expiredIngredients,
+  onLoadAll,
 }: IngredientDisposeBannerProps) {
   const [isDisposeSheetOpen, setIsDisposeSheetOpen] = useState(false);
+  const [isLoadingAll, setIsLoadingAll] = useState(false);
+
+  async function openDisposeSheet() {
+    setIsLoadingAll(true);
+    const loaded = await onLoadAll();
+    setIsLoadingAll(false);
+
+    if (!loaded) {
+      showAppToast({
+        message: "만료 재료를 불러오지 못했어요. 다시 시도해 주세요.",
+        variant: "error",
+      });
+      return;
+    }
+    setIsDisposeSheetOpen(true);
+  }
 
   function closeDisposeSheet() {
     setIsDisposeSheetOpen(false);
@@ -27,7 +46,9 @@ export function IngredientDisposeBanner({
     <>
       <button
         type="button"
-        onClick={() => setIsDisposeSheetOpen(true)}
+        onClick={() => void openDisposeSheet()}
+        disabled={isLoadingAll}
+        aria-busy={isLoadingAll}
         className="relative block w-full cursor-pointer bg-transparent p-0 pt-[11px] text-left"
       >
         <span
