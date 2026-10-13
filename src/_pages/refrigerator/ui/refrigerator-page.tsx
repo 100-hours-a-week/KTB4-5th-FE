@@ -1,13 +1,13 @@
 "use client";
 
 import { useInfiniteQuery, useQueryClient } from "@tanstack/react-query";
-import { useMemo } from "react";
+import { useSearchParams } from "next/navigation";
+import { useDeferredValue, useMemo } from "react";
 
 import {
   ingredientQueries,
   IngredientRefrigeratorRequiredState,
   parseIngredientListQuery,
-  type RawQueryParams,
 } from "@/entities/ingredient";
 import { useCurrentRefrigeratorId } from "@/entities/refrigerator";
 
@@ -17,21 +17,19 @@ import { IngredientControlsContainer } from "./ingredient-controls-container";
 import { IngredientDisposeBanner } from "./ingredient-dispose-banner";
 import { IngredientListContainer } from "./ingredient-list-container";
 
-type RefrigeratorPageProps = {
-  queryParams: RawQueryParams;
-};
-
-export function RefrigeratorPage({ queryParams }: RefrigeratorPageProps) {
+export function RefrigeratorPage() {
+  const searchParams = useSearchParams();
   const query = useMemo(
-    () => parseIngredientListQuery(queryParams),
-    [queryParams],
+    () => parseIngredientListQuery(Object.fromEntries(searchParams)),
+    [searchParams],
   );
+  const deferredQuery = useDeferredValue(query);
   const refrigeratorId = useCurrentRefrigeratorId();
   const queryClient = useQueryClient();
   const options = useMemo(() => {
     const firstPageKey = ingredientQueries.firstPage(
       refrigeratorId ?? "",
-      query,
+      deferredQuery,
     ).queryKey;
 
     const getFirstPageState = () => {
@@ -40,7 +38,7 @@ export function RefrigeratorPage({ queryParams }: RefrigeratorPageProps) {
     };
 
     return {
-      ...ingredientQueries.list(refrigeratorId ?? "", query),
+      ...ingredientQueries.list(refrigeratorId ?? "", deferredQuery),
       enabled: Boolean(refrigeratorId),
       initialData: () => {
         const state = getFirstPageState();
@@ -50,7 +48,7 @@ export function RefrigeratorPage({ queryParams }: RefrigeratorPageProps) {
       },
       initialDataUpdatedAt: () => getFirstPageState()?.dataUpdatedAt,
     };
-  }, [queryClient, refrigeratorId, query]);
+  }, [queryClient, refrigeratorId, deferredQuery]);
   const {
     data,
     error,
@@ -68,7 +66,6 @@ export function RefrigeratorPage({ queryParams }: RefrigeratorPageProps) {
       error,
     },
   );
-
   const prefetch = useIngredientListPrefetch(
     refrigeratorId,
     query,
@@ -76,9 +73,12 @@ export function RefrigeratorPage({ queryParams }: RefrigeratorPageProps) {
   );
 
   const firstPage = data?.pages[0];
-  const ingredients = data?.pages.flatMap((page) => page.ingredients) ?? [];
+  const ingredients = useMemo(
+    () => data?.pages.flatMap((page) => page.ingredients) ?? [],
+    [data],
+  );
   const canDisposeExpired =
-    query.filter === "EXPIRED" && (firstPage?.filteredCount ?? 0) > 0;
+    deferredQuery.filter === "EXPIRED" && (firstPage?.filteredCount ?? 0) > 0;
 
   async function fetchAllPages() {
     let hasMore = Boolean(hasNextPage);
@@ -102,6 +102,15 @@ export function RefrigeratorPage({ queryParams }: RefrigeratorPageProps) {
       />
 
       <div className="flex-none px-5 pt-4">
+        <div className="border-t border-dashed border-app-ink/20" />
+      </div>
+
+      <section
+        ref={scrollContainerRef}
+        onScroll={handleScroll}
+        className="min-h-0 flex-1 overflow-y-auto px-5 pt-4 pb-[calc(var(--space-6)+var(--safe-bottom))] [-webkit-overflow-scrolling:touch]"
+        aria-label="재고 목록"
+      >
         {canDisposeExpired && refrigeratorId ? (
           <div className="pb-4">
             <IngredientDisposeBanner
@@ -112,20 +121,11 @@ export function RefrigeratorPage({ queryParams }: RefrigeratorPageProps) {
             />
           </div>
         ) : null}
-        <div className="border-t border-dashed border-app-ink/20" />
-      </div>
-
-      <section
-        ref={scrollContainerRef}
-        onScroll={handleScroll}
-        className="min-h-0 flex-1 overflow-y-auto px-5 pt-4 pb-[calc(var(--space-6)+var(--safe-bottom))] [-webkit-overflow-scrolling:touch]"
-        aria-label="재고 목록"
-      >
         {refrigeratorId === null ? (
           <IngredientRefrigeratorRequiredState />
         ) : (
           <IngredientListContainer
-            query={query}
+            query={deferredQuery}
             ingredients={ingredients}
             scrollContainerRef={scrollContainerRef}
             isPending={isPending}
