@@ -10,6 +10,7 @@ import { PageActionLayout } from "@/shared/ui/page-action-layout";
 
 import { useReceiptAnalysis } from "../model/use-receipt-analysis";
 import {
+  RECEIPT_PHOTO_MAX_BYTES,
   RECEIPT_PHOTO_TYPES,
   useReceiptPhotos,
 } from "../model/use-receipt-photos";
@@ -47,6 +48,14 @@ export function RegisterIngredientReceiptPage() {
     if (!RECEIPT_PHOTO_TYPES.includes(file.type)) {
       showAppToast({
         message: "JPG·PNG 사진만 올릴 수 있어요",
+        variant: "error",
+      });
+      return;
+    }
+
+    if (file.size > RECEIPT_PHOTO_MAX_BYTES) {
+      showAppToast({
+        message: "10MB 이하 사진만 올릴 수 있어요",
         variant: "error",
       });
       return;
