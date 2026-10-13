@@ -16,6 +16,7 @@ import {
 
 import { useIngredientListNavigation } from "../model/use-ingredient-list-navigation";
 import { IngredientCardList } from "./ingredient-card-list";
+import { IngredientCardListSkeleton } from "./ingredient-card-list-skeleton";
 import { IngredientListEmpty } from "./ingredient-list-empty";
 
 type IngredientListContainerProps = {
@@ -53,7 +54,7 @@ export function IngredientListContainer({
   });
 
   if (isPending) {
-    return <AsyncViewState status="loading" title="재고를 불러오는 중입니다" />;
+    return <IngredientCardListSkeleton />;
   }
 
   if (isInitialError) {
