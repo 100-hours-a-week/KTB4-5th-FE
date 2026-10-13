@@ -6,6 +6,7 @@ import {
   getCurrentRefrigerators,
   type RefrigeratorStatus,
 } from "./get-current-refrigerators";
+import { getInvitation } from "./get-invitation";
 import { getRefrigeratorMembers } from "./get-refrigerator-members";
 
 export const refrigeratorQueries = {
@@ -27,5 +28,14 @@ export const refrigeratorQueries = {
       ] as const,
       queryFn: ({ signal }) =>
         getRefrigeratorMembers({ refrigeratorId, signal }),
+    }),
+  invitation: (refrigeratorId: string) =>
+    queryOptions({
+      queryKey: [
+        ...refrigeratorQueries.all(),
+        refrigeratorId,
+        "invitation",
+      ] as const,
+      queryFn: ({ signal }) => getInvitation({ refrigeratorId, signal }),
     }),
 };

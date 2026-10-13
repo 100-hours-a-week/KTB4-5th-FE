@@ -79,9 +79,19 @@ export function RefrigeratorPage({ queryParams }: RefrigeratorPageProps) {
   const firstPage = data?.pages[0];
   const ingredients = data?.pages.flatMap((page) => page.ingredients) ?? [];
   const canDisposeExpired =
-    query.filter === "EXPIRED" &&
-    (firstPage?.filteredCount ?? 0) > 0 &&
-    !hasNextPage;
+    query.filter === "EXPIRED" && (firstPage?.filteredCount ?? 0) > 0;
+
+  async function fetchAllPages() {
+    let hasMore = Boolean(hasNextPage);
+    while (hasMore) {
+      const result = await fetchNextPage({ cancelRefetch: false });
+      if (result.isError) {
+        return false;
+      }
+      hasMore = result.hasNextPage;
+    }
+    return true;
+  }
 
   return (
     <main className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden">
@@ -99,6 +109,7 @@ export function RefrigeratorPage({ queryParams }: RefrigeratorPageProps) {
               refrigeratorId={refrigeratorId}
               expiredCount={firstPage?.filteredCount ?? 0}
               expiredIngredients={ingredients}
+              onLoadAll={fetchAllPages}
             />
           </div>
         ) : null}
