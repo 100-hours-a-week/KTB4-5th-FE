@@ -16,6 +16,7 @@ export const routes = {
   refrigerator: "/refrigerator",
   notifications: "/notifications",
   me: "/me",
+  myProfile: "/me/profile",
   refrigeratorShare: "/refrigerator/share",
   refrigeratorShareInvite: "/refrigerator/share/invite",
   refrigeratorShareJoin: "/refrigerator/share/join",
