@@ -65,7 +65,6 @@ export function RefrigeratorPage({ queryParams }: RefrigeratorPageProps) {
   const { scrollContainerRef, handleScroll } = useIngredientListPaginationState(
     {
       queryKey: options.queryKey,
-      reuseCachedSearch: Boolean(query.keyword),
       error,
     },
   );

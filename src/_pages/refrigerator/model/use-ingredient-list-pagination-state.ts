@@ -23,7 +23,6 @@ const scrollPositions = new Map<string, number>();
 
 type UseIngredientListPaginationStateParams = {
   queryKey: QueryKey;
-  reuseCachedSearch: boolean;
   error: Error | null;
 };
 
@@ -42,7 +41,6 @@ function isInvalidIngredientListCursor(error: Error | null): boolean {
 
 export function useIngredientListPaginationState({
   queryKey,
-  reuseCachedSearch,
   error,
 }: UseIngredientListPaginationStateParams): IngredientListPaginationState {
   const queryClient = useQueryClient();
@@ -61,22 +59,19 @@ export function useIngredientListPaginationState({
   useLayoutEffect(() => {
     if (previousScrollKey.current !== scrollKey) {
       scrollPositions.delete(scrollKey);
-      if (reuseCachedSearch) {
-        const cached = queryClient.getQueryData<
+      const cached =
+        queryClient.getQueryData<
           InfiniteData<IngredientListPage, string | null>
         >(queryKey);
-        if (cached && cached.pages.length > 1) {
-          queryClient.setQueryData(
-            queryKey,
-            {
-              pages: cached.pages.slice(0, 1),
-              pageParams: cached.pageParams.slice(0, 1),
-            },
-            { updatedAt: queryClient.getQueryState(queryKey)?.dataUpdatedAt },
-          );
-        }
-      } else {
-        void queryClient.resetQueries({ queryKey, exact: true });
+      if (cached && cached.pages.length > 1) {
+        queryClient.setQueryData(
+          queryKey,
+          {
+            pages: cached.pages.slice(0, 1),
+            pageParams: cached.pageParams.slice(0, 1),
+          },
+          { updatedAt: queryClient.getQueryState(queryKey)?.dataUpdatedAt },
+        );
       }
       previousScrollKey.current = scrollKey;
     }
@@ -85,7 +80,7 @@ export function useIngredientListPaginationState({
       scrollContainerRef.current.scrollTop =
         scrollPositions.get(scrollKey) ?? 0;
     }
-  }, [queryClient, queryKey, reuseCachedSearch, scrollKey]);
+  }, [queryClient, queryKey, scrollKey]);
 
   const handleScroll = useCallback(
     (event: UIEvent<HTMLElement>) => {

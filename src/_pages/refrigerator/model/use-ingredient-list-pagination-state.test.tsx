@@ -55,7 +55,6 @@ it("reuses a searched keyword's cached first page without another request", () =
       const list = useInfiniteQuery({ ...options, queryFn: fetchPage });
       useIngredientListPaginationState({
         queryKey: options.queryKey,
-        reuseCachedSearch: true,
         error: list.error,
       });
       return list;
