@@ -44,6 +44,7 @@ export async function getIngredientList({
   if (query.filter) params.set("filter", query.filter);
   if (query.category) params.set("category", query.category);
   params.set("sort", query.sort);
+  if (query.keyword) params.set("keyword", query.keyword);
   if (cursor !== null && cursor !== undefined) params.set("cursor", cursor);
 
   const response = await requestJson<IngredientListResponseDto>(

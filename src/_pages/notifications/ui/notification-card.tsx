@@ -27,6 +27,7 @@ function toNotificationHref(type: Notification["type"]) {
     filter: type,
     category: null,
     sort: DEFAULT_INGREDIENT_LIST_SORT,
+    keyword: null,
   });
 
   return queryString

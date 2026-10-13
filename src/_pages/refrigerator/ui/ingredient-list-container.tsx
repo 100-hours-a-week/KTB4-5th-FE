@@ -84,7 +84,9 @@ export function IngredientListContainer({
     return (
       <IngredientListEmpty
         hasCondition={hasIngredientListCondition(query)}
-        onResetCondition={() => updateQuery({ filter: null, category: null })}
+        onResetCondition={() =>
+          updateQuery({ filter: null, category: null, keyword: null })
+        }
       />
     );
   }

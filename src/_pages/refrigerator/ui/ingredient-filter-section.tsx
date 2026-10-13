@@ -15,6 +15,8 @@ type IngredientFilterSectionProps = {
   category: IngredientCategory | null;
   onFilterChange: (filter: IngredientListFilter | null) => void;
   onCategoryChange: (category: IngredientCategory | null) => void;
+  onFilterIntent: (filter: IngredientListFilter | null) => void;
+  onCategoryIntent: (category: IngredientCategory | null) => void;
 };
 
 const ROW_CLASS_NAME =
@@ -25,12 +27,15 @@ export function IngredientFilterSection({
   category,
   onFilterChange,
   onCategoryChange,
+  onFilterIntent,
+  onCategoryIntent,
 }: IngredientFilterSectionProps) {
   return (
     <div className="flex flex-col">
       <div role="group" aria-label="재고 필터" className={ROW_CLASS_NAME}>
         <FilterChip
           selected={filter === null}
+          onPointerDown={() => onFilterIntent(null)}
           onClick={() => {
             if (filter !== null) onFilterChange(null);
           }}
@@ -42,6 +47,7 @@ export function IngredientFilterSection({
             key={value}
             selected={filter === value}
             tone={value === "EXPIRED" ? "primary" : "ink"}
+            onPointerDown={() => onFilterIntent(value)}
             onClick={() => {
               if (filter !== value) onFilterChange(value);
             }}
@@ -54,6 +60,7 @@ export function IngredientFilterSection({
       <div role="group" aria-label="카테고리 필터" className={ROW_CLASS_NAME}>
         <FilterChip
           selected={category === null}
+          onPointerDown={() => onCategoryIntent(null)}
           onClick={() => {
             if (category !== null) onCategoryChange(null);
           }}
@@ -64,6 +71,7 @@ export function IngredientFilterSection({
           <FilterChip
             key={value}
             selected={category === value}
+            onPointerDown={() => onCategoryIntent(value)}
             onClick={() => {
               if (category !== value) onCategoryChange(value);
             }}

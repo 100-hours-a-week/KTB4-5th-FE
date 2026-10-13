@@ -1,7 +1,4 @@
-import {
-  INGREDIENT_CATEGORIES,
-  type IngredientCategory,
-} from "./ingredient";
+import { INGREDIENT_CATEGORIES, type IngredientCategory } from "./ingredient";
 
 export const INGREDIENT_LIST_FILTERS = [
   "REFRIGERATED",
@@ -26,6 +23,7 @@ export type IngredientListQuery = {
   filter: IngredientListFilter | null;
   category: IngredientCategory | null;
   sort: IngredientListSort;
+  keyword: string | null;
 };
 
 export type RawQueryParams = Record<string, string | string[] | undefined>;
@@ -34,7 +32,15 @@ const INGREDIENT_LIST_QUERY_KEYS = {
   filter: "filter",
   category: "category",
   sort: "sort",
+  keyword: "keyword",
 } as const;
+
+const MIN_INGREDIENT_KEYWORD_LENGTH = 2;
+
+export function toIngredientListKeyword(value: string): string | null {
+  const keyword = value.trim();
+  return keyword.length >= MIN_INGREDIENT_KEYWORD_LENGTH ? keyword : null;
+}
 
 function readSingleValue(value: string | string[] | undefined): string {
   const single = Array.isArray(value) ? value[0] : value;
@@ -66,6 +72,9 @@ export function parseIngredientListQuery(
         queryParams[INGREDIENT_LIST_QUERY_KEYS.sort],
         INGREDIENT_LIST_SORTS,
       ) ?? DEFAULT_INGREDIENT_LIST_SORT,
+    keyword: toIngredientListKeyword(
+      readSingleValue(queryParams[INGREDIENT_LIST_QUERY_KEYS.keyword]),
+    ),
   };
 }
 
@@ -86,11 +95,17 @@ export function toIngredientListQueryString(
     queryParams.set(INGREDIENT_LIST_QUERY_KEYS.sort, query.sort);
   }
 
+  if (query.keyword) {
+    queryParams.set(INGREDIENT_LIST_QUERY_KEYS.keyword, query.keyword);
+  }
+
   return queryParams.toString();
 }
 
 export function hasIngredientListCondition(
   query: IngredientListQuery,
 ): boolean {
-  return query.filter !== null || query.category !== null;
+  return (
+    query.filter !== null || query.category !== null || query.keyword !== null
+  );
 }
