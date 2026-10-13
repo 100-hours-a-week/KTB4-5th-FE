@@ -64,7 +64,9 @@ function syncScenario() {
 
 function currentRefrigeratorId(): string {
   return (
-    globalThis.localStorage?.getItem("dameokja.currentRefrigeratorId") ?? "1"
+    globalThis.document?.cookie.match(
+      /(?:^|; )currentRefrigeratorId=([^;]*)/,
+    )?.[1] ?? "1"
   );
 }
 
