@@ -31,6 +31,8 @@ it("reuses a searched keyword's cached first page without another request", () =
   const pork = ingredientQueries.list("fridge-1", query("돼지"));
   const porkNeck = ingredientQueries.list("fridge-1", query("돼지 목"));
   const page = (nextCursor: string | null): IngredientListPage => ({
+    baseDate: "2026-09-16",
+    outdated: false,
     ingredientsNum: 2,
     filteredCount: 2,
     refrigeratorCapacity: 100,

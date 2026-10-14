@@ -7,6 +7,8 @@ export const RECEIPT_PHOTO_LIMIT = 5;
 // HEIC는 Chrome이 미리보기·캔버스 압축을 못 한다. 형식을 명시하면 iOS는 JPEG로 바꿔서 넘겨준다.
 export const RECEIPT_PHOTO_TYPES = ["image/jpeg", "image/png", "image/webp"];
 
+export const RECEIPT_PHOTO_MAX_BYTES = 10 * 1024 * 1024;
+
 export type ReceiptPhoto = {
   id: string;
   url: string;

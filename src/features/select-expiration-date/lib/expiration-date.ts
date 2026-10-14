@@ -1,16 +1,7 @@
 import { EXPIRATION_MAX_YEARS } from "@/shared/config";
+import { getTodayInSeoul } from "@/shared/lib/seoul-date";
 
-const seoulDateFormatter = new Intl.DateTimeFormat("en-CA", {
-  timeZone: "Asia/Seoul",
-  year: "numeric",
-  month: "2-digit",
-  day: "2-digit",
-});
-
-// 날짜 판정은 KST 기준이므로 오늘도 Asia/Seoul의 YYYY-MM-DD로 구한다.
-export function getTodayInSeoul() {
-  return seoulDateFormatter.format(new Date());
-}
+export { getTodayInSeoul };
 
 // 캘린더가 다루는 Date는 로컬 자정을 기준으로 맞춰 하루가 밀리지 않게 한다.
 export function fromIsoDate(isoDate: string) {

@@ -8,6 +8,8 @@ import {
   ingredientQueries,
   IngredientRefrigeratorRequiredState,
   parseIngredientListQuery,
+  useIngredientDateStale,
+  useIngredientRefreshToast,
 } from "@/entities/ingredient";
 import { useCurrentRefrigeratorId } from "@/entities/refrigerator";
 
@@ -76,13 +78,18 @@ export function RefrigeratorPage({
       error,
     },
   );
+  const firstPage = data?.pages[0];
+  const isDateStale = useIngredientDateStale(
+    firstPage?.baseDate,
+    data?.pages.some(
+      (page) => page.outdated || page.baseDate !== firstPage?.baseDate,
+    ) ?? false,
+  );
   const prefetch = useIngredientListPrefetch(
     refrigeratorId,
     query,
-    Boolean(data),
+    Boolean(data) && !isDateStale,
   );
-
-  const firstPage = data?.pages[0];
   const ingredients = useMemo(
     () => data?.pages.flatMap((page) => page.ingredients) ?? [],
     [data],
@@ -101,6 +108,8 @@ export function RefrigeratorPage({
     }
     return true;
   }
+
+  useIngredientRefreshToast(isDateStale);
 
   return (
     <main className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden">
@@ -121,7 +130,7 @@ export function RefrigeratorPage({
         className="min-h-0 flex-1 overflow-y-auto px-5 pt-4 pb-[calc(var(--space-6)+var(--safe-bottom))] [-webkit-overflow-scrolling:touch]"
         aria-label="재고 목록"
       >
-        {canDisposeExpired && refrigeratorId ? (
+        {!isDateStale && canDisposeExpired && refrigeratorId ? (
           <div className="pb-4">
             <IngredientDisposeBanner
               refrigeratorId={refrigeratorId}

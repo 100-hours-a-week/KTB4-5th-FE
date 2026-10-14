@@ -80,6 +80,7 @@ function writeCsv(file, rows) {
 }
 
 const fixtureStatuses = ["NORMAL", "NORMAL", "EXPIRING_SOON", "EXPIRED"];
+const baseDate = new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Seoul", year: "numeric", month: "2-digit", day: "2-digit" }).format(new Date());
 const fixtureCategories = ["VEGETABLE", "FRUIT", "MEAT"];
 const fixtureItems = Array.from({ length: fixture }, (_, i) => {
   const status = fixtureStatuses[i % 4];
@@ -97,7 +98,7 @@ async function routeFixture(route) {
     const size = Number(url.searchParams.get("size") ?? 10);
     const ingredients = matched.slice(cursor, cursor + size);
     const nextCursor = cursor + size < matched.length ? String(cursor + size) : null;
-    const body = { ingredientsNum: fixture, filteredCount: matched.length, refrigeratorCapacity: Math.max(100, fixture), ingredients, nextCursor };
+    const body = { baseDate, outdated: false, ingredientsNum: fixture, filteredCount: matched.length, refrigeratorCapacity: Math.max(100, fixture), ingredients, nextCursor };
     await sleep(562.5 + JSON.stringify(body).length / 180);
     return ok(body);
   }
