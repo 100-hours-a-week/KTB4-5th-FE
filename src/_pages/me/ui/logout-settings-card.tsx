@@ -22,7 +22,7 @@ export function LogoutSettingsCard() {
       <AppDialog
         open={isConfirmOpen}
         title="로그아웃할까요?"
-        description="다시 이용하려면 아이디와 비밀번호로 로그인해야 해요."
+        description="다시 로그인하면 냉장고 정보는 그대로예요."
         secondaryAction={{
           label: "취소",
           disabled: logoutMutation.isPending,
