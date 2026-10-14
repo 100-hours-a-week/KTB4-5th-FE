@@ -35,18 +35,6 @@ import { PushRegistrationFailure } from "./push-registration-failure";
 export type PushNotificationSettingStatus =
   "on" | "off" | "blocked" | "blocked-ios" | "needs-install" | "unsupported";
 
-export const pushNotificationStatusLabels: Record<
-  PushNotificationSettingStatus,
-  string
-> = {
-  on: "매일 오전 8시 · 푸시 수신 켜짐",
-  off: "매일 오전 8시 · 푸시 수신 꺼짐",
-  blocked: "브라우저에서 알림이 차단됐어요",
-  "blocked-ios": "iPhone 설정에서 알림을 허용해 주세요",
-  "needs-install": "iOS 홈 화면 추가가 필요해요",
-  unsupported: "이 브라우저에서는 푸시 알림을 지원하지 않아요",
-};
-
 async function readDeviceStatus(): Promise<PushNotificationSettingStatus> {
   const support = getPushNotificationSupport();
 
