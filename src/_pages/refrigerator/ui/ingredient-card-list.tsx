@@ -1,3 +1,5 @@
+import { memo } from "react";
+
 import {
   formatIngredientAmount,
   type Ingredient,
@@ -10,13 +12,16 @@ type IngredientCardListProps = {
   ingredients: Ingredient[];
 };
 
-export function IngredientCardList({ ingredients }: IngredientCardListProps) {
+export const IngredientCardList = memo(function IngredientCardList({
+  ingredients,
+}: IngredientCardListProps) {
   return (
     <ul className="flex flex-col gap-2">
       {ingredients.map((ingredient) => (
         <li key={ingredient.ingredientId}>
           <LinkCard
             href={routes.ingredientDetail(ingredient.ingredientId)}
+            prefetch={false}
             title={ingredient.name}
             description={formatIngredientAmount(ingredient)}
             trailing={
@@ -30,4 +35,4 @@ export function IngredientCardList({ ingredients }: IngredientCardListProps) {
       ))}
     </ul>
   );
-}
+});
