@@ -19,14 +19,24 @@ import { IngredientControlsContainer } from "./ingredient-controls-container";
 import { IngredientDisposeBanner } from "./ingredient-dispose-banner";
 import { IngredientListContainer } from "./ingredient-list-container";
 
-export function RefrigeratorPage() {
+type RefrigeratorPageProps = {
+  initialRefrigeratorId?: string;
+};
+
+export function RefrigeratorPage({
+  initialRefrigeratorId,
+}: RefrigeratorPageProps) {
   const searchParams = useSearchParams();
   const query = useMemo(
     () => parseIngredientListQuery(Object.fromEntries(searchParams)),
     [searchParams],
   );
   const deferredQuery = useDeferredValue(query);
-  const refrigeratorId = useCurrentRefrigeratorId();
+  const storedRefrigeratorId = useCurrentRefrigeratorId();
+  const refrigeratorId =
+    storedRefrigeratorId === undefined
+      ? initialRefrigeratorId
+      : storedRefrigeratorId;
   const queryClient = useQueryClient();
   const options = useMemo(() => {
     const firstPageKey = ingredientQueries.firstPage(
