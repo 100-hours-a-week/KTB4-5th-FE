@@ -10,6 +10,8 @@ type IngredientListItemDto = Omit<Ingredient, "measureType" | "weightValue"> & {
 };
 
 type IngredientListResponseDto = {
+  baseDate: string;
+  outdated: boolean;
   ingredientsNum: number;
   filteredCount: number;
   refrigeratorCapacity: number;

@@ -103,3 +103,14 @@ export function showAppToast({
 
   activeToast = { id, key, duration };
 }
+
+export function showPersistentAppToast(options: AppToastOptions) {
+  const id = toast.custom(() => <AppToast {...options} />, {
+    duration: Infinity,
+    dismissible: false,
+  });
+
+  return () => {
+    toast.dismiss(id);
+  };
+}

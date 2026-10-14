@@ -10,6 +10,8 @@ import {
   ingredientQueries,
   IngredientRefrigeratorRequiredState,
   type IngredientListQuery,
+  useIngredientDateStale,
+  useIngredientRefreshToast,
 } from "@/entities/ingredient";
 import { useCurrentRefrigeratorId } from "@/entities/refrigerator";
 import { ApiError } from "@/shared/api";
@@ -42,7 +44,10 @@ export function RegisterIngredientPage() {
     ...ingredientQueries.firstPage(refrigeratorId ?? "", CAPACITY_LIST_QUERY),
     enabled: Boolean(refrigeratorId),
   });
+  const isDateStale = useIngredientDateStale(page?.baseDate, page?.outdated);
   const capacity = page ? getIngredientCapacity(page) : null;
+
+  useIngredientRefreshToast(isDateStale);
 
   const showCapacityLimitToast = () => {
     showAppToast({
