@@ -1,13 +1,15 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
-import type { ReactNode } from "react";
+import { type ReactNode } from "react";
 
 import {
   DEFAULT_INGREDIENT_LIST_SORT,
   ingredientQueries,
   IngredientRefrigeratorRequiredState,
   type IngredientListQuery,
+  useIngredientDateStale,
+  useIngredientRefreshToast,
 } from "@/entities/ingredient";
 import { useCurrentRefrigeratorId } from "@/entities/refrigerator";
 import {
@@ -43,6 +45,9 @@ export function RegisterCapacityBoundary({
     ...ingredientQueries.firstPage(refrigeratorId ?? "", CAPACITY_LIST_QUERY),
     enabled: Boolean(refrigeratorId),
   });
+  const isDateStale = useIngredientDateStale(page?.baseDate, page?.outdated);
+
+  useIngredientRefreshToast(isDateStale, refetch);
 
   if (page) {
     return children(getRegisterCapacity(page));

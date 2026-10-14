@@ -11,9 +11,11 @@ it("normalizes decimal weight strings while retaining the registered count", asy
       async () =>
         new Response(
           JSON.stringify({
-            code: "INGREDIENT-200-001",
+            code: "INGREDIENT-200-002",
             message: "재고 목록 조회 성공",
             data: {
+              baseDate: "2026-09-16",
+              outdated: false,
               ingredientsNum: 1,
               filteredCount: 1,
               refrigeratorCapacity: 100,
@@ -52,4 +54,5 @@ it("normalizes decimal weight strings while retaining the registered count", asy
     weightValue: 400,
     measureType: "WEIGHT",
   });
+  expect(result).toMatchObject({ baseDate: "2026-09-16", outdated: false });
 });
