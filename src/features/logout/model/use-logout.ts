@@ -5,7 +5,12 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { clearCurrentRefrigeratorId } from "@/entities/refrigerator";
 import { rotateNotificationSessionScope } from "@/entities/notification";
 import { releasePushSubscription } from "@/entities/push-subscription";
-import { ApiError, refreshCsrfToken } from "@/shared/api";
+import {
+  ApiError,
+  clearIntentionalLogout,
+  markIntentionalLogout,
+  refreshCsrfToken,
+} from "@/shared/api";
 import { routes } from "@/shared/routes";
 import { showAppToast } from "@/shared/ui/app-toast";
 
@@ -30,16 +35,17 @@ export function useLogout() {
 
   return useMutation({
     mutationFn: async () => {
+      markIntentionalLogout();
       await releasePushSubscription();
-      return logout();
+      try {
+        return await logout();
+      } catch (error) {
+        if (!isAlreadyLoggedOut(error)) throw error;
+      }
     },
     onSuccess: leaveSession,
-    onError: (error) => {
-      if (isAlreadyLoggedOut(error)) {
-        leaveSession();
-        return;
-      }
-
+    onError: () => {
+      clearIntentionalLogout();
       showAppToast({
         message: LOGOUT_ERROR_MESSAGE,
         variant: "error",

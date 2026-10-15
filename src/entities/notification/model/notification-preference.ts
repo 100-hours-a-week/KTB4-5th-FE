@@ -1,4 +1,4 @@
-export const NOTIFICATION_PREFERENCE_TYPES = ["EXPIRATION"] as const;
+export const NOTIFICATION_PREFERENCE_TYPES = ["EXPIRATION", "RECIPE"] as const;
 export type NotificationPreferenceType =
   (typeof NOTIFICATION_PREFERENCE_TYPES)[number];
 

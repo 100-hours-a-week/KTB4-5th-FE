@@ -1,13 +1,8 @@
 "use client";
 
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useMutation } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
 
-import {
-  isExpirationNotificationEnabled,
-  notificationQueries,
-  useNotificationSessionScope,
-} from "@/entities/notification";
 import {
   disablePushSubscription,
   markPushOptedOut,
@@ -25,8 +20,8 @@ import {
 import { PushRegistrationFailure } from "./push-registration-failure";
 
 /**
- * - `on`: 서버 알림 설정이 켜져 있고, 권한이 허용되고 이 기기의 구독이 서버에 등록됐다.
- * - `off`: 서버 알림 설정이 꺼졌거나, 권한 요청 전이거나 구독이 없다.
+ * - `on`: 권한이 허용되고 이 기기의 구독이 서버에 등록됐다.
+ * - `off`: 권한 요청 전이거나 이 기기의 구독이 없다.
  * - `blocked`: OS·브라우저에서 알림 권한을 거부했다. 앱에서 다시 요청할 수 없다.
  * - `blocked-ios`: 홈 화면 iOS 앱에서 알림 권한을 거부했다.
  * - `needs-install`: iOS에서 홈 화면에 추가해야 한다.
@@ -64,11 +59,6 @@ async function readDeviceStatus(): Promise<PushNotificationSettingStatus> {
 export function usePushNotificationSetting() {
   const [deviceStatus, setDeviceStatus] =
     useState<PushNotificationSettingStatus | null>(null);
-  const sessionScope = useNotificationSessionScope();
-  const preferencesQuery = useQuery({
-    ...notificationQueries.preferences(sessionScope ?? ""),
-    enabled: sessionScope !== undefined,
-  });
   const [isGuideOpen, setIsGuideOpen] = useState(false);
   const [isPermissionGuideOpen, setIsPermissionGuideOpen] = useState(false);
   const [isRequestingPermission, setIsRequestingPermission] = useState(false);
@@ -114,15 +104,7 @@ export function usePushNotificationSetting() {
     isRequestingPermission ||
     registerMutation.isPending ||
     releaseMutation.isPending;
-  const status = preferencesQuery.isLoading
-    ? null
-    : resolveStatus(
-        deviceStatus,
-        preferencesQuery.data &&
-          isExpirationNotificationEnabled(
-            preferencesQuery.data.notificationPreferences,
-          ),
-      );
+  const status = deviceStatus;
 
   useEffect(() => {
     let ignore = false;
@@ -219,15 +201,6 @@ export function usePushNotificationSetting() {
     closePermissionGuide: () => setIsPermissionGuideOpen(false),
     handleClick,
   };
-}
-
-function resolveStatus(
-  deviceStatus: PushNotificationSettingStatus | null,
-  isExpirationEnabled: boolean | undefined,
-): PushNotificationSettingStatus | null {
-  if (deviceStatus === "on" && isExpirationEnabled === false) return "off";
-
-  return deviceStatus;
 }
 
 function showEnableErrorToast() {

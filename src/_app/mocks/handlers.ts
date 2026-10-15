@@ -2,6 +2,7 @@ import { http, HttpResponse } from "msw";
 
 import type { ApiResponse } from "@/shared/api";
 
+import { notificationHandlers } from "./notification-handlers";
 import { shareHandlers } from "./share-handlers";
 
 export const handlers = [
@@ -13,4 +14,5 @@ export const handlers = [
     }),
   ),
   ...shareHandlers,
+  ...notificationHandlers,
 ];
