@@ -9,13 +9,14 @@ import { SettingsCard } from "./settings-card";
 
 export function LogoutSettingsCard() {
   const [isConfirmOpen, setIsConfirmOpen] = useState(false);
+  const [isLeaving, setIsLeaving] = useState(false);
   const logoutMutation = useLogout();
 
   return (
     <>
       <SettingsCard
         title="로그아웃"
-        disabled={logoutMutation.isPending}
+        disabled={isLeaving}
         onClick={() => setIsConfirmOpen(true)}
       />
 
@@ -25,15 +26,19 @@ export function LogoutSettingsCard() {
         description="다시 로그인하면 냉장고 정보는 그대로예요."
         secondaryAction={{
           label: "취소",
-          disabled: logoutMutation.isPending,
+          disabled: isLeaving,
           onClick: () => setIsConfirmOpen(false),
         }}
         primaryAction={{
-          label: "로그아웃",
-          disabled: logoutMutation.isPending,
+          label: isLeaving ? "로그아웃 중..." : "로그아웃",
+          disabled: isLeaving,
           onClick: () => {
+            setIsLeaving(true);
             logoutMutation.mutate(undefined, {
-              onError: () => setIsConfirmOpen(false),
+              onError: () => {
+                setIsLeaving(false);
+                setIsConfirmOpen(false);
+              },
             });
           },
         }}

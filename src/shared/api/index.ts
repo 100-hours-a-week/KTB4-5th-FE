@@ -10,6 +10,11 @@ export {
 } from "./fetch-client";
 export type { ApiRequestOptions, JsonWithHeaders } from "./fetch-client";
 export {
+  clearIntentionalLogout,
+  isIntentionalLogout,
+  markIntentionalLogout,
+} from "./intentional-logout";
+export {
   ACCESS_TOKEN_COOKIE_NAME,
   REFRESH_TOKEN_COOKIE_NAME,
   REGISTRATION_TOKEN_COOKIE_NAME,
