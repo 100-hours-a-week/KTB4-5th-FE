@@ -21,7 +21,7 @@ type NotificationCardProps = {
 };
 
 function toNotificationHref(type: Notification["type"]) {
-  if (type === "MEMBER") return routes.home;
+  if (type === "MEMBER") return routes.refrigeratorShare;
 
   const queryString = toIngredientListQueryString({
     filter: type,

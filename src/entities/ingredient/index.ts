@@ -34,6 +34,7 @@ export type {
   IngredientStorageType,
   IngredientWeightUnit,
 } from "./model/ingredient";
+export { useIngredientDateStale } from "./model/use-ingredient-date-stale";
 export { getIngredientCapacity } from "./model/ingredient-capacity";
 export type { IngredientCapacity } from "./model/ingredient-capacity";
 export {
@@ -71,3 +72,4 @@ export {
 export { IngredientExpiryStamp } from "./ui/ingredient-expiry-stamp";
 export { IngredientReadErrorState } from "./ui/ingredient-read-error-state";
 export { IngredientRefrigeratorRequiredState } from "./ui/ingredient-refrigerator-required-state";
+export { useIngredientRefreshToast } from "./ui/use-ingredient-refresh-toast";

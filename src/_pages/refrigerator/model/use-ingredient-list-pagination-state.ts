@@ -1,6 +1,11 @@
 "use client";
 
-import { hashKey, useQueryClient, type QueryKey } from "@tanstack/react-query";
+import {
+  hashKey,
+  useQueryClient,
+  type InfiniteData,
+  type QueryKey,
+} from "@tanstack/react-query";
 import {
   useCallback,
   useEffect,
@@ -10,6 +15,7 @@ import {
   type UIEvent,
 } from "react";
 
+import type { IngredientListPage } from "@/entities/ingredient";
 import { ApiError } from "@/shared/api";
 
 const INVALID_INGREDIENT_LIST_CURSOR_CODE = "INGREDIENT-400-004";
@@ -53,7 +59,20 @@ export function useIngredientListPaginationState({
   useLayoutEffect(() => {
     if (previousScrollKey.current !== scrollKey) {
       scrollPositions.delete(scrollKey);
-      void queryClient.resetQueries({ queryKey, exact: true });
+      const cached =
+        queryClient.getQueryData<
+          InfiniteData<IngredientListPage, string | null>
+        >(queryKey);
+      if (cached && cached.pages.length > 1) {
+        queryClient.setQueryData(
+          queryKey,
+          {
+            pages: cached.pages.slice(0, 1),
+            pageParams: cached.pageParams.slice(0, 1),
+          },
+          { updatedAt: queryClient.getQueryState(queryKey)?.dataUpdatedAt },
+        );
+      }
       previousScrollKey.current = scrollKey;
     }
 

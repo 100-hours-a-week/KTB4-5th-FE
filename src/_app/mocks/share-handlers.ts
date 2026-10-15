@@ -24,6 +24,8 @@ const JOIN_FAILURES: Record<string, { status: number; code: string }> = {
 };
 
 let scenario: Scenario = "owner";
+const profileOverride: { nickname?: string; profileImageUrl?: string | null } =
+  {};
 let members = createMembers(scenario);
 let invitation: { code: string; expiresAt: string } | null = null;
 
@@ -64,7 +66,9 @@ function syncScenario() {
 
 function currentRefrigeratorId(): string {
   return (
-    globalThis.localStorage?.getItem("dameokja.currentRefrigeratorId") ?? "1"
+    globalThis.document?.cookie.match(
+      /(?:^|; )currentRefrigeratorId=([^;]*)/,
+    )?.[1] ?? "1"
   );
 }
 
@@ -85,12 +89,51 @@ export const shareHandlers = [
     const me = scenario === "member" ? members[1] : members[0];
     return ok("USER-200-003", "회원정보 조회 성공", {
       userId: me?.userId ?? "1",
-      nickname: me?.nickname ?? "오조사마",
-      profileImageUrl: null,
+      nickname: profileOverride.nickname ?? me?.nickname ?? "오조사마",
+      email: "dameokja@kakao.com",
+      profileImageUrl: profileOverride.profileImageUrl ?? null,
       activeRefrigeratorIds: [currentRefrigeratorId()],
       cookingCount: 3,
     });
   }),
+  http.patch("*/api/v1/users/me", async ({ request }) => {
+    const body = (await request.json()) as {
+      nickname: string;
+      profileImage?: string | null;
+    };
+    if (body.nickname === "중복") return problem(409, "USER-409-001");
+    profileOverride.nickname = body.nickname;
+    if (body.profileImage !== undefined) {
+      profileOverride.profileImageUrl =
+        body.profileImage === null
+          ? null
+          : "https://picsum.photos/seed/dameokja/512";
+    }
+    return ok("USER-200-004", "회원정보 수정 성공", {
+      userId: "1",
+      nickname: profileOverride.nickname,
+      profileImageUrl: profileOverride.profileImageUrl ?? null,
+    });
+  }),
+  http.delete(
+    "*/api/v1/users/me",
+    () => new HttpResponse(null, { status: 204 }),
+  ),
+  http.post("*/api/v1/image/presigned-url", async ({ request }) => {
+    const body = (await request.clone().json()) as { purpose?: string };
+    if (body.purpose !== "PROFILE") return;
+    return ok("IMAGE-201-001", "업로드 URL 발급 성공", {
+      objectKey: `profile/${Date.now()}.jpg`,
+      uploadUrl: "/api/v1/mock/upload",
+      method: "PUT",
+      headers: {},
+      expiresAt: new Date(Date.now() + 600_000).toISOString(),
+    });
+  }),
+  http.put(
+    "*/api/v1/mock/upload",
+    () => new HttpResponse(null, { status: 200 }),
+  ),
   http.get("*/api/v1/refrigerators/:refrigeratorId/members", () => {
     syncScenario();
     return ok("REFRIGERATOR-200-003", "냉장고 공유 참여자 목록 조회 성공", {

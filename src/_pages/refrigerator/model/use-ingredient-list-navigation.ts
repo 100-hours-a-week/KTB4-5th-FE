@@ -1,6 +1,5 @@
 "use client";
 
-import { useRouter } from "next/navigation";
 import { useCallback } from "react";
 
 import {
@@ -12,8 +11,6 @@ import { routes } from "@/shared/routes";
 
 // TODO: 스크롤 위치 기억, URL에서 파생되는 Query Key 확인
 export function useIngredientListNavigation(query: IngredientListQuery) {
-  const router = useRouter();
-
   // 필터·정렬 변경을 URL 변경으로 연결
   return useCallback(
     (patch: Partial<IngredientListQuery>) => {
@@ -23,8 +20,8 @@ export function useIngredientListNavigation(query: IngredientListQuery) {
         : routes.refrigerator;
 
       markAppNavigationIntent("replace", href);
-      router.replace(href, { scroll: false });
+      window.history.replaceState(null, "", href);
     },
-    [query, router],
+    [query],
   );
 }

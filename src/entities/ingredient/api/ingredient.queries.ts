@@ -44,6 +44,7 @@ export const ingredientQueries = {
     infiniteQueryOptions({
       meta: { monitoringOperation: "ingredient.list" },
       queryKey: [...ingredientQueries.lists(refrigeratorId), query],
+      staleTime: query.keyword ? 30_000 : 0,
       queryFn: ({ pageParam, signal }) =>
         getIngredientList({ refrigeratorId, query, cursor: pageParam, signal }),
       initialPageParam: null as string | null,

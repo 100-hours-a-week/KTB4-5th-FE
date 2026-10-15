@@ -7,6 +7,8 @@ import {
   ingredientQueries,
   IngredientRefrigeratorRequiredState,
   type IngredientListQuery,
+  useIngredientDateStale,
+  useIngredientRefreshToast,
 } from "@/entities/ingredient";
 import { useCurrentRefrigeratorId } from "@/entities/refrigerator";
 import {
@@ -36,6 +38,9 @@ export function HomePage() {
     ...ingredientQueries.firstPage(refrigeratorId ?? "", HOME_LIST_QUERY),
     enabled: Boolean(refrigeratorId),
   });
+  const isDateStale = useIngredientDateStale(page?.baseDate, page?.outdated);
+
+  useIngredientRefreshToast(isDateStale);
 
   return (
     <main className="flex min-h-0 min-w-0 flex-1 flex-col overflow-y-auto pb-[calc(var(--space-6)+var(--safe-bottom))] [-webkit-overflow-scrolling:touch]">

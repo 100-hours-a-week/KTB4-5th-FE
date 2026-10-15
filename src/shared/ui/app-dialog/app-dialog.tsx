@@ -60,8 +60,7 @@ export function AppDialog({
   dismissBehavior = "secondary-action",
 }: AppDialogProps) {
   const dialogRef = useRef<HTMLDialogElement>(null);
-  const secondaryButtonRef = useRef<HTMLButtonElement>(null);
-  const primaryButtonRef = useRef<HTMLButtonElement>(null);
+  const titleRef = useRef<HTMLHeadingElement>(null);
   const backdropPointerDownRef = useRef(false);
   const returnFocusRef = useRef<HTMLElement | null>(null);
   const titleId = useId();
@@ -83,7 +82,7 @@ export function AppDialog({
       dialog.showModal();
     }
 
-    (secondaryButtonRef.current ?? primaryButtonRef.current)?.focus();
+    titleRef.current?.focus();
     const unlockDocumentScroll = lockDocumentScroll();
 
     return () => {
@@ -156,8 +155,10 @@ export function AppDialog({
       />
       <div className="relative max-h-[calc(100dvh_-_var(--safe-top)_-_var(--safe-bottom)_-_43px)] overflow-y-auto rounded-[4px] bg-white p-4 shadow-[0_4px_16px_color-mix(in_srgb,var(--color-ink)_16%,transparent)]">
         <h2
+          ref={titleRef}
           id={titleId}
-          className="m-[5px_0_0] font-app-heading text-[16px] font-black leading-[1.35] tracking-normal"
+          tabIndex={-1}
+          className="m-[5px_0_0] font-app-heading text-[16px] font-black leading-[1.35] tracking-normal focus-visible:outline-none"
         >
           {title}
         </h2>
@@ -171,7 +172,6 @@ export function AppDialog({
           {secondaryAction ? (
             <FooterButton
               size="sm"
-              ref={secondaryButtonRef}
               variant="secondary"
               disabled={secondaryAction.disabled}
               onClick={secondaryAction.onClick}
@@ -181,7 +181,6 @@ export function AppDialog({
           ) : null}
           <FooterButton
             size="sm"
-            ref={primaryButtonRef}
             disabled={primaryAction.disabled}
             onClick={primaryAction.onClick}
           >

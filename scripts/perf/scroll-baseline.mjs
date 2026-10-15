@@ -25,9 +25,11 @@ const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 const selector = 'section[aria-label="재고 목록"]';
 const cardSelector = `${selector} li:has(a[href^="/refrigerator/ingredients/"])`;
 const MB = 1048576;
+const baseDate = new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Seoul", year: "numeric", month: "2-digit", day: "2-digit" }).format(new Date());
 const fixture = (cursor) => ({
   code: "PERF-200-001", message: "OK",
   data: {
+    baseDate, outdated: false,
     ingredientsNum: count, filteredCount: count, refrigeratorCapacity: 100,
     ingredients: Array.from({ length: 10 }, (_, n) => ({
       ingredientId: String(cursor + n + 1), name: `재료 ${String(cursor + n + 1).padStart(3, "0")}`,
@@ -40,7 +42,7 @@ const fixture = (cursor) => ({
 
 async function measure(browser, run) {
   const context = await browser.newContext({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 2, serviceWorkers: "block" });
-  await context.addCookies([{ name: "accessToken", value: "local-perf-fixture", url: base }]);
+  await context.addCookies([{ name: "accessToken", value: "local-perf-fixture", url: base }, { name: "currentRefrigeratorId", value: "1", url: base }]);
   if (experiment.startsWith("margin")) await context.addInitScript((margin) => {
     const NativeObserver = window.IntersectionObserver;
     window.IntersectionObserver = class extends NativeObserver {
@@ -50,7 +52,6 @@ async function measure(browser, run) {
     };
   }, `${experiment.slice(6)}px`);
   await context.addInitScript(() => {
-    localStorage.setItem("dameokja.currentRefrigeratorId", "1");
     window.__scrollPerf = { frames: [], longTasks: [], loafs: [], shifts: [], pages: [], bottoms: [], observing: false };
     const p = window.__scrollPerf;
     for (const [type, target] of [["longtask", p.longTasks], ["long-animation-frame", p.loafs], ["layout-shift", p.shifts]]) {

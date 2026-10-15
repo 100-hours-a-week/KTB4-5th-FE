@@ -1,13 +1,15 @@
 "use client";
 
 import { useInfiniteQuery, useQueryClient } from "@tanstack/react-query";
-import { useMemo } from "react";
+import { useSearchParams } from "next/navigation";
+import { useDeferredValue, useMemo } from "react";
 
 import {
   ingredientQueries,
   IngredientRefrigeratorRequiredState,
   parseIngredientListQuery,
-  type RawQueryParams,
+  useIngredientDateStale,
+  useIngredientRefreshToast,
 } from "@/entities/ingredient";
 import { useCurrentRefrigeratorId } from "@/entities/refrigerator";
 
@@ -18,20 +20,28 @@ import { IngredientDisposeBanner } from "./ingredient-dispose-banner";
 import { IngredientListContainer } from "./ingredient-list-container";
 
 type RefrigeratorPageProps = {
-  queryParams: RawQueryParams;
+  initialRefrigeratorId?: string;
 };
 
-export function RefrigeratorPage({ queryParams }: RefrigeratorPageProps) {
+export function RefrigeratorPage({
+  initialRefrigeratorId,
+}: RefrigeratorPageProps) {
+  const searchParams = useSearchParams();
   const query = useMemo(
-    () => parseIngredientListQuery(queryParams),
-    [queryParams],
+    () => parseIngredientListQuery(Object.fromEntries(searchParams)),
+    [searchParams],
   );
-  const refrigeratorId = useCurrentRefrigeratorId();
+  const deferredQuery = useDeferredValue(query);
+  const storedRefrigeratorId = useCurrentRefrigeratorId();
+  const refrigeratorId =
+    storedRefrigeratorId === undefined
+      ? initialRefrigeratorId
+      : storedRefrigeratorId;
   const queryClient = useQueryClient();
   const options = useMemo(() => {
     const firstPageKey = ingredientQueries.firstPage(
       refrigeratorId ?? "",
-      query,
+      deferredQuery,
     ).queryKey;
 
     const getFirstPageState = () => {
@@ -40,7 +50,7 @@ export function RefrigeratorPage({ queryParams }: RefrigeratorPageProps) {
     };
 
     return {
-      ...ingredientQueries.list(refrigeratorId ?? "", query),
+      ...ingredientQueries.list(refrigeratorId ?? "", deferredQuery),
       enabled: Boolean(refrigeratorId),
       initialData: () => {
         const state = getFirstPageState();
@@ -50,7 +60,7 @@ export function RefrigeratorPage({ queryParams }: RefrigeratorPageProps) {
       },
       initialDataUpdatedAt: () => getFirstPageState()?.dataUpdatedAt,
     };
-  }, [queryClient, refrigeratorId, query]);
+  }, [queryClient, refrigeratorId, deferredQuery]);
   const {
     data,
     error,
@@ -68,17 +78,24 @@ export function RefrigeratorPage({ queryParams }: RefrigeratorPageProps) {
       error,
     },
   );
-
+  const firstPage = data?.pages[0];
+  const isDateStale = useIngredientDateStale(
+    firstPage?.baseDate,
+    data?.pages.some(
+      (page) => page.outdated || page.baseDate !== firstPage?.baseDate,
+    ) ?? false,
+  );
   const prefetch = useIngredientListPrefetch(
     refrigeratorId,
     query,
-    Boolean(data),
+    Boolean(data) && !isDateStale,
   );
-
-  const firstPage = data?.pages[0];
-  const ingredients = data?.pages.flatMap((page) => page.ingredients) ?? [];
+  const ingredients = useMemo(
+    () => data?.pages.flatMap((page) => page.ingredients) ?? [],
+    [data],
+  );
   const canDisposeExpired =
-    query.filter === "EXPIRED" && (firstPage?.filteredCount ?? 0) > 0;
+    deferredQuery.filter === "EXPIRED" && (firstPage?.filteredCount ?? 0) > 0;
 
   async function fetchAllPages() {
     let hasMore = Boolean(hasNextPage);
@@ -92,6 +109,8 @@ export function RefrigeratorPage({ queryParams }: RefrigeratorPageProps) {
     return true;
   }
 
+  useIngredientRefreshToast(isDateStale);
+
   return (
     <main className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden">
       <IngredientControlsContainer
@@ -102,16 +121,6 @@ export function RefrigeratorPage({ queryParams }: RefrigeratorPageProps) {
       />
 
       <div className="flex-none px-5 pt-4">
-        {canDisposeExpired && refrigeratorId ? (
-          <div className="pb-4">
-            <IngredientDisposeBanner
-              refrigeratorId={refrigeratorId}
-              expiredCount={firstPage?.filteredCount ?? 0}
-              expiredIngredients={ingredients}
-              onLoadAll={fetchAllPages}
-            />
-          </div>
-        ) : null}
         <div className="border-t border-dashed border-app-ink/20" />
       </div>
 
@@ -121,11 +130,21 @@ export function RefrigeratorPage({ queryParams }: RefrigeratorPageProps) {
         className="min-h-0 flex-1 overflow-y-auto px-5 pt-4 pb-[calc(var(--space-6)+var(--safe-bottom))] [-webkit-overflow-scrolling:touch]"
         aria-label="재고 목록"
       >
+        {!isDateStale && canDisposeExpired && refrigeratorId ? (
+          <div className="pb-4">
+            <IngredientDisposeBanner
+              refrigeratorId={refrigeratorId}
+              expiredCount={firstPage?.filteredCount ?? 0}
+              expiredIngredients={ingredients}
+              onLoadAll={fetchAllPages}
+            />
+          </div>
+        ) : null}
         {refrigeratorId === null ? (
           <IngredientRefrigeratorRequiredState />
         ) : (
           <IngredientListContainer
-            query={query}
+            query={deferredQuery}
             ingredients={ingredients}
             scrollContainerRef={scrollContainerRef}
             isPending={isPending}

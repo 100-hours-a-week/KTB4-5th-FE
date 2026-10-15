@@ -60,6 +60,37 @@ function getQueryClient() {
 
   browserQueryClient ??= createQueryClient();
 
+  if (process.env.NEXT_PUBLIC_LIST_PERF === "true") {
+    (
+      window as Window & {
+        __listPerfQuerySnapshot?: (type: "ingredient" | "notification") => {
+          queryCount: number;
+          pages: number;
+          estimatedJsonBytes: number;
+        };
+      }
+    ).__listPerfQuerySnapshot = (type) => {
+      const queries = browserQueryClient!
+        .getQueryCache()
+        .getAll()
+        .filter(
+          (query) =>
+            query.queryKey.includes(
+              type === "ingredient" ? "ingredients" : "notifications",
+            ) && query.queryKey.includes("list"),
+        );
+      const values = queries.map((query) => query.state.data).filter(Boolean);
+      return {
+        queryCount: queries.length,
+        pages: values.flatMap(
+          (value) => (value as { pages?: unknown[] }).pages ?? [],
+        ).length,
+        estimatedJsonBytes: new TextEncoder().encode(JSON.stringify(values))
+          .length,
+      };
+    };
+  }
+
   return browserQueryClient;
 }
 

@@ -4,7 +4,6 @@ import { ApiError } from "@/shared/api";
 
 const dependencies = vi.hoisted(() => ({
   getNotificationPreferences: vi.fn(),
-  isExpirationNotificationEnabled: vi.fn(),
   isPushOptedOut: vi.fn(),
   getPushNotificationSupport: vi.fn(),
   registerWebPush: vi.fn(),
@@ -13,7 +12,6 @@ const dependencies = vi.hoisted(() => ({
 vi.mock("client-only", () => ({}));
 vi.mock("@/entities/notification", () => ({
   getNotificationPreferences: dependencies.getNotificationPreferences,
-  isExpirationNotificationEnabled: dependencies.isExpirationNotificationEnabled,
 }));
 vi.mock("@/entities/push-subscription", () => ({
   isPushOptedOut: dependencies.isPushOptedOut,
@@ -49,7 +47,6 @@ describe("로그인 후 푸시 자동 재구독", () => {
     dependencies.getNotificationPreferences.mockResolvedValue({
       notificationPreferences: [],
     });
-    dependencies.isExpirationNotificationEnabled.mockReturnValue(true);
     dependencies.registerWebPush.mockResolvedValue({
       status: "error",
       step: "register",
@@ -67,5 +64,22 @@ describe("로그인 후 푸시 자동 재구독", () => {
         code: "PUSH-503-001",
       },
     );
+  });
+
+  it("임박 알림을 꺼도 추천 알림이 켜져 있으면 다시 구독한다", async () => {
+    vi.stubGlobal("Notification", { permission: "granted" });
+    dependencies.getPushNotificationSupport.mockReturnValue("supported");
+    dependencies.isPushOptedOut.mockReturnValue(false);
+    dependencies.getNotificationPreferences.mockResolvedValue({
+      notificationPreferences: [
+        { type: "EXPIRATION", isEnabled: false },
+        { type: "RECIPE", isEnabled: true },
+      ],
+    });
+    dependencies.registerWebPush.mockResolvedValue({ status: "subscribed" });
+
+    await resubscribePushNotificationsIfEnabled();
+
+    expect(dependencies.registerWebPush).toHaveBeenCalledOnce();
   });
 });
