@@ -3,7 +3,7 @@
 
 import { defaultCache } from "@serwist/turbopack/worker";
 import type { PrecacheEntry, SerwistGlobalConfig } from "serwist";
-import { Serwist } from "serwist";
+import { NetworkOnly, Serwist } from "serwist";
 
 import { routes } from "@/shared/routes";
 
@@ -76,7 +76,20 @@ const serwist = new Serwist({
   skipWaiting: true,
   clientsClaim: true,
   navigationPreload: true,
-  runtimeCaching: process.env.NODE_ENV === "development" ? [] : defaultCache,
+  runtimeCaching:
+    process.env.NODE_ENV === "development"
+      ? []
+      : [
+          {
+            matcher: ({ sameOrigin, url: { pathname } }) =>
+              sameOrigin &&
+              pathname.startsWith("/api/v2/refrigerators/") &&
+              pathname.endsWith("/notifications/stream"),
+            method: "GET",
+            handler: new NetworkOnly(),
+          },
+          ...defaultCache,
+        ],
   fallbacks: {
     entries: [
       {

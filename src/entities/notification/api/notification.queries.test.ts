@@ -7,7 +7,10 @@ import { describe, expect, it, vi } from "vitest";
 
 import type { NotificationListPage } from "./get-notification-list";
 import { notificationQueries } from "./notification.queries";
-import { refreshNotificationLists } from "./refresh-notification-queries";
+import {
+  refreshNotificationLists,
+  refreshNotificationQueries,
+} from "./refresh-notification-queries";
 
 function page(size: number, nextCursor: string | null): NotificationListPage {
   return {
@@ -66,6 +69,12 @@ describe("알림 목록 99개 표시 한도", () => {
     );
   });
 
+  it("미읽음 수는 타이머로 재조회하지 않는다", () => {
+    expect(
+      notificationQueries.unreadCount("user-1", "5").refetchInterval,
+    ).toBeUndefined();
+  });
+
   it("새 알림이 오면 첫 페이지를 갱신하고 오래된 후속 페이지를 섞지 않는다", async () => {
     const queryClient = new QueryClient();
     const options = notificationQueries.list("user-1", "5", "ALL");
@@ -99,6 +108,37 @@ describe("알림 목록 99개 표시 한도", () => {
     } finally {
       unsubscribe();
       queryClient.clear();
+    }
+  });
+
+  it("알림 화면이 열려 있지 않아도 목록 첫 페이지와 미읽음 수를 다시 조회한다", async () => {
+    const queryClient = new QueryClient({
+      defaultOptions: { queries: { retry: false } },
+    });
+    const fetchMock = vi.fn(async (url: string) =>
+      Response.json({
+        code: "NOTI-200-001",
+        message: "조회 성공",
+        data: url.includes("unread-count")
+          ? { refrigeratorId: "5", unreadCount: 1 }
+          : page(1, null),
+      }),
+    );
+    vi.stubGlobal("fetch", fetchMock);
+
+    try {
+      await refreshNotificationQueries(queryClient, "user-1", "5");
+
+      expect(fetchMock).toHaveBeenCalledTimes(2);
+      expect(fetchMock.mock.calls.map(([url]) => url)).toEqual(
+        expect.arrayContaining([
+          "/api/v1/refrigerators/5/notifications?type=ALL",
+          "/api/v1/refrigerators/5/notifications/unread-count",
+        ]),
+      );
+    } finally {
+      queryClient.clear();
+      vi.unstubAllGlobals();
     }
   });
 });

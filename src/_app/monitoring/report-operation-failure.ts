@@ -23,11 +23,6 @@ const operations = {
     method: "GET",
     route: "/refrigerators/[refrigeratorId]/notifications",
   },
-  "notification.stream": {
-    feature: "notification",
-    method: "GET",
-    route: "/refrigerators/[refrigeratorId]/notifications/stream",
-  },
   "notification.unreadCount": {
     feature: "notification",
     method: "GET",

@@ -5,18 +5,14 @@ export {
 export type { NotificationListPage } from "./api/get-notification-list";
 export { getNotificationPreferences } from "./api/get-notification-preferences";
 export type { NotificationPreferencesResponse } from "./api/get-notification-preferences";
-export { getNotificationStream } from "./api/get-notification-stream";
-export type { NotificationStream } from "./api/get-notification-stream";
+export { getNotificationEventsUrl } from "./api/get-notification-events-url";
 export { getUnreadNotificationCount } from "./api/get-unread-notification-count";
 export type { UnreadNotificationCountResponse } from "./api/get-unread-notification-count";
 export {
   refreshNotificationLists,
   refreshNotificationQueries,
 } from "./api/refresh-notification-queries";
-export {
-  notificationQueries,
-  NOTIFICATION_POLLING_INTERVAL_MS,
-} from "./api/notification.queries";
+export { notificationQueries } from "./api/notification.queries";
 export {
   rotateNotificationSessionScope,
   useNotificationSessionScope,
