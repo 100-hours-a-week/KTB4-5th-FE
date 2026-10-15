@@ -2,6 +2,7 @@
 
 import { ArrowLeftOutlined } from "@lineiconshq/free-icons";
 import { Lineicons } from "@lineiconshq/react-lineicons";
+import { useMutation } from "@tanstack/react-query";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 
@@ -11,9 +12,12 @@ import {
   NICKNAME_HINT,
   NICKNAME_LENGTH_ERROR,
   NICKNAME_MAX_LENGTH,
+  getOAuthSignupError,
+  validateNickname,
 } from "@/features/oauth-signup";
 import { routes } from "@/shared/routes";
 import { AppHeader } from "@/shared/ui/app-header";
+import { showAppToast } from "@/shared/ui/app-toast";
 import { Button } from "@/shared/ui/button";
 import { PageActionLayout } from "@/shared/ui/page-action-layout";
 
@@ -24,6 +28,33 @@ export function SignupProfilePage() {
   const nickname = useSignupDraftStore((state) => state.nickname);
   const serverError = useSignupDraftStore((state) => state.nicknameError);
   const setNickname = useSignupDraftStore((state) => state.setNickname);
+  const setNicknameError = useSignupDraftStore(
+    (state) => state.setNicknameError,
+  );
+  const validation = useMutation({ mutationFn: validateNickname });
+
+  async function goToNotification() {
+    try {
+      await validation.mutateAsync(nickname);
+      if (useSignupDraftStore.getState().nickname === nickname) {
+        router.push(routes.signupNotification);
+      }
+    } catch (error) {
+      if (useSignupDraftStore.getState().nickname !== nickname) return;
+      const signupError = getOAuthSignupError(error);
+      if (signupError.kind === "nickname") {
+        setNicknameError(signupError.message);
+      } else {
+        showAppToast({
+          message:
+            signupError.kind === "retry"
+              ? signupError.message
+              : "잠시 후 다시 시도해 주세요",
+          variant: "error",
+        });
+      }
+    }
+  }
 
   const nicknameError =
     serverError ?? (nickname.length === 1 ? NICKNAME_LENGTH_ERROR : null);
@@ -35,8 +66,13 @@ export function SignupProfilePage() {
           variant="highlight"
           shape="note"
           className="w-full shadow-app-md"
-          disabled={!isValidNickname(nickname) || serverError !== null}
-          onClick={() => router.push(routes.signupNotification)}
+          disabled={
+            !isValidNickname(nickname) ||
+            serverError !== null ||
+            validation.isPending
+          }
+          loading={validation.isPending}
+          onClick={goToNotification}
         >
           다음
         </Button>
