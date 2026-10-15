@@ -8,6 +8,7 @@ import {
   type IngredientCategory,
   type IngredientListFilter,
 } from "@/entities/ingredient";
+import { ChipScrollRow } from "@/shared/ui/chip-scroll-row";
 import { FilterChip } from "@/shared/ui/filter-chip";
 
 type IngredientFilterSectionProps = {
@@ -19,9 +20,6 @@ type IngredientFilterSectionProps = {
   onCategoryIntent: (category: IngredientCategory | null) => void;
 };
 
-const ROW_CLASS_NAME =
-  "flex items-center gap-1.5 overflow-x-auto [-webkit-overflow-scrolling:touch] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden";
-
 export function IngredientFilterSection({
   filter,
   category,
@@ -32,7 +30,7 @@ export function IngredientFilterSection({
 }: IngredientFilterSectionProps) {
   return (
     <div className="flex flex-col">
-      <div role="group" aria-label="재고 필터" className={ROW_CLASS_NAME}>
+      <ChipScrollRow aria-label="재고 필터">
         <FilterChip
           selected={filter === null}
           onPointerDown={() => onFilterIntent(null)}
@@ -55,9 +53,9 @@ export function IngredientFilterSection({
             {INGREDIENT_LIST_FILTER_LABELS[value]}
           </FilterChip>
         ))}
-      </div>
+      </ChipScrollRow>
 
-      <div role="group" aria-label="카테고리 필터" className={ROW_CLASS_NAME}>
+      <ChipScrollRow aria-label="카테고리 필터">
         <FilterChip
           selected={category === null}
           onPointerDown={() => onCategoryIntent(null)}
@@ -79,7 +77,7 @@ export function IngredientFilterSection({
             {INGREDIENT_CATEGORY_LABELS[value]}
           </FilterChip>
         ))}
-      </div>
+      </ChipScrollRow>
     </div>
   );
 }
