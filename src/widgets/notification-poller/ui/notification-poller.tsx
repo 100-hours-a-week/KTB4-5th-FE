@@ -3,7 +3,7 @@
 import { useNotificationSessionScope } from "@/entities/notification";
 import { useCurrentRefrigeratorId } from "@/entities/refrigerator";
 
-import { useNotificationPolling } from "../model/use-notification-polling";
+import { useNotificationSse } from "../model/use-notification-sse";
 
 function ActiveNotificationPoller({
   userScope,
@@ -12,7 +12,7 @@ function ActiveNotificationPoller({
   userScope: string;
   refrigeratorId: string;
 }) {
-  useNotificationPolling(userScope, refrigeratorId);
+  useNotificationSse(userScope, refrigeratorId);
   return null;
 }
 

@@ -28,6 +28,13 @@ export async function refreshNotificationLists(
   if (currentRefresh) return currentRefresh;
 
   const refresh = (async () => {
+    const allList = notificationQueries.list(userScope, refrigeratorId, "ALL");
+    const isAllListActive = Boolean(
+      queryClient
+        .getQueryCache()
+        .find({ queryKey: allList.queryKey, exact: true })
+        ?.getObserversCount(),
+    );
     await queryClient.cancelQueries({ queryKey: listsKey });
     queryClient.setQueriesData<
       InfiniteData<NotificationListPage, string | null>
@@ -43,6 +50,9 @@ export async function refreshNotificationLists(
       { queryKey: listsKey, refetchType: "active" },
       { throwOnError: true },
     );
+    if (!isAllListActive) {
+      await queryClient.fetchInfiniteQuery({ ...allList, staleTime: 0 });
+    }
   })();
   pending.set(refreshKey, refresh);
   try {
@@ -59,12 +69,9 @@ export async function refreshNotificationQueries(
 ): Promise<void> {
   await Promise.all([
     refreshNotificationLists(queryClient, userScope, refrigeratorId),
-    queryClient.invalidateQueries(
-      {
-        queryKey: notificationQueries.unreadCount(userScope, refrigeratorId)
-          .queryKey,
-      },
-      { throwOnError: true },
-    ),
+    queryClient.fetchQuery({
+      ...notificationQueries.unreadCount(userScope, refrigeratorId),
+      staleTime: 0,
+    }),
   ]);
 }

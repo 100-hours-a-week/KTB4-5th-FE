@@ -14,7 +14,6 @@ export function useUnreadNotificationCount(): number | undefined {
   const { data } = useQuery({
     ...notificationQueries.unreadCount(userScope ?? "", refrigeratorId ?? ""),
     enabled: Boolean(userScope && refrigeratorId),
-    refetchInterval: false,
   });
 
   return userScope &&
