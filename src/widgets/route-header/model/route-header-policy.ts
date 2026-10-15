@@ -49,6 +49,14 @@ function getFlowHeaderPolicy(pathname: string): RouteHeaderPolicy {
     };
   }
 
+  if (pathname === routes.notificationSettings) {
+    return {
+      kind: "flow",
+      title: "알림 상세",
+      backFallbackHref: routes.me,
+    };
+  }
+
   if (pathname === routes.refrigeratorShare) {
     return {
       kind: "flow",
