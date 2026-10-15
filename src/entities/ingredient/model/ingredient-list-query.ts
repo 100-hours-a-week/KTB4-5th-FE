@@ -35,7 +35,7 @@ const INGREDIENT_LIST_QUERY_KEYS = {
   keyword: "keyword",
 } as const;
 
-const MIN_INGREDIENT_KEYWORD_LENGTH = 2;
+const MIN_INGREDIENT_KEYWORD_LENGTH = 1;
 
 export function toIngredientListKeyword(value: string): string | null {
   const keyword = value.trim();

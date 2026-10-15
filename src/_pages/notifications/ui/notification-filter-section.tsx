@@ -5,6 +5,7 @@ import {
   NOTIFICATION_LIST_FILTERS,
   type NotificationListFilter,
 } from "@/entities/notification";
+import { ChipScrollRow } from "@/shared/ui/chip-scroll-row";
 import { FilterChip } from "@/shared/ui/filter-chip";
 
 import { useNotificationListNavigation } from "../model/use-notification-list-navigation";
@@ -19,11 +20,7 @@ export function NotificationFilterSection({
   const changeFilter = useNotificationListNavigation();
 
   return (
-    <div
-      role="group"
-      aria-label="알림 필터"
-      className="flex items-center gap-1.5 overflow-x-auto [-webkit-overflow-scrolling:touch] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
-    >
+    <ChipScrollRow aria-label="알림 필터">
       {NOTIFICATION_LIST_FILTERS.map((value) => (
         <FilterChip
           key={value}
@@ -35,6 +32,6 @@ export function NotificationFilterSection({
           {NOTIFICATION_LIST_FILTER_LABELS[value]}
         </FilterChip>
       ))}
-    </div>
+    </ChipScrollRow>
   );
 }
