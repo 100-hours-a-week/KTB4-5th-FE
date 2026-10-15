@@ -10,7 +10,16 @@ import type { ReactNode } from "react";
 
 import { reportOperationFailure } from "@/_app/monitoring/index.client";
 import { expireSession } from "@/_app/providers/session-expiry";
-import { SessionExpiredError } from "@/shared/api";
+import { ApiError, SessionExpiredError } from "@/shared/api";
+
+const MAX_NETWORK_RETRIES = 1;
+
+function shouldRetryQuery(failureCount: number, error: unknown) {
+  if (error instanceof ApiError || error instanceof SessionExpiredError) {
+    return false;
+  }
+  return failureCount < MAX_NETWORK_RETRIES;
+}
 
 export function createQueryClient(): QueryClient {
   const clientRef: { current: QueryClient | null } = { current: null };
@@ -22,6 +31,7 @@ export function createQueryClient(): QueryClient {
   };
 
   const client = new QueryClient({
+    defaultOptions: { queries: { retry: shouldRetryQuery } },
     queryCache: new QueryCache({
       onError: (error, query) => {
         handleSessionExpired(error);
