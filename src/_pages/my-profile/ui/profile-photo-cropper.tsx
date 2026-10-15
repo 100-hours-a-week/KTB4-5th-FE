@@ -68,7 +68,7 @@ export function ProfilePhotoCropper({
       />
 
       <div className="min-h-0 flex-1 overflow-y-auto px-5 pt-3">
-        <div className="relative h-[260px] overflow-hidden rounded-[4px] bg-app-ink">
+        <div className="relative mx-auto aspect-square w-full max-w-[260px] overflow-hidden rounded-[4px] bg-app-ink">
           <Cropper
             image={src}
             crop={crop}
