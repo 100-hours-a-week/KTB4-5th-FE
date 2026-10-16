@@ -6,7 +6,7 @@ import {
   ACCESS_TOKEN_COOKIE_NAME,
   REFRESH_TOKEN_COOKIE_NAME,
 } from "@/shared/api";
-import { NotificationPoller } from "@/widgets/notification-poller";
+import { NotificationStream } from "@/widgets/notification-stream";
 
 export default async function ProtectedLayout({ children }: LayoutProps<"/">) {
   const cookieStore = await cookies();
@@ -16,7 +16,7 @@ export default async function ProtectedLayout({ children }: LayoutProps<"/">) {
 
   return (
     <SessionGate needsRenewal={needsRenewal}>
-      <NotificationPoller />
+      <NotificationStream />
       {children}
       <BugReportFloatingButton />
     </SessionGate>
