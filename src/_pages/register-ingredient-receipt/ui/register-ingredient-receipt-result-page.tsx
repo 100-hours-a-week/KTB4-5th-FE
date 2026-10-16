@@ -1,8 +1,17 @@
 "use client";
 
+import { useQuery } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
-import { useEffect } from "react";
+import { useEffect, useMemo } from "react";
 import { FormProvider } from "react-hook-form";
+
+import { imageAnalysisQueries } from "@/entities/image";
+import { ApiError } from "@/shared/api";
+import { AppLink } from "@/shared/ui/app-link";
+import {
+  AsyncViewState,
+  asyncViewActionClassName,
+} from "@/shared/ui/async-view-state";
 
 import { INGREDIENT_REGISTER_BATCH_LIMIT } from "@/shared/config";
 import { routes } from "@/shared/routes";
@@ -18,7 +27,10 @@ import {
   RegisterSummaryLine,
 } from "@/widgets/ingredient-draft-form";
 
-import type { ReceiptRecognitionResult } from "../model/receipt-recognition";
+import {
+  toRecognitionResult,
+  type ReceiptRecognitionResult,
+} from "../model/receipt-recognition";
 import { useReceiptResultForm } from "../model/use-receipt-result-form";
 import { useReceiptResultStore } from "../model/use-receipt-result-store";
 import { RecognitionStatusChip } from "./recognition-status-chip";
@@ -26,19 +38,117 @@ import { RecognitionStatusChip } from "./recognition-status-chip";
 const FORM_ID = "receipt-result-form";
 const SUMMARY_ID = "receipt-result-summary";
 
-export function RegisterIngredientReceiptResultPage() {
+export function RegisterIngredientReceiptResultPage({
+  analysisId,
+}: {
+  analysisId?: string;
+}) {
   const router = useRouter();
-  const result = useReceiptResultStore((state) => state.result);
+  const storedResult = useReceiptResultStore((state) => state.result);
+  const analysis = useQuery({
+    ...imageAnalysisQueries.detail(analysisId ?? ""),
+    enabled: Boolean(analysisId),
+  });
+  const result = useMemo(
+    () =>
+      analysisId
+        ? analysis.data && toRecognitionResult(analysis.data)
+        : storedResult,
+    [analysisId, analysis.data, storedResult],
+  );
 
   useEffect(() => {
-    if (!result) router.replace(routes.registerIngredientReceipt);
-  }, [result, router]);
+    if (!analysisId && !storedResult)
+      router.replace(routes.registerIngredientReceipt);
+  }, [analysisId, storedResult, router]);
+
+  if (analysisId && !analysis.data) {
+    if (analysis.isError) {
+      const expired =
+        analysis.error instanceof ApiError && analysis.error.status === 410;
+      return (
+        <AsyncViewState
+          status="error"
+          title={
+            expired ? "보관 기간이 지났어요" : "인식 결과를 불러오지 못했어요"
+          }
+          action={
+            expired ? (
+              <AppLink
+                href={routes.registerIngredientReceipt}
+                className={asyncViewActionClassName}
+              >
+                다시 촬영하기
+              </AppLink>
+            ) : (
+              <button
+                type="button"
+                className={asyncViewActionClassName}
+                disabled={analysis.isFetching}
+                onClick={() => void analysis.refetch()}
+              >
+                다시 시도
+              </button>
+            )
+          }
+        />
+      );
+    }
+    return (
+      <AsyncViewState status="loading" title="인식 결과를 불러오는 중입니다" />
+    );
+  }
+
+  if (
+    analysisId &&
+    (analysis.data?.status === "QUEUED" ||
+      analysis.data?.status === "PROCESSING")
+  ) {
+    const processed = analysis.data.results.filter(
+      (image) => image.status === "COMPLETED" || image.status === "FAILED",
+    ).length;
+    return (
+      <AsyncViewState
+        status="loading"
+        title={`사진 인식 중 · ${processed}/${analysis.data.results.length}장`}
+        description="다른 화면으로 이동해도 인식은 계속돼요."
+        action={
+          <AppLink href={routes.home} className={asyncViewActionClassName}>
+            다른 화면 둘러보기
+          </AppLink>
+        }
+      />
+    );
+  }
 
   if (!result) return null;
+  if (analysis.data?.status === "FAILED" || result.drafts.length === 0) {
+    return (
+      <AsyncViewState
+        status="empty"
+        title="인식한 재료가 없어요"
+        description="사진을 다시 촬영하거나 직접 입력해 주세요."
+        action={
+          <AppLink
+            href={routes.registerIngredient}
+            className={asyncViewActionClassName}
+          >
+            재료 등록으로 이동
+          </AppLink>
+        }
+      />
+    );
+  }
 
   return (
     <RegisterCapacityBoundary>
-      {(capacity) => <ReceiptResultForm capacity={capacity} result={result} />}
+      {(capacity) => (
+        <ReceiptResultForm
+          key={result.analysisId}
+          capacity={capacity}
+          result={result}
+        />
+      )}
     </RegisterCapacityBoundary>
   );
 }
@@ -89,6 +199,12 @@ function ReceiptResultForm({
               <p className="m-0 mt-3 rounded-[3px] bg-app-primary/10 px-4 py-3 text-[13px] leading-normal text-app-primary">
                 일부만 인식했어요. 한 번에 {INGREDIENT_REGISTER_BATCH_LIMIT}
                 건까지 불러와요.
+              </p>
+            ) : null}
+            {result.unreadCount > 0 ? (
+              <p className="m-0 mt-3 text-[13px] text-app-ink/60">
+                사진 {result.unreadCount}장은 인식하지 못했어요. 인식된 재료만
+                확인해 주세요.
               </p>
             ) : null}
             {hasUncertain ? (
@@ -143,7 +259,7 @@ function ReceiptResultForm({
       <RegisterLeaveGuard
         formId={FORM_ID}
         isRegistered={completedResult !== null}
-        description="지금 나가면 인식한 내용이 사라져요"
+        description="지금 나가면 수정한 내용이 사라져요"
       />
       <RegisterCompleteDialog result={completedResult} />
     </FormProvider>
