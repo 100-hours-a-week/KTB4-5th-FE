@@ -6,6 +6,14 @@ import prettierConfig from "eslint-config-prettier/flat";
 const eslintConfig = defineConfig([
   ...nextVitals,
   ...nextTs,
+  {
+    rules: {
+      "import/no-unassigned-import": [
+        "error",
+        { allow: ["**/*.css", "client-only", "server-only"] },
+      ],
+    },
+  },
   // Override default ignores of eslint-config-next.
   globalIgnores([
     // Default ignores of eslint-config-next:
