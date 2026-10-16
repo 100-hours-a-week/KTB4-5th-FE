@@ -336,7 +336,7 @@ describe("내가 참여자일 때", () => {
       path,
       ok("REFRIGERATOR-200-005", { activeRefrigeratorIds: ["1"] }),
     );
-    on("GET", "/refrigerators/current?status=ACTIVE", ok("X", []));
+    on("GET", "/refrigerators/current", ok("X", []));
     renderPage(<RefrigeratorSharePage />);
 
     fireEvent.click(await screen.findByRole("button", { name: "나가기" }));
