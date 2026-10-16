@@ -25,7 +25,6 @@ it("sends only the selected weight measurement", () => {
       weightValue: 400,
       weightUnit: "G",
       expirationDate: "2026-09-25",
-      registrationSource: "DIRECT",
     },
   ]);
 });

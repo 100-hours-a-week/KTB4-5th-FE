@@ -1,9 +1,18 @@
 "use client";
 
+import { useQueryClient } from "@tanstack/react-query";
+import {
+  imageAnalysisQueries,
+  useRegisteredAnalyses,
+  type ImageAnalysisList,
+} from "@/entities/image";
+
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useEffect, useState } from "react";
 import { useFieldArray, useForm, useWatch } from "react-hook-form";
 
+import { useNotificationSessionScope } from "@/entities/notification";
+import { registerIngredientsFromAnalysis } from "@/entities/ingredient";
 import { showAppToast } from "@/shared/ui/app-toast";
 import {
   ingredientDraftFormSchema,
@@ -12,6 +21,8 @@ import {
   useDraftExpansion,
   useRegisterIngredients,
 } from "@/widgets/ingredient-draft-form";
+
+import { toAnalysisRegistrationBody } from "./to-analysis-registration-body";
 
 import {
   limitRecognitionResult,
@@ -22,10 +33,34 @@ import {
 export function useReceiptResultForm(
   recognitionResult: ReceiptRecognitionResult,
 ) {
+  const queryClient = useQueryClient();
+  const userScope = useNotificationSessionScope();
+  const markRegistered = useRegisteredAnalyses((state) => state.markRegistered);
   const [result] = useState(() => limitRecognitionResult(recognitionResult));
   const [hints, setHints] = useState(result.hints);
-  const [sources, setSources] = useState(result.sources);
-  const { register, isRegistering, completedResult } = useRegisterIngredients();
+  const [origins, setOrigins] = useState(result.origins);
+  const { register, isRegistering, completedResult } = useRegisterIngredients(
+    async ({ refrigeratorId, items }) => {
+      const registered = await registerIngredientsFromAnalysis({
+        refrigeratorId,
+        body: toAnalysisRegistrationBody(result.analysisId, origins, items),
+      });
+      if (userScope) markRegistered(userScope, result.analysisId);
+      queryClient.setQueriesData<ImageAnalysisList>(
+        { queryKey: imageAnalysisQueries.lists() },
+        (current) =>
+          current && {
+            analyses: current.analyses.filter(
+              (analysis) => analysis.analysisId !== result.analysisId,
+            ),
+          },
+      );
+      void queryClient.invalidateQueries({
+        queryKey: imageAnalysisQueries.lists(),
+      });
+      return registered;
+    },
+  );
   const form = useForm<
     IngredientDraftFormInput,
     unknown,
@@ -68,18 +103,13 @@ export function useReceiptResultForm(
 
   function removeDraft(index: number) {
     remove(index);
+    setOrigins((current) => current.filter((_, i) => i !== index));
     setHints((current) => current.filter((_, i) => i !== index));
-    setSources((current) => current.filter((_, i) => i !== index));
     shiftAfterRemove(index);
   }
 
   function submitDrafts(values: IngredientDraftFormValues) {
-    register(
-      values.drafts.map((draft, index) => ({
-        ...draft,
-        registrationSource: sources[index],
-      })),
-    );
+    register(values.drafts);
   }
 
   return {

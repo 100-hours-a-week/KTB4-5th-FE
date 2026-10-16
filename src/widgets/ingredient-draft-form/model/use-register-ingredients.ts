@@ -3,9 +3,9 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 
-import type {
-  IngredientRegistrationSource,
-  RegisterBatchResult,
+import {
+  registerIngredients,
+  type RegisterBatchResult,
 } from "@/entities/ingredient";
 import { useCurrentRefrigeratorId } from "@/entities/refrigerator";
 import { showAppToast } from "@/shared/ui/app-toast";
@@ -15,7 +15,7 @@ import { createRegisterIngredientsMutationOptions } from "./register-ingredients
 import { toRegisterIngredientItems } from "./to-register-items";
 import { useRegisterResultStore } from "./use-register-result-store";
 
-export function useRegisterIngredients() {
+export function useRegisterIngredients(mutationFn = registerIngredients) {
   const [completedResult, setCompletedResult] =
     useState<RegisterBatchResult | null>(null);
   const clearRegisterResult = useRegisterResultStore(
@@ -26,6 +26,7 @@ export function useRegisterIngredients() {
   const registerMutation = useMutation(
     createRegisterIngredientsMutationOptions({
       queryClient,
+      mutationFn,
       onCompleted: setCompletedResult,
       onErrorMessage: (message) => {
         showAppToast({ message, variant: "error" });
@@ -33,11 +34,7 @@ export function useRegisterIngredients() {
     }),
   );
 
-  function register(
-    drafts: readonly (IngredientDraftValues & {
-      registrationSource?: IngredientRegistrationSource;
-    })[],
-  ) {
+  function register(drafts: readonly IngredientDraftValues[]) {
     if (registerMutation.isPending) {
       return;
     }

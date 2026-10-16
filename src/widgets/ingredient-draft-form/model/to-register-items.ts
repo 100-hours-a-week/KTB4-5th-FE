@@ -1,14 +1,9 @@
-import type {
-  IngredientRegistrationSource,
-  RegisterIngredientItem,
-} from "@/entities/ingredient";
+import type { RegisterIngredientItem } from "@/entities/ingredient";
 
 import type { IngredientDraftValues } from "./ingredient-draft-form-schema";
 
 export function toRegisterIngredientItems(
-  drafts: readonly (IngredientDraftValues & {
-    registrationSource?: IngredientRegistrationSource;
-  })[],
+  drafts: readonly IngredientDraftValues[],
 ): RegisterIngredientItem[] {
   return drafts.map((draft) => {
     // 무게는 선택 입력이고, 입력하면 무게 재고가 된다.
@@ -23,7 +18,6 @@ export function toRegisterIngredientItems(
       weightValue: draft.weightValue,
       weightUnit: draft.weightUnit,
       expirationDate: draft.expirationDate,
-      registrationSource: draft.registrationSource ?? "DIRECT",
     };
   });
 }
