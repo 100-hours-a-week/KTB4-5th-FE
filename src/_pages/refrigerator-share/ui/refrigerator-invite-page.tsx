@@ -165,8 +165,8 @@ export function RefrigeratorInvitePage() {
         </section>
 
         <p className="m-0 mt-3 break-keep text-[12.5px] leading-5 text-app-ink/55">
-          코드는 5분 동안 유효하고, 한 번 사용하면 사라져요. 만료되면 새로 만들
-          수 있어요.
+          코드는 5분 동안 여러 명이 함께 쓸 수 있어요. 만료되면 새로 만들 수
+          있어요.
         </p>
       </div>
     </PageActionLayout>

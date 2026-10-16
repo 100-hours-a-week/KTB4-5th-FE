@@ -200,14 +200,15 @@ export function RefrigeratorSharePage() {
                   아직 함께 쓰는 사람이 없어요
                 </p>
                 <p className="m-0 mt-1 break-keep text-[12.5px] leading-5 text-app-ink/55">
-                  초대 코드를 만들어 알려주면 최대 4명까지 함께 쓸 수 있어요.
+                  초대 코드를 만들어 알려주면 최대 {data.memberMax}명까지 함께
+                  쓸 수 있어요.
                 </p>
               </div>
             ) : (
               <p className="m-0 mt-2 break-keep text-[12.5px] leading-5 text-app-ink/55">
                 {isFull
                   ? "정원이 다 찼어요. 참여자를 내보내야 새로 초대할 수 있어요."
-                  : "방장만 참여자를 내보낼 수 있어요. 최대 4명까지 함께 쓸 수 있어요."}
+                  : `방장만 참여자를 내보낼 수 있어요. 최대 ${data.memberMax}명까지 함께 쓸 수 있어요.`}
               </p>
             )}
           </section>
