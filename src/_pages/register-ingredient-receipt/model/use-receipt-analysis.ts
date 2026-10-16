@@ -1,6 +1,6 @@
 "use client";
 
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 
@@ -10,6 +10,7 @@ import {
   requestImageAnalysis,
   uploadImage,
 } from "@/entities/image";
+import { ApiError } from "@/shared/api";
 import { routes } from "@/shared/routes";
 import { showAppToast } from "@/shared/ui/app-toast";
 
@@ -23,10 +24,23 @@ const DONE_STATUSES: readonly ImageAnalysisStatus[] = [
   "FAILED",
 ];
 
+function getSubmitErrorMessage(error: unknown) {
+  if (error instanceof ApiError) {
+    if (error.code === "IMAGE-429-001") {
+      return "오늘 분석할 수 있는 사진 100장을 모두 사용했어요";
+    }
+    if (error.code === "IMAGE-503-001") {
+      return "AI 인식은 오전 9시부터 오후 6시까지만 사용할 수 있어요";
+    }
+  }
+  return "영수증을 보내지 못했어요. 다시 시도해 주세요";
+}
+
 export type ReceiptAnalysisFailure = "FAILED" | "PARTIAL" | null;
 
 export function useReceiptAnalysis() {
   const router = useRouter();
+  const queryClient = useQueryClient();
   const [analysisId, setAnalysisId] = useState<string | null>(null);
   const setResult = useReceiptResultStore((state) => state.setResult);
   const submit = useMutation({
@@ -37,10 +51,15 @@ export function useReceiptAnalysis() {
       );
       return requestImageAnalysis(objectKeys);
     },
-    onSuccess: (submission) => setAnalysisId(submission.analysisId),
-    onError: () =>
+    onSuccess: (submission) => {
+      setAnalysisId(submission.analysisId);
+      void queryClient.invalidateQueries({
+        queryKey: imageAnalysisQueries.lists(),
+      });
+    },
+    onError: (error) =>
       showAppToast({
-        message: "영수증을 보내지 못했어요. 다시 시도해 주세요",
+        message: getSubmitErrorMessage(error),
         variant: "error",
       }),
   });
@@ -93,11 +112,12 @@ export function useReceiptAnalysis() {
     if (!result || failure === "FAILED") return;
 
     setResult(result);
-    if (failure === null) router.push(routes.registerIngredientReceiptResult);
+    if (failure === null)
+      router.push(routes.imageAnalysisResult(result.analysisId));
   }, [result, failure, router, setResult]);
 
   function continueWithPartial() {
-    router.push(routes.registerIngredientReceiptResult);
+    if (analysisId) router.push(routes.imageAnalysisResult(analysisId));
   }
 
   return {

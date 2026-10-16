@@ -25,6 +25,8 @@ export const routes = {
   registerIngredientManual: "/refrigerator/register/manual",
   registerIngredientReceipt: "/refrigerator/register/receipt",
   registerIngredientReceiptResult: "/refrigerator/register/receipt/result",
+  imageAnalysisResult: (analysisId: string) =>
+    `/refrigerator/register/receipt/result?analysisId=${encodeURIComponent(analysisId)}`,
   registerIngredientMergeResult: "/refrigerator/register/merge-result",
   ingredientDetail: (ingredientId: string) =>
     `/refrigerator/ingredients/${encodeURIComponent(ingredientId)}`,
