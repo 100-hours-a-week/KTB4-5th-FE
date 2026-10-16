@@ -10,7 +10,14 @@ import {
   notificationQueries,
   refreshNotificationQueries,
 } from "@/entities/notification";
-import { isIntentionalLogout } from "@/shared/api";
+import {
+  ApiError,
+  isIntentionalLogout,
+  SessionExpiredError,
+} from "@/shared/api";
+
+const RETRY_BASE_MS = 1000;
+const RETRY_MAX_MS = 30_000;
 
 export function useNotificationSse(userScope: string, refrigeratorId: string) {
   const queryClient = useQueryClient();
@@ -22,8 +29,8 @@ export function useNotificationSse(userScope: string, refrigeratorId: string) {
 
     let active = true;
     let source: EventSource;
-    let checkedError = false;
-    let retriedClosedStream = false;
+    let retryDelay = RETRY_BASE_MS;
+    let retryTimer: number | undefined;
 
     function refreshAnalyses() {
       void queryClient.invalidateQueries({
@@ -41,7 +48,18 @@ export function useNotificationSse(userScope: string, refrigeratorId: string) {
       });
     }
 
+    function scheduleReconnect() {
+      if (!active || document.visibilityState === "hidden") return;
+      window.clearTimeout(retryTimer);
+      retryTimer = window.setTimeout(
+        connect,
+        retryDelay * (0.5 + Math.random()),
+      );
+      retryDelay = Math.min(retryDelay * 2, RETRY_MAX_MS);
+    }
+
     function connect() {
+      window.clearTimeout(retryTimer);
       source?.close();
       const stream = new EventSource(getNotificationEventsUrl(refrigeratorId), {
         withCredentials: true,
@@ -50,8 +68,7 @@ export function useNotificationSse(userScope: string, refrigeratorId: string) {
 
       stream.addEventListener("connected", () => {
         if (!active || stream !== source) return;
-        checkedError = false;
-        retriedClosedStream = false;
+        retryDelay = RETRY_BASE_MS;
         void queryClient.invalidateQueries({
           queryKey: imageAnalysisQueries.all(),
         });
@@ -100,8 +117,11 @@ export function useNotificationSse(userScope: string, refrigeratorId: string) {
           return;
         }
 
-        if (checkedError) return;
-        checkedError = true;
+        if (stream.readyState !== EventSource.CLOSED) return;
+
+        function retry() {
+          if (stream === source && !isIntentionalLogout()) scheduleReconnect();
+        }
 
         // EventSource는 HTTP 오류 상태를 노출하지 않으므로 REST 조회로 기존 인증 흐름을 실행한다.
         void queryClient
@@ -109,19 +129,11 @@ export function useNotificationSse(userScope: string, refrigeratorId: string) {
             ...notificationQueries.unreadCount(userScope, refrigeratorId),
             staleTime: 0,
           })
-          .then(() => {
-            if (
-              active &&
-              stream === source &&
-              stream.readyState === EventSource.CLOSED &&
-              !retriedClosedStream
-            ) {
-              retriedClosedStream = true;
-              connect();
-            }
-          })
-          .catch(() => {
+          .then(retry, (error: unknown) => {
             // QueryCache가 세션 만료를 처리한다.
+            if (error instanceof SessionExpiredError) return;
+            if (error instanceof ApiError && error.status < 500) return;
+            retry();
           });
       };
     }
@@ -145,12 +157,21 @@ export function useNotificationSse(userScope: string, refrigeratorId: string) {
       refresh();
     }
 
+    function onOnline() {
+      if (source.readyState === EventSource.CLOSED && !isIntentionalLogout()) {
+        connect();
+      }
+    }
+
     connect();
     document.addEventListener("visibilitychange", onVisibilityChange);
+    window.addEventListener("online", onOnline);
     return () => {
       active = false;
+      window.clearTimeout(retryTimer);
       source.close();
       document.removeEventListener("visibilitychange", onVisibilityChange);
+      window.removeEventListener("online", onOnline);
     };
   }, [queryClient, userScope, refrigeratorId]);
 }

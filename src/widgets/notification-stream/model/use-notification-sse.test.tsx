@@ -5,6 +5,8 @@ import { act, cleanup, renderHook, waitFor } from "@testing-library/react";
 import type { ReactNode } from "react";
 import { afterEach, beforeEach, expect, it, vi } from "vitest";
 
+import { ApiError, SessionExpiredError } from "@/shared/api";
+
 import { useNotificationSse } from "./use-notification-sse";
 
 const { refresh, session } = vi.hoisted(() => ({
@@ -25,6 +27,12 @@ vi.mock("@/entities/notification", () => ({
   refreshNotificationQueries: refresh,
 }));
 vi.mock("@/shared/api", () => ({
+  ApiError: class extends Error {
+    constructor(readonly status: number) {
+      super();
+    }
+  },
+  SessionExpiredError: class extends Error {},
   isIntentionalLogout: () => session.loggingOut,
 }));
 
@@ -80,6 +88,7 @@ beforeEach(() => {
 });
 
 afterEach(() => {
+  vi.useRealTimers();
   cleanup();
   queryClient.clear();
   vi.restoreAllMocks();
@@ -115,7 +124,8 @@ it("연결·현재 냉장고 변경 신호·foreground에서 재조회하고 종
   expect(source.readyState).toBe(FakeEventSource.CLOSED);
 });
 
-it("연결 오류에서 REST로 인증을 확인하고 닫힌 연결은 한 번 다시 연다", async () => {
+it("연결 오류에서 REST로 인증을 확인하고 닫힌 연결을 다시 연다", async () => {
+  vi.spyOn(Math, "random").mockReturnValue(0);
   const { unmount } = renderHook(() => useNotificationSse("user", "17"), {
     wrapper,
   });
@@ -266,7 +276,7 @@ it("이전 냉장고 연결과 언마운트 후 도착한 이벤트·오류·화
   expect(FakeEventSource.instances).toHaveLength(2);
 });
 
-it("연결 중 반복 오류는 REST 인증 확인을 중복 실행하지 않고 새 연결을 만들지 않는다", async () => {
+it("브라우저가 스스로 재연결 중인 오류에서는 REST 인증 확인도 새 연결도 만들지 않는다", async () => {
   const fetch = vi.spyOn(queryClient, "fetchQuery");
   renderHook(() => useNotificationSse("user", "17"), { wrapper });
   const source = FakeEventSource.instances[0];
@@ -275,14 +285,14 @@ it("연결 중 반복 오류는 REST 인증 확인을 중복 실행하지 않고
     source.onerror?.(new Event("error"));
   });
   await waitFor(() => expect(queryClient.isFetching()).toBe(0));
-  expect(fetch).toHaveBeenCalledTimes(1);
+  expect(fetch).not.toHaveBeenCalled();
   expect(FakeEventSource.instances).toHaveLength(1);
 });
 
 it("인증 조회 실패나 의도한 로그아웃에서는 닫힌 연결을 다시 열지 않는다", async () => {
   const fetch = vi
     .spyOn(queryClient, "fetchQuery")
-    .mockRejectedValue(new Error("세션 만료"));
+    .mockRejectedValue(new SessionExpiredError());
   const { unmount } = renderHook(() => useNotificationSse("user", "17"), {
     wrapper,
   });
@@ -299,5 +309,70 @@ it("인증 조회 실패나 의도한 로그아웃에서는 닫힌 연결을 다
   expect(loggingOutSource.readyState).toBe(FakeEventSource.CLOSED);
   expect(fetch).toHaveBeenCalledTimes(1);
   act(() => document.dispatchEvent(new Event("visibilitychange")));
+  expect(FakeEventSource.instances).toHaveLength(2);
+});
+
+async function advance(ms: number) {
+  await act(() => vi.advanceTimersByTimeAsync(ms));
+}
+
+async function failClosed(source: FakeEventSource) {
+  source.close();
+  source.onerror?.(new Event("error"));
+  await advance(0);
+}
+
+it("서버 오류로 닫힌 연결은 간격을 두 배씩 늘려 다시 열고 connected에서 간격을 되돌린다", async () => {
+  vi.useFakeTimers({ toFake: ["setTimeout", "clearTimeout"] });
+  vi.spyOn(Math, "random").mockReturnValue(0.5);
+  vi.spyOn(queryClient, "fetchQuery").mockRejectedValue(
+    new ApiError(503, { code: "GLOBAL-503-001", title: "", status: 503 }),
+  );
+  renderHook(() => useNotificationSse("user", "17"), { wrapper });
+
+  await failClosed(FakeEventSource.instances[0]);
+  await advance(999);
+  expect(FakeEventSource.instances).toHaveLength(1);
+  await advance(1);
+  expect(FakeEventSource.instances).toHaveLength(2);
+
+  await failClosed(FakeEventSource.instances[1]);
+  await advance(1999);
+  expect(FakeEventSource.instances).toHaveLength(2);
+  await advance(1);
+  expect(FakeEventSource.instances).toHaveLength(3);
+
+  act(() => FakeEventSource.instances[2].emit("connected", "{}"));
+  await failClosed(FakeEventSource.instances[2]);
+  await advance(1000);
+  expect(FakeEventSource.instances).toHaveLength(4);
+});
+
+it("냉장고 접근 불가 같은 4xx 응답에서는 다시 연결하지 않는다", async () => {
+  vi.useFakeTimers({ toFake: ["setTimeout", "clearTimeout"] });
+  vi.spyOn(queryClient, "fetchQuery").mockRejectedValue(
+    new ApiError(410, { code: "REFRIGERATOR-410-001", title: "", status: 410 }),
+  );
+  renderHook(() => useNotificationSse("user", "17"), { wrapper });
+
+  await failClosed(FakeEventSource.instances[0]);
+  await advance(60_000);
+  expect(FakeEventSource.instances).toHaveLength(1);
+});
+
+it("online 이벤트에서 닫힌 연결만 바로 다시 열고 예약된 재시도는 취소한다", async () => {
+  vi.useFakeTimers({ toFake: ["setTimeout", "clearTimeout"] });
+  vi.spyOn(queryClient, "fetchQuery").mockRejectedValue(
+    new ApiError(503, { code: "GLOBAL-503-001", title: "", status: 503 }),
+  );
+  renderHook(() => useNotificationSse("user", "17"), { wrapper });
+
+  act(() => window.dispatchEvent(new Event("online")));
+  expect(FakeEventSource.instances).toHaveLength(1);
+
+  await failClosed(FakeEventSource.instances[0]);
+  act(() => window.dispatchEvent(new Event("online")));
+  expect(FakeEventSource.instances).toHaveLength(2);
+  await advance(30_000);
   expect(FakeEventSource.instances).toHaveLength(2);
 });
