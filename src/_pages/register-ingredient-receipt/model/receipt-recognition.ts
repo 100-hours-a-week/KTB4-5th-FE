@@ -6,7 +6,6 @@ import type {
 import {
   INGREDIENT_CATEGORIES,
   INGREDIENT_STORAGE_TYPES,
-  type IngredientRegistrationSource,
 } from "@/entities/ingredient";
 import { INGREDIENT_REGISTER_BATCH_LIMIT } from "@/shared/config";
 import {
@@ -26,10 +25,11 @@ export const RECOGNITION_STATUS_LABELS = {
 } satisfies Record<RecognitionStatus, string>;
 
 export type ReceiptRecognitionResult = {
+  analysisId: string;
   photoCount: number;
   drafts: IngredientDraft[];
   hints: RecognitionHint[];
-  sources: IngredientRegistrationSource[];
+  origins: { imageObjectKey: string; itemId: string }[];
   unreadCount: number;
 };
 
@@ -38,7 +38,7 @@ export function limitRecognitionResult(result: ReceiptRecognitionResult) {
     ...result,
     drafts: result.drafts.slice(0, INGREDIENT_REGISTER_BATCH_LIMIT),
     hints: result.hints.slice(0, INGREDIENT_REGISTER_BATCH_LIMIT),
-    sources: result.sources.slice(0, INGREDIENT_REGISTER_BATCH_LIMIT),
+    origins: result.origins.slice(0, INGREDIENT_REGISTER_BATCH_LIMIT),
     isTruncated: result.drafts.length > INGREDIENT_REGISTER_BATCH_LIMIT,
   };
 }
@@ -80,17 +80,19 @@ export function toRecognitionResult(
   analysis: ImageAnalysis,
 ): ReceiptRecognitionResult {
   const items = analysis.results.flatMap((result) => result.items);
-  const sources = analysis.results.flatMap((result) =>
-    result.items.map(() =>
-      result.documentType === "RECEIPT" ? "RECEIPT" : "FOOD_IMAGE",
-    ),
+  const origins = analysis.results.flatMap((result) =>
+    result.items.map((item) => ({
+      imageObjectKey: result.imageObjectKey,
+      itemId: item.itemId,
+    })),
   );
 
   return {
+    analysisId: analysis.analysisId,
     photoCount: analysis.results.length,
     drafts: items.map(toDraft),
     hints: items.map((item) => RECOGNITION_HINTS[item.displayStatus]),
-    sources,
+    origins,
     unreadCount: analysis.results.filter((result) => result.items.length === 0)
       .length,
   };

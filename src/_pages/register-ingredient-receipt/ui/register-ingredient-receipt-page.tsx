@@ -92,7 +92,6 @@ export function RegisterIngredientReceiptPage() {
           ref={inputRef}
           type="file"
           accept={RECEIPT_PHOTO_TYPES.join(",")}
-          capture="environment"
           hidden
           onChange={handleFileChange}
         />

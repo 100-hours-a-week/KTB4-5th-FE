@@ -17,7 +17,6 @@ const VARIABLES = {
       weightValue: null,
       weightUnit: "NONE" as const,
       expirationDate: "2026-09-25",
-      registrationSource: "DIRECT" as const,
     },
   ],
 };

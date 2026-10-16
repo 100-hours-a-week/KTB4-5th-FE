@@ -25,7 +25,6 @@ it("keeps the detail base date and ETag outside the ingredient", async () => {
               weightUnit: "G",
               expirationDate: "2026-09-15",
               createdDate: "2026-09-01",
-              registrationSource: "RECEIPT",
               status: "EXPIRED",
               daysUntilExpiration: -1,
             },

@@ -26,7 +26,6 @@ it("sends PATCH with the detail ETag and parses the new ETag", async () => {
           weightUnit: "G",
           expirationDate: "2026-09-15",
           createdDate: "2026-09-01",
-          registrationSource: "DIRECT",
           status: "EXPIRED",
           daysUntilExpiration: -1,
           mergedItems: [
@@ -63,7 +62,6 @@ it("sends PATCH with the detail ETag and parses the new ETag", async () => {
   expect(result.etag).toBe('"sha256-new"');
   expect(result.ingredient).toMatchObject({
     ingredientId: "1",
-    registrationSource: "DIRECT",
     weightValue: 550,
   });
   expect(result.ingredient).not.toHaveProperty("mergedItems");

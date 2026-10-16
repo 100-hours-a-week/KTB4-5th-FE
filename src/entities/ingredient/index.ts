@@ -21,7 +21,6 @@ export type {
 export {
   INGREDIENT_CATEGORIES,
   INGREDIENT_MEASURE_TYPES,
-  INGREDIENT_REGISTRATION_SOURCES,
   INGREDIENT_STORAGE_TYPES,
 } from "./model/ingredient";
 export type {
@@ -29,7 +28,6 @@ export type {
   IngredientCategory,
   IngredientDetail,
   IngredientMeasureType,
-  IngredientRegistrationSource,
   IngredientStatus,
   IngredientStorageType,
   IngredientWeightUnit,
@@ -73,3 +71,5 @@ export { IngredientExpiryStamp } from "./ui/ingredient-expiry-stamp";
 export { IngredientReadErrorState } from "./ui/ingredient-read-error-state";
 export { IngredientRefrigeratorRequiredState } from "./ui/ingredient-refrigerator-required-state";
 export { useIngredientRefreshToast } from "./ui/use-ingredient-refresh-toast";
+export { registerIngredientsFromAnalysis } from "./api/register-ingredients-from-analysis";
+export type { RegisterIngredientsFromAnalysisBody } from "./api/register-ingredients-from-analysis";

@@ -3,7 +3,6 @@ import { requestJson } from "@/shared/api";
 import type {
   IngredientCategory,
   IngredientMeasureType,
-  IngredientRegistrationSource,
   IngredientStorageType,
   IngredientWeightUnit,
 } from "../model/ingredient";
@@ -18,7 +17,6 @@ export type RegisterIngredientItem = {
   weightValue: number | null;
   weightUnit: IngredientWeightUnit;
   expirationDate: string;
-  registrationSource: IngredientRegistrationSource;
 };
 
 export type RegisterMergedItem = {
