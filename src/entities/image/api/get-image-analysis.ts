@@ -3,10 +3,13 @@ import { requestJson } from "@/shared/api";
 import type { ImageAnalysisStatus } from "./request-image-analysis";
 
 export type ImageAnalysisDisplayStatus =
-  | "RECOGNIZED"
-  | "UNRECOGNIZED"
-  | "NEEDS_REVIEW"
-  | "AI_ESTIMATED";
+  "RECOGNIZED" | "UNRECOGNIZED" | "NEEDS_REVIEW" | "AI_ESTIMATED";
+
+export type ImageAnalysisReviewReason = {
+  field: string;
+  code: string;
+  messages: string[];
+};
 
 export type ImageAnalysisItem = {
   itemId: string;
@@ -18,7 +21,7 @@ export type ImageAnalysisItem = {
   quantity: number | null;
   weight: { value: number; unit: string } | null;
   expiration: string | null;
-  reviewReasons: string[];
+  reviewReasons: ImageAnalysisReviewReason[];
 };
 
 export type ImageAnalysisError = {
@@ -41,7 +44,7 @@ export type ImageAnalysis = {
   analysisId: string;
   status: ImageAnalysisStatus;
   submittedAt: string;
-  expiresAt: string;
+  expiresAt: string | null;
   pollAfterMs: number | null;
   results: ImageAnalysisImageResult[];
   error: ImageAnalysisError | null;

@@ -1,6 +1,8 @@
 import { queryOptions } from "@tanstack/react-query";
 import { ApiError, SessionExpiredError } from "@/shared/api";
 
+import { getImageAnalysisList } from "./get-image-analysis-list";
+
 import { getImageAnalysis } from "./get-image-analysis";
 
 function retryImageAnalysisRead(failureCount: number, error: Error): boolean {
@@ -13,6 +15,15 @@ function retryImageAnalysisRead(failureCount: number, error: Error): boolean {
 
 export const imageAnalysisQueries = {
   all: () => ["image-analyses"] as const,
+  lists: () => [...imageAnalysisQueries.all(), "list"] as const,
+  list: (userScope: string) =>
+    queryOptions({
+      meta: { monitoringOperation: "image.analysis.list" },
+      queryKey: [...imageAnalysisQueries.lists(), userScope] as const,
+      queryFn: ({ signal }) => getImageAnalysisList({ signal }),
+      staleTime: 0,
+      retry: retryImageAnalysisRead,
+    }),
   detail: (analysisId: string) =>
     queryOptions({
       meta: { monitoringOperation: "image.analysis.detail" },

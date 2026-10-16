@@ -11,7 +11,7 @@ export type ImageAnalysisSubmission = {
   analysisId: string;
   status: ImageAnalysisStatus;
   submittedAt: string;
-  expiresAt: string;
+  expiresAt: string | null;
   pollAfterMs: number;
 };
 
