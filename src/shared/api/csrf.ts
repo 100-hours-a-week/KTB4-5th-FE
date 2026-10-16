@@ -10,17 +10,8 @@ export const CSRF_ERROR_CODE = "COMMON-403-CSRF-001";
 
 const MUTATING_METHODS = new Set(["POST", "PUT", "PATCH", "DELETE"]);
 
-// 공통 API 명세: 조회 전용인 닉네임 중복 검사 POST는 CSRF 검증 대상이 아니다.
-const CSRF_EXEMPT_PATHS = new Set(["/users/nickname-validations"]);
-
-export function isCsrfProtectedRequest(
-  path: string,
-  method: string | undefined,
-): boolean {
-  return (
-    MUTATING_METHODS.has((method ?? "GET").toUpperCase()) &&
-    !CSRF_EXEMPT_PATHS.has(path)
-  );
+export function isCsrfProtectedRequest(method: string | undefined): boolean {
+  return MUTATING_METHODS.has((method ?? "GET").toUpperCase());
 }
 
 function readCsrfCookie(): string | null {
