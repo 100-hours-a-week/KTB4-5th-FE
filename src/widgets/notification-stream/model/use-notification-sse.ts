@@ -3,6 +3,8 @@
 import { useQueryClient } from "@tanstack/react-query";
 import { useEffect } from "react";
 
+import { imageAnalysisQueries } from "@/entities/image";
+
 import {
   getNotificationEventsUrl,
   notificationQueries,
@@ -22,6 +24,12 @@ export function useNotificationSse(userScope: string, refrigeratorId: string) {
     let source: EventSource;
     let checkedError = false;
     let retriedClosedStream = false;
+
+    function refreshAnalyses() {
+      void queryClient.invalidateQueries({
+        queryKey: imageAnalysisQueries.list(userScope).queryKey,
+      });
+    }
 
     function refresh() {
       void refreshNotificationQueries(
@@ -44,6 +52,9 @@ export function useNotificationSse(userScope: string, refrigeratorId: string) {
         if (!active || stream !== source) return;
         checkedError = false;
         retriedClosedStream = false;
+        void queryClient.invalidateQueries({
+          queryKey: imageAnalysisQueries.all(),
+        });
         refresh();
       });
       stream.addEventListener("notifications-changed", (event) => {
@@ -56,6 +67,32 @@ export function useNotificationSse(userScope: string, refrigeratorId: string) {
           // 잘못된 신호는 버리고 다음 신호를 기다린다.
         }
       });
+      function onAnalysisChanged(event: MessageEvent<string>) {
+        if (!active || stream !== source) return;
+        try {
+          const payload: unknown = JSON.parse(event.data);
+          if (
+            typeof payload !== "object" ||
+            payload === null ||
+            !("analysisId" in payload) ||
+            typeof payload.analysisId !== "string" ||
+            payload.analysisId.length === 0
+          )
+            return;
+          refreshAnalyses();
+          void queryClient.invalidateQueries({
+            queryKey: imageAnalysisQueries.detail(payload.analysisId).queryKey,
+          });
+        } catch {
+          // 잘못된 이벤트는 버리고 다음 신호나 재접속 조회로 복구한다.
+        }
+      }
+      stream.addEventListener(
+        "image-analysis.image-finished",
+        onAnalysisChanged,
+      );
+      stream.addEventListener("image-analysis.finished", onAnalysisChanged);
+
       stream.onerror = () => {
         if (!active || stream !== source) return;
         if (isIntentionalLogout()) {
@@ -102,6 +139,9 @@ export function useNotificationSse(userScope: string, refrigeratorId: string) {
       if (source.readyState === EventSource.CLOSED && !isIntentionalLogout()) {
         connect();
       }
+      void queryClient.invalidateQueries({
+        queryKey: imageAnalysisQueries.all(),
+      });
       refresh();
     }
 

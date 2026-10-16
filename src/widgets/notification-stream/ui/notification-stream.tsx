@@ -5,7 +5,7 @@ import { useCurrentRefrigeratorId } from "@/entities/refrigerator";
 
 import { useNotificationSse } from "../model/use-notification-sse";
 
-function ActiveNotificationPoller({
+function ActiveNotificationStream({
   userScope,
   refrigeratorId,
 }: {
@@ -16,14 +16,14 @@ function ActiveNotificationPoller({
   return null;
 }
 
-export function NotificationPoller() {
+export function NotificationStream() {
   const userScope = useNotificationSessionScope();
   const refrigeratorId = useCurrentRefrigeratorId();
 
   if (!userScope || !refrigeratorId) return null;
 
   return (
-    <ActiveNotificationPoller
+    <ActiveNotificationStream
       key={`${userScope}:${refrigeratorId}`}
       userScope={userScope}
       refrigeratorId={refrigeratorId}
