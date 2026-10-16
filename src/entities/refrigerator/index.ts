@@ -1,8 +1,4 @@
-export {
-  getCurrentRefrigerators,
-  REFRIGERATOR_STATUSES,
-} from "./api/get-current-refrigerators";
-export type { RefrigeratorStatus } from "./api/get-current-refrigerators";
+export { getCurrentRefrigerators } from "./api/get-current-refrigerators";
 export { refrigeratorQueries } from "./api/refrigerator.queries";
 export { formatRefrigeratorTitle } from "./lib/format-refrigerator";
 export {
