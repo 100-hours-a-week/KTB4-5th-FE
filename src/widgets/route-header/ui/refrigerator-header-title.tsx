@@ -16,7 +16,11 @@ export function RefrigeratorHeaderTitle({
   fallback,
 }: RefrigeratorHeaderTitleProps) {
   const currentRefrigeratorId = useCurrentRefrigeratorId();
-  const { data } = useQuery(refrigeratorQueries.current());
+  const { data, isPending } = useQuery(refrigeratorQueries.current());
+
+  if (isPending) {
+    return null;
+  }
 
   if (!data || data.length === 0) {
     return fallback;
