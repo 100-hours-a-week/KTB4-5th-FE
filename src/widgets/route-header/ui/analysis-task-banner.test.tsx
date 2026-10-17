@@ -16,7 +16,10 @@ vi.mock("@tanstack/react-query", () => ({
   useQuery: () => ({ data: state.data, refetch: state.refetch }),
 }));
 vi.mock("next/navigation", () => ({ usePathname: () => state.pathname }));
+vi.mock("@lineiconshq/free-icons", () => ({ XmarkOutlined: {} }));
+vi.mock("@lineiconshq/react-lineicons", () => ({ Lineicons: () => null }));
 vi.mock("@/entities/image", () => ({
+  useDeleteImageAnalysis: () => ({ mutate: vi.fn(), isPending: false }),
   imageAnalysisQueries: { list: () => ({}) },
   useRegisteredAnalyses: (
     select: (s: { idsBySession: Record<string, string[]> }) => unknown,
@@ -69,6 +72,7 @@ it("conditionally renders real progress, counting failed images as processed, an
     status: "processing",
     processedCount: 2,
     totalCount: 3,
+    closable: false,
   });
   state.registered = { session: ["job-1"] };
   rerender(<AnalysisTaskBanner />);

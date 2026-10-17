@@ -9,11 +9,13 @@ import type { IngredientDraftFormInput } from "../model/ingredient-draft-form-sc
 type CategoryFieldProps = {
   id: string;
   index: number;
+  describedBy: string;
 };
 
-export function CategoryField({ id, index }: CategoryFieldProps) {
+export function CategoryField({ id, index, describedBy }: CategoryFieldProps) {
   const {
     field: { ref, name, value, onChange, onBlur },
+    fieldState,
   } = useController<IngredientDraftFormInput, `drafts.${number}.category`>({
     name: `drafts.${index}.category`,
   });
@@ -26,6 +28,8 @@ export function CategoryField({ id, index }: CategoryFieldProps) {
       value={value}
       onValueChange={onChange}
       onBlur={onBlur}
+      invalid={Boolean(fieldState.error)}
+      describedBy={fieldState.error ? describedBy : undefined}
     />
   );
 }

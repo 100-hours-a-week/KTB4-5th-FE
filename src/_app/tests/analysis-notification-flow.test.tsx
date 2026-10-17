@@ -37,6 +37,7 @@ vi.mock("@lineiconshq/free-icons", () => ({
   HourglassOutlined: {},
   CheckCircle1Outlined: {},
   XmarkCircleOutlined: {},
+  XmarkOutlined: {},
 }));
 vi.mock("@lineiconshq/react-lineicons", () => ({ Lineicons: () => null }));
 vi.mock("@/shared/ui/app-link", () => ({

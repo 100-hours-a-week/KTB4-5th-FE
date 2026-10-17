@@ -8,6 +8,8 @@ import {
   INGREDIENT_STORAGE_TYPES,
 } from "@/entities/ingredient";
 import { INGREDIENT_REGISTER_BATCH_LIMIT } from "@/shared/config";
+import { formatIsoDate } from "@/shared/lib/date";
+import { getTodayInSeoul } from "@/shared/lib/seoul-date";
 import {
   createEmptyDraft,
   type IngredientDraft,
@@ -29,6 +31,7 @@ export type ReceiptRecognitionResult = {
   photoCount: number;
   drafts: IngredientDraft[];
   hints: RecognitionHint[];
+  expirationNotes: (string | null)[];
   origins: { imageObjectKey: string; itemId: string }[];
   unreadCount: number;
 };
@@ -38,6 +41,10 @@ export function limitRecognitionResult(result: ReceiptRecognitionResult) {
     ...result,
     drafts: result.drafts.slice(0, INGREDIENT_REGISTER_BATCH_LIMIT),
     hints: result.hints.slice(0, INGREDIENT_REGISTER_BATCH_LIMIT),
+    expirationNotes: result.expirationNotes.slice(
+      0,
+      INGREDIENT_REGISTER_BATCH_LIMIT,
+    ),
     origins: result.origins.slice(0, INGREDIENT_REGISTER_BATCH_LIMIT),
     isTruncated: result.drafts.length > INGREDIENT_REGISTER_BATCH_LIMIT,
   };
@@ -57,9 +64,31 @@ function isOneOf<T extends string>(
   return values.includes(value as T);
 }
 
+function toExpirationDate({ expiration }: ImageAnalysisItem) {
+  const today = getTodayInSeoul();
+  if (typeof expiration === "string") {
+    return expiration < today ? "" : expiration;
+  }
+  const range = expiration?.estimatedRange;
+  const rangeDate =
+    range && range.to >= today ? (range.from < today ? today : range.from) : "";
+  const date = expiration?.date ?? rangeDate;
+  return date < today ? "" : date;
+}
+
+function toExpirationNote({ expiration }: ImageAnalysisItem) {
+  if (typeof expiration === "string" || !expiration?.estimatedRange) {
+    return null;
+  }
+  const { from, to } = expiration.estimatedRange;
+  return `AI 예상 ${formatIsoDate(from.slice(5))}~${formatIsoDate(to.slice(5))}`;
+}
+
 function toDraft(item: ImageAnalysisItem): IngredientDraft {
   const empty = createEmptyDraft();
   const { category, storageType } = item;
+  const weightValue = item.weight?.value ? String(item.weight.value) : "";
+  const isWeight = item.measureType === "WEIGHT" && weightValue !== "";
 
   return {
     category: isOneOf(INGREDIENT_CATEGORIES, category)
@@ -69,10 +98,10 @@ function toDraft(item: ImageAnalysisItem): IngredientDraft {
     storageType: isOneOf(INGREDIENT_STORAGE_TYPES, storageType)
       ? storageType
       : empty.storageType,
-    quantity: item.quantity === null ? "" : String(item.quantity),
-    weightValue: item.weight ? String(item.weight.value) : "",
+    quantity: !isWeight && item.quantity ? String(item.quantity) : "",
+    weightValue: isWeight ? weightValue : "",
     weightUnit: item.weight?.unit === "ML" ? "ML" : "G",
-    expirationDate: item.expiration ?? "",
+    expirationDate: toExpirationDate(item),
   };
 }
 
@@ -92,6 +121,7 @@ export function toRecognitionResult(
     photoCount: analysis.results.length,
     drafts: items.map(toDraft),
     hints: items.map((item) => RECOGNITION_HINTS[item.displayStatus]),
+    expirationNotes: items.map(toExpirationNote),
     origins,
     unreadCount: analysis.results.filter((result) => result.items.length === 0)
       .length,
@@ -103,10 +133,22 @@ export function getRecognitionStatus(
   hint: RecognitionHint,
 ): RecognitionStatus {
   const isMissing =
+    draft.category === "" ||
     draft.name.trim() === "" ||
     (draft.quantity === "" && draft.weightValue === "") ||
     draft.expirationDate === "";
 
   if (isMissing) return "UNRECOGNIZED";
   return hint ?? "RECOGNIZED";
+}
+
+export function getAnalysisFailureMessage(analysis: ImageAnalysis) {
+  const code =
+    analysis.error?.code ??
+    analysis.results.find((image) => image.error)?.error?.code;
+  if (code === "ANALYSIS_EXPIRED")
+    return "분석 시간이 초과됐어요. 잠시 후 다시 시도해 주세요.";
+  if (code === "ANALYSIS_UNAVAILABLE")
+    return "AI 서버의 일시적인 오류로 인식하지 못했어요. 잠시 후 다시 시도해 주세요.";
+  return undefined;
 }

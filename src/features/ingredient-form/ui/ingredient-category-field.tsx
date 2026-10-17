@@ -11,10 +11,12 @@ import {
 interface IngredientCategoryFieldProps {
   id: string;
   name: string;
-  value: IngredientCategory;
+  value: IngredientCategory | "";
   inputRef: Ref<HTMLSelectElement>;
   onValueChange: (value: IngredientCategory) => void;
   onBlur: () => void;
+  invalid?: boolean;
+  describedBy?: string;
 }
 
 export function IngredientCategoryField({
@@ -24,6 +26,8 @@ export function IngredientCategoryField({
   inputRef,
   onValueChange,
   onBlur,
+  invalid = false,
+  describedBy,
 }: IngredientCategoryFieldProps) {
   return (
     <select
@@ -31,6 +35,8 @@ export function IngredientCategoryField({
       ref={inputRef}
       name={name}
       value={value}
+      aria-invalid={invalid}
+      aria-describedby={describedBy}
       onChange={(event) => {
         const next = INGREDIENT_CATEGORIES.find(
           (category) => category === event.target.value,
@@ -41,8 +47,15 @@ export function IngredientCategoryField({
         }
       }}
       onBlur={onBlur}
-      className="h-10 w-full cursor-pointer border-0 border-b-[1.5px] border-app-ink/25 bg-transparent px-0.5 font-app-body text-[15px] font-bold text-app-ink outline-none focus:border-app-ink"
+      className={`h-10 w-full cursor-pointer border-0 border-b-[1.5px] bg-transparent px-0.5 font-app-body text-[15px] font-bold outline-none focus:border-app-ink ${
+        invalid ? "border-app-primary" : "border-app-ink/25"
+      } ${value === "" ? "text-app-ink/35" : "text-app-ink"}`}
     >
+      {value === "" ? (
+        <option value="" disabled>
+          카테고리 선택
+        </option>
+      ) : null}
       {INGREDIENT_CATEGORIES.map((category) => (
         <option key={category} value={category}>
           {INGREDIENT_CATEGORY_LABELS[category]}
