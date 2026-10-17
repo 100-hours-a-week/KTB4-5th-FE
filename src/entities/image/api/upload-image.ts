@@ -1,6 +1,6 @@
 import { requestJson } from "@/shared/api";
 
-export type ImageUploadPurpose = "ANALYSIS" | "PROFILE";
+export type ImageUploadPurpose = "ANALYSIS";
 
 type PresignedUploadRequest = {
   purpose: ImageUploadPurpose;

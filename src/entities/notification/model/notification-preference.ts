@@ -18,7 +18,7 @@ export function isSupportedNotificationPreference(preference: {
 
 // 한 번도 바꾸지 않은 유저는 설정이 비어 오므로 기본값인 켜짐으로 본다.
 export function isExpirationNotificationEnabled(
-  preferences: NotificationPreference[],
+  preferences: readonly { type: string; isEnabled: boolean }[],
 ): boolean {
   return (
     preferences.find((preference) => preference.type === "EXPIRATION")

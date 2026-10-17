@@ -41,14 +41,6 @@ function getFlowHeaderPolicy(pathname: string): RouteHeaderPolicy {
     };
   }
 
-  if (pathname === routes.myProfile) {
-    return {
-      kind: "flow",
-      title: "개인 설정",
-      backFallbackHref: routes.me,
-    };
-  }
-
   if (pathname === routes.notificationSettings) {
     return {
       kind: "flow",
