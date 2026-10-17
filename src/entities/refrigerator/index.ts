@@ -7,6 +7,7 @@ export {
   useCurrentRefrigeratorId,
   useCurrentRefrigeratorRecovery,
 } from "./model/current-refrigerator";
+export type { MypageOverview } from "./model/mypage-overview";
 export type { Refrigerator } from "./model/refrigerator";
 export type {
   RefrigeratorMember,

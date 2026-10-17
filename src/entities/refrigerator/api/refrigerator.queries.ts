@@ -4,6 +4,7 @@ import { ApiError } from "@/shared/api";
 
 import { getCurrentRefrigerators } from "./get-current-refrigerators";
 import { getInvitation } from "./get-invitation";
+import { getMypageOverview } from "./get-mypage-overview";
 import { getRefrigeratorMembers } from "./get-refrigerator-members";
 
 export const refrigeratorQueries = {
@@ -34,5 +35,14 @@ export const refrigeratorQueries = {
         "invitation",
       ] as const,
       queryFn: ({ signal }) => getInvitation({ refrigeratorId, signal }),
+    }),
+  mypage: (refrigeratorId: string) =>
+    queryOptions({
+      queryKey: [
+        ...refrigeratorQueries.all(),
+        refrigeratorId,
+        "mypage",
+      ] as const,
+      queryFn: ({ signal }) => getMypageOverview({ refrigeratorId, signal }),
     }),
 };

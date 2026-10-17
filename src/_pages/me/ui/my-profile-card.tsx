@@ -1,14 +1,15 @@
 "use client";
 
-import { useQuery } from "@tanstack/react-query";
-
-import { UserAvatar, userQueries } from "@/entities/user";
+import type { MypageOverview } from "@/entities/refrigerator";
+import { UserAvatar } from "@/entities/user";
 import { routes } from "@/shared/routes";
 import { AppLink } from "@/shared/ui/app-link";
 
-export function MyProfileCard() {
-  const { data } = useQuery(userQueries.me());
-
+export function MyProfileCard({
+  overview: data,
+}: {
+  overview: MypageOverview | undefined;
+}) {
   return (
     <AppLink
       href={routes.myProfile}

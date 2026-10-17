@@ -2,7 +2,10 @@
 
 import { useQuery } from "@tanstack/react-query";
 
-import { userQueries } from "@/entities/user";
+import {
+  refrigeratorQueries,
+  useCurrentRefrigeratorId,
+} from "@/entities/refrigerator";
 import { ApiError } from "@/shared/api";
 import {
   AsyncViewState,
@@ -16,7 +19,11 @@ import { PushNotificationSettingsCard } from "./push-notification-settings-card"
 import { ShareSettingsCard } from "./share-settings-card";
 
 export function MyPage() {
-  const { error, isError, isFetching, refetch } = useQuery(userQueries.me());
+  const refrigeratorId = useCurrentRefrigeratorId();
+  const { data, error, isError, isFetching, refetch } = useQuery({
+    ...refrigeratorQueries.mypage(refrigeratorId ?? ""),
+    enabled: Boolean(refrigeratorId),
+  });
 
   if (isError) {
     return (
@@ -47,14 +54,16 @@ export function MyPage() {
   return (
     <div className="min-h-0 flex-1 overflow-y-auto px-5 pt-3 pb-6">
       <div className="flex flex-col gap-4">
-        <MyProfileCard />
-        <MyStockSummary />
+        <MyProfileCard overview={data} />
+        <MyStockSummary overview={data} />
         <div className="flex flex-col divide-y divide-app-neutral-200 overflow-hidden rounded-[4px] bg-white shadow-app-sm">
           <div>
-            <ShareSettingsCard />
+            <ShareSettingsCard memberNum={data?.memberNum} />
           </div>
           <div>
-            <PushNotificationSettingsCard />
+            <PushNotificationSettingsCard
+              preferences={data?.notificationPreferences}
+            />
           </div>
           <div>
             <LogoutSettingsCard />
