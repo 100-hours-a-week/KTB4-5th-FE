@@ -9,7 +9,15 @@ import {
   waitFor,
 } from "@testing-library/react";
 import type { ReactNode } from "react";
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import {
+  afterAll,
+  afterEach,
+  beforeEach,
+  describe,
+  expect,
+  it,
+  vi,
+} from "vitest";
 
 import { showAppToast } from "@/shared/ui/app-toast";
 
@@ -17,7 +25,11 @@ import { RefrigeratorInvitePage } from "./refrigerator-invite-page";
 import { RefrigeratorJoinPage } from "./refrigerator-join-page";
 import { RefrigeratorSharePage } from "./refrigerator-share-page";
 
-const router = vi.hoisted(() => ({ push: vi.fn(), replace: vi.fn() }));
+const router = vi.hoisted(() => {
+  vi.stubEnv("NEXT_PUBLIC_KAKAOTECH_INVITE_CODE", "KTB150");
+  return { push: vi.fn(), replace: vi.fn() };
+});
+afterAll(() => vi.unstubAllEnvs());
 
 vi.mock("next/navigation", () => ({ useRouter: () => router }));
 vi.mock("next/image", () => ({ default: () => null }));
@@ -454,4 +466,44 @@ describe("내가 참여자일 때", () => {
       }),
     );
   });
+});
+
+it("카테부 참여 확인 후 설정된 코드로 같은 참여 API를 호출한다", async () => {
+  on(
+    "POST",
+    "/refrigerators/members",
+    ok(
+      "REFRIGERATOR-201-001",
+      {
+        refrigeratorId: "150",
+        activeRefrigeratorIds: ["150"],
+      },
+      201,
+    ),
+  );
+  givenMe(OWNER.userId);
+  givenMembers([OWNER]);
+  renderPage(<RefrigeratorSharePage />);
+  fireEvent.click(
+    await screen.findByRole("button", { name: "카테부 냉장고 참여하기" }),
+  );
+  expect(
+    screen.getByRole("dialog", {
+      name: "카테부 냉장고에 참여할까요?",
+    }),
+  ).toBeTruthy();
+  expect(callsTo("POST", "/refrigerators/members")).toHaveLength(0);
+  const dialog = screen.getByRole("dialog", {
+    name: "카테부 냉장고에 참여할까요?",
+  });
+  fireEvent.click(
+    Array.from(dialog.querySelectorAll("button")).find(
+      (button) => button.textContent === "참여하기",
+    )!,
+  );
+  await waitFor(() => expect(router.replace).toHaveBeenCalledWith("/"));
+  expect(cookieValue("currentRefrigeratorId")).toBe("150");
+  expect(
+    JSON.parse(String(callsTo("POST", "/refrigerators/members")[0].init.body)),
+  ).toEqual({ inviteCode: "KTB150" });
 });

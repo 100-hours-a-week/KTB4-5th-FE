@@ -1,16 +1,7 @@
 "use client";
 
-import { useRouter } from "next/navigation";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 
-import {
-  refrigeratorQueries,
-  setCurrentRefrigeratorId,
-} from "@/entities/refrigerator";
-import { joinRefrigerator } from "@/features/share-refrigerator";
-import { markAppNavigationIntent } from "@/shared/lib/navigation-history";
-import { routes } from "@/shared/routes";
 import { AppDialog } from "@/shared/ui/app-dialog";
 import { showAppToast } from "@/shared/ui/app-toast";
 import { FieldHelperText } from "@/shared/ui/field-helper-text";
@@ -23,25 +14,14 @@ import {
   normalizeInviteCodeInput,
 } from "../lib/invite-code";
 import { getJoinFailure, type JoinFailure } from "../model/join-failure";
+import { useJoinRefrigerator } from "../model/use-join-refrigerator";
 
 const HELPER_TEXT = "영문 대문자·숫자 6자리";
 
 export function RefrigeratorJoinPage() {
-  const router = useRouter();
-  const queryClient = useQueryClient();
   const [code, setCode] = useState("");
   const [failure, setFailure] = useState<JoinFailure | null>(null);
-  const joinMutation = useMutation({
-    mutationFn: joinRefrigerator,
-    onSuccess: async (refrigeratorId) => {
-      await queryClient.invalidateQueries({
-        queryKey: refrigeratorQueries.all(),
-      });
-      setCurrentRefrigeratorId(refrigeratorId);
-      markAppNavigationIntent("replace", routes.home);
-      router.replace(routes.home);
-      showAppToast({ message: "함께 쓰기 시작했어요", variant: "success" });
-    },
+  const joinMutation = useJoinRefrigerator({
     onError: (error) => {
       const nextFailure = getJoinFailure(error);
       if (nextFailure.kind === "toast") {
