@@ -5,6 +5,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 
 import {
+  formatRefrigeratorTitle,
   refrigeratorQueries,
   setCurrentRefrigeratorId,
   useCurrentRefrigeratorId,
@@ -169,7 +170,7 @@ export function RefrigeratorSharePage() {
         <div className="flex flex-col gap-5 px-5 pt-6 pb-6">
           <section className="rounded-[4px] bg-white px-4 py-4 shadow-app-sm">
             <h2 className="m-0 truncate font-app-heading text-[18px] font-black text-app-ink">
-              {data.refrigeratorName}
+              {formatRefrigeratorTitle(data.refrigeratorName)}
             </h2>
             <p className="m-0 mt-1 text-[12.5px] text-app-ink/55">
               함께 쓰는 사람 {data.memberCount} / {data.memberMax}명
@@ -240,7 +241,7 @@ export function RefrigeratorSharePage() {
 
       <AppDialog
         open={isLeaveOpen}
-        title={`${data.refrigeratorName}를 나가시는 건가요?`}
+        title={`${formatRefrigeratorTitle(data.refrigeratorName)}를 나가시는 건가요?`}
         description="공유 냉장고 재료는 가져가지 않고, 참여 전 개인 냉장고로 돌아가요."
         secondaryAction={{
           label: "취소",

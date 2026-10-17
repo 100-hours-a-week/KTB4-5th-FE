@@ -89,7 +89,6 @@ export function RefrigeratorJoinPage() {
               setCode(normalizeInviteCodeInput(event.target.value));
               setFailure(null);
             }}
-            placeholder="A7K-3F9"
             className={`mt-6 w-full rounded-[4px] border-[1.5px] bg-white px-4 py-4 text-center font-app-mono text-[22px] font-black tracking-[0.06em] text-app-ink outline-none placeholder:text-app-ink/25 focus:border-app-ink ${
               helperError ? "border-app-primary" : "border-app-ink/18"
             }`}
