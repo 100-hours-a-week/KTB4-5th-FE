@@ -48,6 +48,9 @@ export function AnalysisBanner({
                 ? "일부 인식 완료 · 결과 확인"
                 : "인식 완료 · 결과 확인"}
       </p>
+      {closable ? (
+        <span className="size-5 shrink-0" aria-hidden="true" />
+      ) : null}
       <Lineicons
         icon={ArrowRightOutlined}
         size={20}
@@ -55,9 +58,6 @@ export function AnalysisBanner({
         focusable="false"
         className="shrink-0"
       />
-      {closable ? (
-        <span className="size-5 shrink-0" aria-hidden="true" />
-      ) : null}
     </aside>
   );
 }

@@ -130,7 +130,7 @@ export function AnalysisTaskBanner() {
           type="button"
           aria-label="인식 결과 닫기"
           onClick={() => setIsConfirmingClose(true)}
-          className="absolute top-0 right-[calc(var(--space-4)+var(--safe-right))] grid size-12 cursor-pointer place-items-center border-0 bg-transparent p-0 text-app-ink/60"
+          className="absolute top-0 right-[calc(var(--space-4)+var(--safe-right)+35px)] grid size-12 cursor-pointer place-items-center border-0 bg-transparent p-0 text-app-ink/60"
         >
           <Lineicons
             icon={XmarkOutlined}
