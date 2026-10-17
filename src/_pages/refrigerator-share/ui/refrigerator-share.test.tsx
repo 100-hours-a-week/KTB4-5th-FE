@@ -89,7 +89,7 @@ function givenMembers(members: object[], memberMax = 4) {
     "GET",
     `/refrigerators/${REFRIGERATOR_ID}/members`,
     ok("REFRIGERATOR-200-003", {
-      refrigeratorName: "오조사마네 냉장고",
+      refrigeratorName: "오조사마",
       memberNum: members.length,
       memberMax,
       members: members.map((member) => ({
