@@ -10,6 +10,7 @@ type RefrigeratorMemberDto = {
 };
 
 type RefrigeratorMembersDto = {
+  currentUserId: string;
   refrigeratorName: string;
   memberNum: number;
   memberMax: number;
@@ -29,6 +30,7 @@ export async function getRefrigeratorMembers({
   );
 
   return {
+    currentUserId: String(data.currentUserId),
     refrigeratorName: data.refrigeratorName,
     memberCount: data.memberNum,
     memberMax: data.memberMax,

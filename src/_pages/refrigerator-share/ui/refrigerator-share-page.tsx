@@ -11,7 +11,6 @@ import {
   useCurrentRefrigeratorId,
   type RefrigeratorMember,
 } from "@/entities/refrigerator";
-import { userQueries } from "@/entities/user";
 import {
   leaveRefrigerator,
   removeRefrigeratorMember,
@@ -38,7 +37,6 @@ export function RefrigeratorSharePage() {
     ...refrigeratorQueries.members(refrigeratorId ?? ""),
     enabled: Boolean(refrigeratorId),
   });
-  const meQuery = useQuery(userQueries.me());
   const [removeTarget, setRemoveTarget] = useState<RefrigeratorMember | null>(
     null,
   );
@@ -80,7 +78,7 @@ export function RefrigeratorSharePage() {
     },
   });
 
-  if (refrigeratorId === null || isError || meQuery.isError) {
+  if (refrigeratorId === null || isError) {
     return (
       <ShareStateLayout>
         <AsyncViewState
@@ -90,14 +88,13 @@ export function RefrigeratorSharePage() {
           action={
             <button
               type="button"
-              disabled={isFetching || meQuery.isFetching}
+              disabled={isFetching}
               onClick={() => {
                 void refetch();
-                void meQuery.refetch();
               }}
               className={asyncViewActionClassName}
             >
-              {isFetching || meQuery.isFetching ? "로딩 중" : "다시 시도"}
+              {isFetching ? "로딩 중" : "다시 시도"}
             </button>
           }
         />
@@ -105,7 +102,7 @@ export function RefrigeratorSharePage() {
     );
   }
 
-  if (refrigeratorId === undefined || isPending || meQuery.isPending) {
+  if (refrigeratorId === undefined || isPending) {
     return (
       <ShareStateLayout>
         <AsyncViewState status="loading" title="참여자를 불러오는 중입니다" />
@@ -113,7 +110,7 @@ export function RefrigeratorSharePage() {
     );
   }
 
-  const myUserId = meQuery.data.userId;
+  const myUserId = data.currentUserId;
   const isOwner = data.members.some(
     (member) => member.userId === myUserId && member.role === "owner",
   );

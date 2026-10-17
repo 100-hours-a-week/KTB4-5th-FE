@@ -56,6 +56,7 @@ type Call = { method: string; path: string; init: RequestInit };
 
 let routes: Route[] = [];
 let calls: Call[] = [];
+let currentUserId = OWNER.userId;
 
 function json(status: number, body: unknown) {
   return new Response(JSON.stringify(body), {
@@ -81,14 +82,15 @@ function callsTo(method: string, path: string) {
 }
 
 function givenMe(userId: string) {
-  on("GET", "/users/me", ok("USER-200-003", { userId, nickname: "나" }));
+  currentUserId = userId;
 }
 
-function givenMembers(members: object[], memberMax = 4) {
+function givenMembers(members: object[], memberMax = 150) {
   on(
     "GET",
     `/refrigerators/${REFRIGERATOR_ID}/members`,
     ok("REFRIGERATOR-200-003", {
+      currentUserId,
       refrigeratorName: "오조사마",
       memberNum: members.length,
       memberMax,
@@ -149,8 +151,9 @@ describe("내가 방장일 때", () => {
     givenMembers([OWNER, MEMBER]);
     renderPage(<RefrigeratorSharePage />);
 
-    await screen.findByText("함께 쓰는 사람 2 / 4명");
+    await screen.findByText("함께 쓰는 사람 2 / 150명");
     expect(screen.getByText("방장 · 나")).toBeTruthy();
+    expect(callsTo("GET", "/users/me")).toHaveLength(0);
     expect(screen.getAllByRole("button", { name: "내보내기" })).toHaveLength(1);
     expect(
       screen
@@ -169,9 +172,11 @@ describe("내가 방장일 때", () => {
   it("정원이 가득 차면 초대 코드를 만들 수 없다", async () => {
     givenMembers([
       OWNER,
-      MEMBER,
-      { userId: "3", nickname: "다먹자", role: "member" },
-      { userId: "4", nickname: "냉장고", role: "member" },
+      ...Array.from({ length: 149 }, (_, index) => ({
+        userId: String(index + 2),
+        nickname: `참여자${index}`,
+        role: "member",
+      })),
     ]);
     renderPage(<RefrigeratorSharePage />);
 
@@ -215,7 +220,7 @@ describe("내가 방장일 때", () => {
       )!,
     );
 
-    await screen.findByText("함께 쓰는 사람 1 / 4명");
+    await screen.findByText("함께 쓰는 사람 1 / 150명");
     const [removeCall] = callsTo("DELETE", path);
     expect(new Headers(removeCall?.init.headers).get("X-XSRF-TOKEN")).toBe(
       "csrf-token",
