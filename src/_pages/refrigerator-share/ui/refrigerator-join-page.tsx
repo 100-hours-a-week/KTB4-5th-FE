@@ -1,16 +1,7 @@
 "use client";
 
-import { useRouter } from "next/navigation";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 
-import {
-  refrigeratorQueries,
-  setCurrentRefrigeratorId,
-} from "@/entities/refrigerator";
-import { joinRefrigerator } from "@/features/share-refrigerator";
-import { markAppNavigationIntent } from "@/shared/lib/navigation-history";
-import { routes } from "@/shared/routes";
 import { AppDialog } from "@/shared/ui/app-dialog";
 import { showAppToast } from "@/shared/ui/app-toast";
 import { FieldHelperText } from "@/shared/ui/field-helper-text";
@@ -23,25 +14,14 @@ import {
   normalizeInviteCodeInput,
 } from "../lib/invite-code";
 import { getJoinFailure, type JoinFailure } from "../model/join-failure";
+import { useJoinRefrigerator } from "../model/use-join-refrigerator";
 
 const HELPER_TEXT = "영문 대문자·숫자 6자리";
 
 export function RefrigeratorJoinPage() {
-  const router = useRouter();
-  const queryClient = useQueryClient();
   const [code, setCode] = useState("");
   const [failure, setFailure] = useState<JoinFailure | null>(null);
-  const joinMutation = useMutation({
-    mutationFn: joinRefrigerator,
-    onSuccess: async (refrigeratorId) => {
-      await queryClient.invalidateQueries({
-        queryKey: refrigeratorQueries.all(),
-      });
-      setCurrentRefrigeratorId(refrigeratorId);
-      markAppNavigationIntent("replace", routes.home);
-      router.replace(routes.home);
-      showAppToast({ message: "함께 쓰기 시작했어요", variant: "success" });
-    },
+  const joinMutation = useJoinRefrigerator({
     onError: (error) => {
       const nextFailure = getJoinFailure(error);
       if (nextFailure.kind === "toast") {
@@ -100,7 +80,8 @@ export function RefrigeratorJoinPage() {
           />
 
           <p className="m-0 mt-4 break-keep rounded-[4px] bg-app-neutral-100 px-3 py-2.5 text-[12.5px] leading-5 text-app-ink/70">
-            참여하면 개인 재고는 그대로 보관되고, 공유 냉장고만 관리할 수
+            참여하는 동안에는 공유받은 냉장고만 쓸 수 있어요. 내 냉장고 재료는
+            옮겨지지 않고 따로 보관되며, 공유 냉장고에서 나가면 다시 쓸 수
             있어요.
           </p>
         </div>

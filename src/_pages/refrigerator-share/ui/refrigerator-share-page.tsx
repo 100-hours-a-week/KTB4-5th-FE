@@ -11,7 +11,6 @@ import {
   useCurrentRefrigeratorId,
   type RefrigeratorMember,
 } from "@/entities/refrigerator";
-import { userQueries } from "@/entities/user";
 import {
   leaveRefrigerator,
   removeRefrigeratorMember,
@@ -27,8 +26,12 @@ import {
 import { FooterButton } from "@/shared/ui/footer-button";
 import { PageActionLayout } from "@/shared/ui/page-action-layout";
 
+import { getJoinFailure } from "../model/join-failure";
+import { useJoinRefrigerator } from "../model/use-join-refrigerator";
 import { MemberRow } from "./member-row";
 import { ShareStateLayout } from "./share-state-layout";
+
+const KAKAOTECH_INVITE_CODE = process.env.NEXT_PUBLIC_KAKAOTECH_INVITE_CODE;
 
 export function RefrigeratorSharePage() {
   const router = useRouter();
@@ -38,11 +41,21 @@ export function RefrigeratorSharePage() {
     ...refrigeratorQueries.members(refrigeratorId ?? ""),
     enabled: Boolean(refrigeratorId),
   });
-  const meQuery = useQuery(userQueries.me());
   const [removeTarget, setRemoveTarget] = useState<RefrigeratorMember | null>(
     null,
   );
   const [isLeaveOpen, setIsLeaveOpen] = useState(false);
+  const [isKakaotechJoinOpen, setIsKakaotechJoinOpen] = useState(false);
+
+  const kakaotechJoinMutation = useJoinRefrigerator({
+    onError: (error) => {
+      const failure = getJoinFailure(error);
+      showAppToast({
+        message: failure.kind === "dialog" ? failure.title : failure.message,
+        variant: "error",
+      });
+    },
+  });
 
   const removeMutation = useMutation({
     mutationFn: removeRefrigeratorMember,
@@ -80,7 +93,7 @@ export function RefrigeratorSharePage() {
     },
   });
 
-  if (refrigeratorId === null || isError || meQuery.isError) {
+  if (refrigeratorId === null || isError) {
     return (
       <ShareStateLayout>
         <AsyncViewState
@@ -90,14 +103,13 @@ export function RefrigeratorSharePage() {
           action={
             <button
               type="button"
-              disabled={isFetching || meQuery.isFetching}
+              disabled={isFetching}
               onClick={() => {
                 void refetch();
-                void meQuery.refetch();
               }}
               className={asyncViewActionClassName}
             >
-              {isFetching || meQuery.isFetching ? "로딩 중" : "다시 시도"}
+              {isFetching ? "로딩 중" : "다시 시도"}
             </button>
           }
         />
@@ -105,7 +117,7 @@ export function RefrigeratorSharePage() {
     );
   }
 
-  if (refrigeratorId === undefined || isPending || meQuery.isPending) {
+  if (refrigeratorId === undefined || isPending) {
     return (
       <ShareStateLayout>
         <AsyncViewState status="loading" title="참여자를 불러오는 중입니다" />
@@ -113,12 +125,19 @@ export function RefrigeratorSharePage() {
     );
   }
 
-  const myUserId = meQuery.data.userId;
+  const myUserId = data.currentUserId;
   const isOwner = data.members.some(
     (member) => member.userId === myUserId && member.role === "owner",
   );
   const isAlone = data.memberCount <= 1;
   const isFull = data.memberCount >= data.memberMax;
+
+  function showMustLeaveToast() {
+    showAppToast({
+      message: "지금 냉장고에서 나간 뒤 참여할 수 있어요",
+      variant: "error",
+    });
+  }
 
   function goTo(href: string) {
     markAppNavigationIntent("push", href);
@@ -142,19 +161,29 @@ export function RefrigeratorSharePage() {
               </FooterButton>
             ) : null}
             {!isOwner || isAlone ? (
-              <FooterButton
-                variant="secondary"
-                onClick={() =>
-                  isAlone
-                    ? goTo(routes.refrigeratorShareJoin)
-                    : showAppToast({
-                        message: "지금 냉장고에서 나간 뒤 참여할 수 있어요",
-                        variant: "error",
-                      })
-                }
-              >
-                다른 냉장고 참여하기
-              </FooterButton>
+              <div className="flex gap-2.5">
+                <FooterButton
+                  variant="secondary"
+                  onClick={() =>
+                    isAlone
+                      ? goTo(routes.refrigeratorShareJoin)
+                      : showMustLeaveToast()
+                  }
+                >
+                  다른 냉장고 참여하기
+                </FooterButton>
+                <FooterButton
+                  variant="secondary"
+                  disabled={kakaotechJoinMutation.isPending}
+                  onClick={() =>
+                    isAlone
+                      ? setIsKakaotechJoinOpen(true)
+                      : showMustLeaveToast()
+                  }
+                >
+                  카테부 냉장고 참여하기
+                </FooterButton>
+              </div>
             ) : null}
             {!isOwner ? (
               <FooterButton
@@ -252,6 +281,30 @@ export function RefrigeratorSharePage() {
           label: "나가기",
           disabled: leaveMutation.isPending,
           onClick: () => leaveMutation.mutate(refrigeratorId),
+        }}
+      />
+
+      <AppDialog
+        open={isKakaotechJoinOpen}
+        title="카테부 냉장고에 참여할까요?"
+        description="참여하는 동안에는 카테부 냉장고만 쓸 수 있어요. 내 냉장고 재료는 옮겨지지 않고 따로 보관되며, 카테부 냉장고에서 나가면 다시 쓸 수 있어요."
+        secondaryAction={{
+          label: "취소",
+          onClick: () => setIsKakaotechJoinOpen(false),
+        }}
+        primaryAction={{
+          label: "참여하기",
+          onClick: () => {
+            setIsKakaotechJoinOpen(false);
+            if (!KAKAOTECH_INVITE_CODE) {
+              showAppToast({
+                message: "카테부 냉장고를 준비 중이에요",
+                variant: "error",
+              });
+              return;
+            }
+            kakaotechJoinMutation.mutate(KAKAOTECH_INVITE_CODE);
+          },
         }}
       />
     </>

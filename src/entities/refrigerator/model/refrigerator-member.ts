@@ -7,6 +7,7 @@ export type RefrigeratorMember = {
 };
 
 export type RefrigeratorMembers = {
+  currentUserId: string;
   refrigeratorName: string;
   memberCount: number;
   memberMax: number;

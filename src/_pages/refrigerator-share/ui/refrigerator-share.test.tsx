@@ -9,7 +9,15 @@ import {
   waitFor,
 } from "@testing-library/react";
 import type { ReactNode } from "react";
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import {
+  afterAll,
+  afterEach,
+  beforeEach,
+  describe,
+  expect,
+  it,
+  vi,
+} from "vitest";
 
 import { showAppToast } from "@/shared/ui/app-toast";
 
@@ -17,7 +25,11 @@ import { RefrigeratorInvitePage } from "./refrigerator-invite-page";
 import { RefrigeratorJoinPage } from "./refrigerator-join-page";
 import { RefrigeratorSharePage } from "./refrigerator-share-page";
 
-const router = vi.hoisted(() => ({ push: vi.fn(), replace: vi.fn() }));
+const router = vi.hoisted(() => {
+  vi.stubEnv("NEXT_PUBLIC_KAKAOTECH_INVITE_CODE", "KTB150");
+  return { push: vi.fn(), replace: vi.fn() };
+});
+afterAll(() => vi.unstubAllEnvs());
 
 vi.mock("next/navigation", () => ({ useRouter: () => router }));
 vi.mock("next/image", () => ({ default: () => null }));
@@ -56,6 +68,7 @@ type Call = { method: string; path: string; init: RequestInit };
 
 let routes: Route[] = [];
 let calls: Call[] = [];
+let currentUserId = OWNER.userId;
 
 function json(status: number, body: unknown) {
   return new Response(JSON.stringify(body), {
@@ -81,14 +94,15 @@ function callsTo(method: string, path: string) {
 }
 
 function givenMe(userId: string) {
-  on("GET", "/users/me", ok("USER-200-003", { userId, nickname: "나" }));
+  currentUserId = userId;
 }
 
-function givenMembers(members: object[], memberMax = 4) {
+function givenMembers(members: object[], memberMax = 150) {
   on(
     "GET",
     `/refrigerators/${REFRIGERATOR_ID}/members`,
     ok("REFRIGERATOR-200-003", {
+      currentUserId,
       refrigeratorName: "오조사마",
       memberNum: members.length,
       memberMax,
@@ -149,8 +163,9 @@ describe("내가 방장일 때", () => {
     givenMembers([OWNER, MEMBER]);
     renderPage(<RefrigeratorSharePage />);
 
-    await screen.findByText("함께 쓰는 사람 2 / 4명");
+    await screen.findByText("함께 쓰는 사람 2 / 150명");
     expect(screen.getByText("방장 · 나")).toBeTruthy();
+    expect(callsTo("GET", "/users/me")).toHaveLength(0);
     expect(screen.getAllByRole("button", { name: "내보내기" })).toHaveLength(1);
     expect(
       screen
@@ -169,9 +184,11 @@ describe("내가 방장일 때", () => {
   it("정원이 가득 차면 초대 코드를 만들 수 없다", async () => {
     givenMembers([
       OWNER,
-      MEMBER,
-      { userId: "3", nickname: "다먹자", role: "member" },
-      { userId: "4", nickname: "냉장고", role: "member" },
+      ...Array.from({ length: 149 }, (_, index) => ({
+        userId: String(index + 2),
+        nickname: `참여자${index}`,
+        role: "member",
+      })),
     ]);
     renderPage(<RefrigeratorSharePage />);
 
@@ -215,7 +232,7 @@ describe("내가 방장일 때", () => {
       )!,
     );
 
-    await screen.findByText("함께 쓰는 사람 1 / 4명");
+    await screen.findByText("함께 쓰는 사람 1 / 150명");
     const [removeCall] = callsTo("DELETE", path);
     expect(new Headers(removeCall?.init.headers).get("X-XSRF-TOKEN")).toBe(
       "csrf-token",
@@ -449,4 +466,44 @@ describe("내가 참여자일 때", () => {
       }),
     );
   });
+});
+
+it("카테부 참여 확인 후 설정된 코드로 같은 참여 API를 호출한다", async () => {
+  on(
+    "POST",
+    "/refrigerators/members",
+    ok(
+      "REFRIGERATOR-201-001",
+      {
+        refrigeratorId: "150",
+        activeRefrigeratorIds: ["150"],
+      },
+      201,
+    ),
+  );
+  givenMe(OWNER.userId);
+  givenMembers([OWNER]);
+  renderPage(<RefrigeratorSharePage />);
+  fireEvent.click(
+    await screen.findByRole("button", { name: "카테부 냉장고 참여하기" }),
+  );
+  expect(
+    screen.getByRole("dialog", {
+      name: "카테부 냉장고에 참여할까요?",
+    }),
+  ).toBeTruthy();
+  expect(callsTo("POST", "/refrigerators/members")).toHaveLength(0);
+  const dialog = screen.getByRole("dialog", {
+    name: "카테부 냉장고에 참여할까요?",
+  });
+  fireEvent.click(
+    Array.from(dialog.querySelectorAll("button")).find(
+      (button) => button.textContent === "참여하기",
+    )!,
+  );
+  await waitFor(() => expect(router.replace).toHaveBeenCalledWith("/"));
+  expect(cookieValue("currentRefrigeratorId")).toBe("150");
+  expect(
+    JSON.parse(String(callsTo("POST", "/refrigerators/members")[0].init.body)),
+  ).toEqual({ inviteCode: "KTB150" });
 });
