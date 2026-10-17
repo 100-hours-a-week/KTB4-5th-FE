@@ -80,7 +80,8 @@ export function RefrigeratorJoinPage() {
           />
 
           <p className="m-0 mt-4 break-keep rounded-[4px] bg-app-neutral-100 px-3 py-2.5 text-[12.5px] leading-5 text-app-ink/70">
-            참여하면 개인 재고는 그대로 보관되고, 공유 냉장고만 관리할 수
+            참여하는 동안에는 공유받은 냉장고만 쓸 수 있어요. 내 냉장고 재료는
+            옮겨지지 않고 따로 보관되며, 공유 냉장고에서 나가면 다시 쓸 수
             있어요.
           </p>
         </div>
