@@ -29,9 +29,11 @@ type IngredientDraftCardProps = {
   onToggle: () => void;
   onRemove: () => void;
   badge?: ReactNode;
+  expirationHint?: string | null;
 };
 
 const DRAFT_ERROR_FIELDS = [
+  "category",
   "name",
   "quantity",
   "weightValue",
@@ -51,6 +53,7 @@ export function IngredientDraftCard({
   onToggle,
   onRemove,
   badge,
+  expirationHint,
 }: IngredientDraftCardProps) {
   const draft = useWatch<IngredientDraftFormInput, `drafts.${number}`>({
     name: `drafts.${index}`,
@@ -151,7 +154,18 @@ export function IngredientDraftCard({
                 >
                   카테고리
                 </label>
-                <CategoryField id={`${idPrefix}-category`} index={index} />
+                <CategoryField
+                  id={`${idPrefix}-category`}
+                  index={index}
+                  describedBy={`${idPrefix}-category-help`}
+                />
+                {draftErrors?.category?.message ? (
+                  <IngredientFieldHelper
+                    id={`${idPrefix}-category-help`}
+                    hint=""
+                    error={draftErrors.category.message}
+                  />
+                ) : null}
               </div>
 
               <div className="mt-3">
@@ -243,7 +257,7 @@ export function IngredientDraftCard({
                   />
                   <IngredientFieldHelper
                     id={`${idPrefix}-expiration-help`}
-                    hint={EXPIRATION_HINT}
+                    hint={expirationHint ?? EXPIRATION_HINT}
                     error={draftErrors?.expirationDate?.message}
                   />
                 </div>

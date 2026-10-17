@@ -21,7 +21,14 @@ export const BATCH_LIMIT_MESSAGE = "한 번에 20건까지 등록할 수 있어�
 
 const ingredientDraftSchema = z
   .object({
-    category: z.enum(INGREDIENT_CATEGORIES),
+    category: z
+      .enum(INGREDIENT_CATEGORIES)
+      .or(z.literal(""))
+      .transform((value, ctx) => {
+        if (value !== "") return value;
+        ctx.addIssue({ code: "custom", message: "카테고리를 선택해주세요" });
+        return z.NEVER;
+      }),
     name: ingredientNameSchema,
     storageType: z.enum(INGREDIENT_STORAGE_TYPES),
     quantity: z
@@ -83,7 +90,7 @@ export type IngredientDraftValues = IngredientDraftFormValues["drafts"][number];
 
 export function createEmptyDraft(): IngredientDraft {
   return {
-    category: "OTHER",
+    category: "",
     name: "",
     storageType: "REFRIGERATED",
     quantity: "",

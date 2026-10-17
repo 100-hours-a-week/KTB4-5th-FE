@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { useEffect, useMemo } from "react";
 import { FormProvider } from "react-hook-form";
 
-import { imageAnalysisQueries } from "@/entities/image";
+import { imageAnalysisQueries, useDeleteImageAnalysis } from "@/entities/image";
 import { ApiError } from "@/shared/api";
 import { AppLink } from "@/shared/ui/app-link";
 import {
@@ -30,6 +30,7 @@ import {
 import {
   toRecognitionResult,
   type ReceiptRecognitionResult,
+  getAnalysisFailureMessage,
 } from "../model/receipt-recognition";
 import { useReceiptResultForm } from "../model/use-receipt-result-form";
 import { useReceiptResultStore } from "../model/use-receipt-result-store";
@@ -45,6 +46,7 @@ export function RegisterIngredientReceiptResultPage({
 }) {
   const router = useRouter();
   const storedResult = useReceiptResultStore((state) => state.result);
+  const removeAnalysis = useDeleteImageAnalysis();
   const analysis = useQuery({
     ...imageAnalysisQueries.detail(analysisId ?? ""),
     enabled: Boolean(analysisId),
@@ -65,13 +67,14 @@ export function RegisterIngredientReceiptResultPage({
   if (analysisId && !analysis.data) {
     if (analysis.isError) {
       const expired =
-        analysis.error instanceof ApiError && analysis.error.status === 410;
+        analysis.error instanceof ApiError && analysis.error.status === 404;
       return (
         <AsyncViewState
           status="error"
           title={
             expired ? "보관 기간이 지났어요" : "인식 결과를 불러오지 못했어요"
           }
+          description={expired ? "다시 촬영해 주세요" : undefined}
           action={
             expired ? (
               <AppLink
@@ -127,14 +130,21 @@ export function RegisterIngredientReceiptResultPage({
       <AsyncViewState
         status="empty"
         title="인식한 재료가 없어요"
-        description="사진을 다시 촬영하거나 직접 입력해 주세요."
+        description={
+          (analysis.data && getAnalysisFailureMessage(analysis.data)) ??
+          "사진을 다시 촬영하거나 직접 입력해 주세요."
+        }
         action={
-          <AppLink
-            href={routes.registerIngredient}
+          <button
+            type="button"
             className={asyncViewActionClassName}
+            onClick={() => {
+              removeAnalysis.mutate(result.analysisId);
+              router.push(routes.registerIngredient);
+            }}
           >
             재료 등록으로 이동
-          </AppLink>
+          </button>
         }
       />
     );
@@ -164,7 +174,9 @@ function ReceiptResultForm({
     form,
     fields,
     statuses,
+    expirationNotes,
     hasUncertain,
+    hasUnsetExpiration,
     photoCount,
     isTruncated,
     expandedIndex,
@@ -203,14 +215,16 @@ function ReceiptResultForm({
             ) : null}
             {result.unreadCount > 0 ? (
               <p className="m-0 mt-3 text-[13px] text-app-ink/60">
-                사진 {result.unreadCount}장은 인식하지 못했어요. 인식된 재료만
-                확인해 주세요.
+                사진 {result.unreadCount}장은 인식하지 못했어요. 인식된 재료를
+                먼저 등록하고, 나머지는 직접 입력해 주세요.
               </p>
             ) : null}
             {hasUncertain ? (
               <p className="m-0 mt-3 rounded-[3px] bg-app-ink/5 px-4 py-3 text-[13px] leading-normal text-app-ink/60">
-                영수증 {photoCount}장에서 인식했어요. 유통기한은 직접 지정해
-                주세요.
+                영수증 {photoCount}장에서 인식했어요.{" "}
+                {hasUnsetExpiration
+                  ? "유통기한은 직접 지정해 주세요."
+                  : "유통기한은 AI가 예상한 날짜예요. 확인 후 등록해 주세요."}
               </p>
             ) : null}
           </div>
@@ -244,6 +258,7 @@ function ReceiptResultForm({
                     isExpanded={index === expandedIndex}
                     onToggle={() => toggle(index)}
                     onRemove={() => removeDraft(index)}
+                    expirationHint={expirationNotes[index]}
                     badge={
                       statuses[index] ? (
                         <RecognitionStatusChip status={statuses[index]} />

@@ -38,6 +38,9 @@ export function useReceiptResultForm(
   const markRegistered = useRegisteredAnalyses((state) => state.markRegistered);
   const [result] = useState(() => limitRecognitionResult(recognitionResult));
   const [hints, setHints] = useState(result.hints);
+  const [expirationNotes, setExpirationNotes] = useState(
+    result.expirationNotes,
+  );
   const [origins, setOrigins] = useState(result.origins);
   const { register, isRegistering, completedResult } = useRegisterIngredients(
     async ({ refrigeratorId, items }) => {
@@ -105,6 +108,7 @@ export function useReceiptResultForm(
     remove(index);
     setOrigins((current) => current.filter((_, i) => i !== index));
     setHints((current) => current.filter((_, i) => i !== index));
+    setExpirationNotes((current) => current.filter((_, i) => i !== index));
     shiftAfterRemove(index);
   }
 
@@ -116,7 +120,9 @@ export function useReceiptResultForm(
     form,
     fields,
     statuses,
+    expirationNotes,
     hasUncertain: statuses.some((status) => status !== "RECOGNIZED"),
+    hasUnsetExpiration: drafts.some((draft) => draft.expirationDate === ""),
     photoCount: result.photoCount,
     isTruncated: result.isTruncated,
     expandedIndex,

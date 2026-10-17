@@ -10,7 +10,6 @@ import {
 type ReceiptPhotoStripProps = {
   photos: ReceiptPhoto[];
   shownIndex: number;
-  disabled: boolean;
   onShow: (index: number) => void;
   onRemove: (index: number) => void;
   onCapture: () => void;
@@ -20,7 +19,6 @@ type ReceiptPhotoStripProps = {
 export function ReceiptPhotoStrip({
   photos,
   shownIndex,
-  disabled,
   onShow,
   onRemove,
   onCapture,
@@ -59,10 +57,9 @@ export function ReceiptPhotoStrip({
                   </button>
                   <button
                     type="button"
-                    disabled={disabled}
                     onClick={() => onRemove(index)}
                     aria-label={`영수증 ${index + 1} 삭제`}
-                    className="absolute top-0.5 right-0.5 grid size-5 place-items-center rounded-full border-0 bg-app-ink/70 p-0 text-white disabled:opacity-45"
+                    className="absolute top-0.5 right-0.5 grid size-5 place-items-center rounded-full border-0 bg-app-ink/70 p-0 text-white"
                   >
                     <Lineicons
                       icon={XmarkOutlined}
@@ -76,10 +73,9 @@ export function ReceiptPhotoStrip({
               ) : (
                 <button
                   type="button"
-                  disabled={disabled}
                   onClick={onCapture}
                   aria-label="영수증 촬영"
-                  className="absolute inset-0 cursor-pointer border-0 bg-transparent p-0 disabled:cursor-not-allowed"
+                  className="absolute inset-0 cursor-pointer border-0 bg-transparent p-0"
                 />
               )}
             </li>

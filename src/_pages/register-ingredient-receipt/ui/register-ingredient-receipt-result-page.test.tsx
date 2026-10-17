@@ -16,6 +16,7 @@ vi.mock("next/navigation", () => ({
   useRouter: () => ({ replace: mocks.replace }),
 }));
 vi.mock("@/entities/image", () => ({
+  useDeleteImageAnalysis: () => ({ mutate: vi.fn(), isPending: false }),
   imageAnalysisQueries: {
     detail: (id: string) => ({
       queryKey: ["image-analyses", id],
@@ -76,6 +77,7 @@ vi.mock("../model/use-receipt-result-form", () => ({
       form: {},
       fields: [{ id: "field-1" }],
       statuses: [],
+      expirationNotes: [],
       photoCount: 1,
       hasUncertain: false,
       isTruncated: false,

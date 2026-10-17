@@ -11,6 +11,12 @@ export type ImageAnalysisReviewReason = {
   messages: string[];
 };
 
+export type ImageAnalysisExpiration = {
+  date: string | null;
+  dateType: "USE_BY" | "ESTIMATED_CONSUMPTION_WINDOW" | "UNKNOWN";
+  estimatedRange: { from: string; to: string } | null;
+};
+
 export type ImageAnalysisItem = {
   itemId: string;
   displayStatus: ImageAnalysisDisplayStatus;
@@ -19,8 +25,8 @@ export type ImageAnalysisItem = {
   storageType: string | null;
   measureType: string | null;
   quantity: number | null;
-  weight: { value: number; unit: string } | null;
-  expiration: string | null;
+  weight: { value: number | null; unit: string | null } | null;
+  expiration: ImageAnalysisExpiration | string | null;
   reviewReasons: ImageAnalysisReviewReason[];
 };
 
