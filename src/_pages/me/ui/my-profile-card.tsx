@@ -15,9 +15,11 @@ export function MyProfileCard({
         <span className="block truncate font-app-heading text-[17px] font-black text-app-ink">
           {data?.nickname ?? " "}
         </span>
-        <span className="mt-0.5 block truncate text-[13px] text-app-ink/55">
-          {data?.email ?? " "}
-        </span>
+        {data?.email ? (
+          <span className="mt-0.5 block truncate text-[13px] text-app-ink/55">
+            {data.email}
+          </span>
+        ) : null}
       </span>
     </div>
   );
