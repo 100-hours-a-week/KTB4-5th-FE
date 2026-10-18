@@ -149,4 +149,10 @@ self.addEventListener("notificationclick", (event) => {
   );
 });
 
+self.addEventListener("fetch", (event) => {
+  if (new URL(event.request.url).pathname.startsWith("/api/v1/auth/oauth/")) {
+    event.stopImmediatePropagation();
+  }
+});
+
 serwist.addEventListeners();
