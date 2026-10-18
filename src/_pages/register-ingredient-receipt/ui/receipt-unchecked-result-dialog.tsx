@@ -29,7 +29,7 @@ export function ReceiptUncheckedResultDialog({
 }: ReceiptUncheckedResultDialogProps) {
   const router = useRouter();
   const [isConfirming, setIsConfirming] = useState(false);
-  const itemCount = analysis.results.reduce(
+  const itemCount = analysis.images.reduce(
     (sum, result) => sum + (result.itemCount ?? 0),
     0,
   );

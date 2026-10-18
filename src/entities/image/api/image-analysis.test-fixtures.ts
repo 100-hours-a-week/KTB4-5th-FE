@@ -1,6 +1,7 @@
+import type { ImageAnalysis } from "./get-image-analysis";
 import type { ImageAnalysisListItem } from "./get-image-analysis-list";
 
-export const analysisFixture: ImageAnalysisListItem = {
+export const analysisFixture: ImageAnalysis & ImageAnalysisListItem = {
   analysisId: "analysis-1",
   status: "PARTIALLY_COMPLETED",
   submittedAt: "2026-10-16T18:59:00+09:00",
@@ -9,13 +10,16 @@ export const analysisFixture: ImageAnalysisListItem = {
   totalImageCount: 2,
   completedImageCount: 1,
   failedImageCount: 1,
+  images: [
+    { imageObjectKey: "receipt.jpg", status: "COMPLETED", itemCount: 1 },
+    { imageObjectKey: "blur.jpg", status: "FAILED", itemCount: 0 },
+  ],
   results: [
     {
       imageObjectKey: "receipt.jpg",
       status: "COMPLETED",
       recognitionStatus: "NEEDS_REVIEW",
       documentType: "RECEIPT",
-      itemCount: 1,
       items: [
         {
           itemId: "item_001",
@@ -43,7 +47,6 @@ export const analysisFixture: ImageAnalysisListItem = {
       status: "FAILED",
       recognitionStatus: null,
       documentType: null,
-      itemCount: 0,
       items: [],
       error: {
         code: "MODEL_UNAVAILABLE",

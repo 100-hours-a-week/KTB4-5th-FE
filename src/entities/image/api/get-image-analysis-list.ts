@@ -9,7 +9,9 @@ export type ImageAnalysisListItem = Omit<ImageAnalysis, "results"> & {
   totalImageCount: number;
   completedImageCount: number;
   failedImageCount: number;
-  results: (ImageAnalysisImageResult & { itemCount: number | null })[];
+  images: (Pick<ImageAnalysisImageResult, "imageObjectKey" | "status"> & {
+    itemCount: number | null;
+  })[];
 };
 
 export type ImageAnalysisList = { analyses: ImageAnalysisListItem[] };

@@ -70,6 +70,7 @@ export function RegisterIngredientReceiptResultPage({
         analysis.error instanceof ApiError && analysis.error.status === 404;
       return (
         <AsyncViewState
+          className="flex-1 justify-center"
           status="error"
           title={
             expired ? "보관 기간이 지났어요" : "인식 결과를 불러오지 못했어요"
@@ -98,7 +99,11 @@ export function RegisterIngredientReceiptResultPage({
       );
     }
     return (
-      <AsyncViewState status="loading" title="인식 결과를 불러오는 중입니다" />
+      <AsyncViewState
+        className="flex-1 justify-center"
+        status="loading"
+        title="인식 결과를 불러오는 중입니다"
+      />
     );
   }
 
@@ -112,6 +117,7 @@ export function RegisterIngredientReceiptResultPage({
     ).length;
     return (
       <AsyncViewState
+        className="flex-1 justify-center"
         status="loading"
         title={`사진 인식 중 · ${processed}/${analysis.data.results.length}장`}
         description="다른 화면으로 이동해도 인식은 계속돼요."
@@ -128,6 +134,7 @@ export function RegisterIngredientReceiptResultPage({
   if (analysis.data?.status === "FAILED" || result.drafts.length === 0) {
     return (
       <AsyncViewState
+        className="flex-1 justify-center"
         status="empty"
         title="인식한 재료가 없어요"
         description={
