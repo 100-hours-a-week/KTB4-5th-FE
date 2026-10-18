@@ -47,7 +47,7 @@ export function RefrigeratorInvitePage() {
   });
   const handledUpdateRef = useRef(0);
   const data = invitationQuery.data;
-  const now = useNow(Boolean(data));
+  const now = useNow(Boolean(data?.expiresAt));
   const createCode = () => createMutation.mutate(refrigeratorId);
 
   const { dataUpdatedAt } = invitationQuery;
@@ -98,9 +98,12 @@ export function RefrigeratorInvitePage() {
     );
   }
 
-  const remainingMs = new Date(data.expiresAt).getTime() - now;
+  const { code, expiresAt } = data;
+  const isPermanent = expiresAt === null;
+  const remainingMs = isPermanent
+    ? Infinity
+    : new Date(expiresAt).getTime() - now;
   const isExpired = remainingMs <= 0;
-  const { code } = data;
   const displayCode = formatInviteCode(code);
 
   async function copyCode() {
@@ -158,16 +161,20 @@ export function RefrigeratorInvitePage() {
             aria-live="off"
             className="m-0 mt-2 font-app-mono text-[13px] text-app-ink/55"
           >
-            {isExpired
-              ? "만료된 코드예요"
-              : `${formatRemainingTime(remainingMs)} 후 만료`}
+            {isPermanent
+              ? "만료 없음"
+              : isExpired
+                ? "만료된 코드예요"
+                : `${formatRemainingTime(remainingMs)} 후 만료`}
           </p>
         </section>
 
-        <p className="m-0 mt-3 break-keep text-[12.5px] leading-5 text-app-ink/55">
-          코드는 5분 동안 여러 명이 함께 쓸 수 있어요. 만료되면 새로 만들 수
-          있어요.
-        </p>
+        {isPermanent ? null : (
+          <p className="m-0 mt-3 break-keep text-[12.5px] leading-5 text-app-ink/55">
+            코드는 5분 동안 여러 명이 함께 쓸 수 있어요. 만료되면 새로 만들 수
+            있어요.
+          </p>
+        )}
       </div>
     </PageActionLayout>
   );

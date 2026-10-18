@@ -4,7 +4,7 @@ import type { RefrigeratorInvitation } from "../model/refrigerator-invitation";
 
 type InvitationDto = {
   code: string;
-  expiresAt: string;
+  expiresAt: string | null;
 };
 
 export async function getInvitation({

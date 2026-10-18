@@ -12,6 +12,7 @@ import {
   type RefrigeratorMember,
 } from "@/entities/refrigerator";
 import {
+  KakaotechJoinCard,
   leaveRefrigerator,
   removeRefrigeratorMember,
 } from "@/features/share-refrigerator";
@@ -26,12 +27,8 @@ import {
 import { FooterButton } from "@/shared/ui/footer-button";
 import { PageActionLayout } from "@/shared/ui/page-action-layout";
 
-import { getJoinFailure } from "../model/join-failure";
-import { useJoinRefrigerator } from "../model/use-join-refrigerator";
 import { MemberRow } from "./member-row";
 import { ShareStateLayout } from "./share-state-layout";
-
-const KAKAOTECH_INVITE_CODE = process.env.NEXT_PUBLIC_KAKAOTECH_INVITE_CODE;
 
 export function RefrigeratorSharePage() {
   const router = useRouter();
@@ -45,18 +42,6 @@ export function RefrigeratorSharePage() {
     null,
   );
   const [isLeaveOpen, setIsLeaveOpen] = useState(false);
-  const [isKakaotechJoinOpen, setIsKakaotechJoinOpen] = useState(false);
-
-  const kakaotechJoinMutation = useJoinRefrigerator({
-    onError: (error) => {
-      const failure = getJoinFailure(error);
-      showAppToast({
-        message: failure.kind === "dialog" ? failure.title : failure.message,
-        variant: "error",
-      });
-    },
-  });
-
   const removeMutation = useMutation({
     mutationFn: removeRefrigeratorMember,
     onSuccess: () => {
@@ -172,17 +157,6 @@ export function RefrigeratorSharePage() {
                 >
                   다른 냉장고 참여하기
                 </FooterButton>
-                <FooterButton
-                  variant="secondary"
-                  disabled={kakaotechJoinMutation.isPending}
-                  onClick={() =>
-                    isAlone
-                      ? setIsKakaotechJoinOpen(true)
-                      : showMustLeaveToast()
-                  }
-                >
-                  카테부 냉장고 참여하기
-                </FooterButton>
               </div>
             ) : null}
             {!isOwner ? (
@@ -197,6 +171,7 @@ export function RefrigeratorSharePage() {
         }
       >
         <div className="flex flex-col gap-5 px-5 pt-6 pb-6">
+          {isOwner && isAlone ? <KakaotechJoinCard /> : null}
           <section className="rounded-[4px] bg-white px-4 py-4 shadow-app-sm">
             <h2 className="m-0 truncate font-app-heading text-[18px] font-black text-app-ink">
               {formatRefrigeratorTitle(data.refrigeratorName)}
@@ -281,30 +256,6 @@ export function RefrigeratorSharePage() {
           label: "나가기",
           disabled: leaveMutation.isPending,
           onClick: () => leaveMutation.mutate(refrigeratorId),
-        }}
-      />
-
-      <AppDialog
-        open={isKakaotechJoinOpen}
-        title="카테부 냉장고에 참여할까요?"
-        description="참여하는 동안에는 카테부 냉장고만 쓸 수 있어요. 내 냉장고 재료는 옮겨지지 않고 따로 보관되며, 카테부 냉장고에서 나가면 다시 쓸 수 있어요."
-        secondaryAction={{
-          label: "취소",
-          onClick: () => setIsKakaotechJoinOpen(false),
-        }}
-        primaryAction={{
-          label: "참여하기",
-          onClick: () => {
-            setIsKakaotechJoinOpen(false);
-            if (!KAKAOTECH_INVITE_CODE) {
-              showAppToast({
-                message: "카테부 냉장고를 준비 중이에요",
-                variant: "error",
-              });
-              return;
-            }
-            kakaotechJoinMutation.mutate(KAKAOTECH_INVITE_CODE);
-          },
         }}
       />
     </>
