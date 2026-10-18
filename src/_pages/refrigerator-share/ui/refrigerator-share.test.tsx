@@ -134,6 +134,7 @@ function cookieValue(name: string) {
 }
 
 beforeEach(() => {
+  window.history.replaceState(null, "", "/refrigerator/share");
   routes = [];
   calls = [];
   document.cookie = "XSRF-TOKEN=csrf-token; path=/";

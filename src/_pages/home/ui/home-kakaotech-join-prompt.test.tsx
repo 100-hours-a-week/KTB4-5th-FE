@@ -20,6 +20,7 @@ import { showAppToast } from "@/shared/ui/app-toast";
 import { HomeKakaotechJoinPrompt } from "./home-kakaotech-join-prompt";
 
 const router = vi.hoisted(() => ({ replace: vi.fn() }));
+const reload = vi.fn();
 vi.mock("next/navigation", () => ({ useRouter: () => router }));
 vi.mock("@/shared/ui/app-toast", () => ({ showAppToast: vi.fn() }));
 
@@ -44,6 +45,7 @@ function renderPrompt(refrigeratorId = "7") {
 }
 
 beforeEach(() => {
+  vi.stubGlobal("location", { pathname: "/", reload });
   vi.stubEnv("NEXT_PUBLIC_KAKAOTECH_INVITE_CODE", "KTB150");
   localStorage.clear();
   members = [owner];
@@ -172,7 +174,7 @@ it("확인 전에는 요청하지 않고 취소 후에도 카드를 유지한다
   expect(screen.getByRole("button", { name: "나중에" })).toBeTruthy();
 });
 
-it("참여 요청 중 재제출을 막고 성공 후 안내를 지우고 냉장고를 전환한다", async () => {
+it("참여 요청 중 재제출을 막고 성공 후 냉장고를 전환하고 홈을 새로고침한다", async () => {
   renderPrompt();
   fireEvent.click(
     await screen.findByRole("button", { name: "카테부 냉장고 참여하기" }),
@@ -189,7 +191,9 @@ it("참여 요청 중 재제출을 막고 성공 후 안내를 지우고 냉장�
       .hasAttribute("disabled"),
   ).toBe(true);
   finishJoin!();
-  await waitFor(() => expect(router.replace).toHaveBeenCalledWith("/"));
+  await waitFor(() => expect(reload).toHaveBeenCalledOnce());
+  expect(router.replace).not.toHaveBeenCalled();
+  expect(fetch).toHaveBeenCalledTimes(2);
   expect(document.cookie).toContain("currentRefrigeratorId=150");
   expect(screen.queryByText("카테부 냉장고, 지금 참여해 보세요!")).toBeNull();
 });
@@ -214,6 +218,7 @@ it("참여 실패 시 안내를 유지하고 다시 시도할 수 있다", async
     }),
   );
   expect(router.replace).not.toHaveBeenCalled();
+  expect(reload).not.toHaveBeenCalled();
   expect(screen.getByRole("button", { name: "나중에" })).toBeTruthy();
 });
 

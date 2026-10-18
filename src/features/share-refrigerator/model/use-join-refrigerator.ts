@@ -26,14 +26,19 @@ export function useJoinRefrigerator({
 
   return useMutation({
     mutationFn: joinRefrigerator,
-    onSuccess: async (refrigeratorId) => {
+    onSuccess: (refrigeratorId) => {
       if (currentRefrigeratorId) {
         dismissKakaotechJoinPrompt(currentRefrigeratorId);
       }
-      await queryClient.invalidateQueries({
+      void queryClient.invalidateQueries({
         queryKey: refrigeratorQueries.all(),
+        refetchType: "none",
       });
       setCurrentRefrigeratorId(refrigeratorId);
+      if (window.location.pathname === routes.home) {
+        window.location.reload();
+        return;
+      }
       markAppNavigationIntent("replace", routes.home);
       router.replace(routes.home);
       showAppToast({ message: "함께 쓰기 시작했어요", variant: "success" });
