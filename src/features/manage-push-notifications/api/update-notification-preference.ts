@@ -9,7 +9,7 @@ export async function updateNotificationPreference(
   isEnabled: boolean,
 ): Promise<NotificationPreferencesResponse> {
   const response = await requestJson<NotificationPreferencesResponse>(
-    "/notifications/setting",
+    "/notifications/settings",
     {
       method: "PATCH",
       json: { notificationPreferences: [{ type, isEnabled }] },
