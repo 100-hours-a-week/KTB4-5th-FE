@@ -1,4 +1,5 @@
 import type { RefrigeratorMember } from "@/entities/refrigerator";
+import { UserAvatar } from "@/entities/user";
 
 type MemberRowProps = {
   member: RefrigeratorMember;
@@ -17,12 +18,7 @@ export function MemberRow({
 
   return (
     <li className="flex items-center gap-3 border-b border-app-ink/8 py-3 last:border-b-0">
-      <span
-        aria-hidden="true"
-        className="flex size-10 flex-none items-center justify-center rounded-full bg-app-neutral-100 font-app-heading text-[14px] font-black text-app-ink/60"
-      >
-        {member.nickname.slice(0, 1)}
-      </span>
+      <UserAvatar src={member.profileImageUrl} size={40} />
       <span className="min-w-0 flex-1">
         <span className="block truncate text-[14.5px] font-bold text-app-ink">
           {member.nickname}

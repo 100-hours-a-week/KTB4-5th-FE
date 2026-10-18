@@ -37,6 +37,9 @@ export async function getRefrigeratorMembers({
     members: data.members.map((member) => ({
       userId: String(member.userId),
       nickname: member.nickname,
+      profileImageUrl: URL.canParse(member.profileImage)
+        ? member.profileImage
+        : null,
       role: member.role,
     })),
   };
