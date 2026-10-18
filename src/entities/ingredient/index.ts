@@ -36,6 +36,7 @@ export { useIngredientDateStale } from "./model/use-ingredient-date-stale";
 export { getIngredientCapacity } from "./model/ingredient-capacity";
 export type { IngredientCapacity } from "./model/ingredient-capacity";
 export {
+  DEFAULT_INGREDIENT_LIST_QUERY,
   DEFAULT_INGREDIENT_LIST_SORT,
   hasIngredientListCondition,
   INGREDIENT_LIST_FILTERS,

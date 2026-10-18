@@ -36,6 +36,7 @@ it("reuses a searched keyword's cached first page without another request", () =
     ingredientsNum: 2,
     filteredCount: 2,
     refrigeratorCapacity: 100,
+    refrigeratorName: "우리집",
     ingredients: [],
     nextCursor,
   });

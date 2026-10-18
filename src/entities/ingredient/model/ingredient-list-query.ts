@@ -26,6 +26,13 @@ export type IngredientListQuery = {
   keyword: string | null;
 };
 
+export const DEFAULT_INGREDIENT_LIST_QUERY: IngredientListQuery = {
+  filter: null,
+  category: null,
+  sort: DEFAULT_INGREDIENT_LIST_SORT,
+  keyword: null,
+};
+
 export type RawQueryParams = Record<string, string | string[] | undefined>;
 
 const INGREDIENT_LIST_QUERY_KEYS = {

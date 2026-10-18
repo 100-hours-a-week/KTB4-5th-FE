@@ -18,6 +18,7 @@ it("reconstructs existing expiration dates from the response base date", () => {
     ingredientsNum: 1,
     filteredCount: 1,
     refrigeratorCapacity: 100,
+    refrigeratorName: "우리집",
     nextCursor: null,
     ingredients: [
       {

@@ -15,6 +15,7 @@ export type IngredientListResponseDto = {
   ingredientsNum: number;
   filteredCount: number;
   refrigeratorCapacity: number;
+  refrigeratorName: string;
   ingredients: IngredientListItemDto[];
   nextCursor: string | null;
 };
