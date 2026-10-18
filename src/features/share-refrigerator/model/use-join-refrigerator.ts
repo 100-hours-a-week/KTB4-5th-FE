@@ -3,6 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 
+import { ingredientQueries } from "@/entities/ingredient";
 import {
   refrigeratorQueries,
   setCurrentRefrigeratorId,
@@ -30,17 +31,18 @@ export function useJoinRefrigerator({
       if (currentRefrigeratorId) {
         dismissKakaotechJoinPrompt(currentRefrigeratorId);
       }
+      queryClient.removeQueries({
+        queryKey: ingredientQueries.byRefrigerator(refrigeratorId),
+      });
       void queryClient.invalidateQueries({
         queryKey: refrigeratorQueries.all(),
         refetchType: "none",
       });
       setCurrentRefrigeratorId(refrigeratorId);
-      if (window.location.pathname === routes.home) {
-        window.location.reload();
-        return;
+      if (window.location.pathname !== routes.home) {
+        markAppNavigationIntent("replace", routes.home);
+        router.replace(routes.home);
       }
-      markAppNavigationIntent("replace", routes.home);
-      router.replace(routes.home);
       showAppToast({ message: "함께 쓰기 시작했어요", variant: "success" });
     },
     onError,

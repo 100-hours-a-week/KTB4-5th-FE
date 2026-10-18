@@ -11,6 +11,7 @@ import {
 } from "@testing-library/react";
 import { afterEach, beforeEach, expect, it, vi } from "vitest";
 
+import { useCurrentRefrigeratorId } from "@/entities/refrigerator";
 import {
   dismissKakaotechJoinPrompt,
   useKakaotechJoinPrompt,
@@ -29,12 +30,18 @@ let members = [owner];
 let joinStatus = 201;
 let finishJoin: (() => void) | undefined;
 
+function CurrentRefrigeratorState() {
+  const refrigeratorId = useCurrentRefrigeratorId();
+  return <output aria-label="선택한 냉장고">{refrigeratorId}</output>;
+}
+
 function renderPrompt(refrigeratorId = "7") {
   const client = new QueryClient({
     defaultOptions: { queries: { retry: false } },
   });
   const view = render(
     <QueryClientProvider client={client}>
+      <CurrentRefrigeratorState />
       <HomeKakaotechJoinPrompt
         key={refrigeratorId}
         refrigeratorId={refrigeratorId}
@@ -174,7 +181,7 @@ it("확인 전에는 요청하지 않고 취소 후에도 카드를 유지한다
   expect(screen.getByRole("button", { name: "나중에" })).toBeTruthy();
 });
 
-it("참여 요청 중 재제출을 막고 성공 후 냉장고를 전환하고 홈을 새로고침한다", async () => {
+it("참여 요청 중 재제출을 막고 성공 후 새로고침 없이 선택한 냉장고를 반영한다", async () => {
   renderPrompt();
   fireEvent.click(
     await screen.findByRole("button", { name: "카테부 냉장고 참여하기" }),
@@ -191,8 +198,15 @@ it("참여 요청 중 재제출을 막고 성공 후 냉장고를 전환하고 �
       .hasAttribute("disabled"),
   ).toBe(true);
   finishJoin!();
-  await waitFor(() => expect(reload).toHaveBeenCalledOnce());
+  await waitFor(() =>
+    expect(screen.getByLabelText("선택한 냉장고").textContent).toBe("150"),
+  );
+  expect(reload).not.toHaveBeenCalled();
   expect(router.replace).not.toHaveBeenCalled();
+  expect(showAppToast).toHaveBeenCalledWith({
+    message: "함께 쓰기 시작했어요",
+    variant: "success",
+  });
   expect(fetch).toHaveBeenCalledTimes(2);
   expect(document.cookie).toContain("currentRefrigeratorId=150");
   expect(screen.queryByText("카테부 냉장고, 지금 참여해 보세요!")).toBeNull();
