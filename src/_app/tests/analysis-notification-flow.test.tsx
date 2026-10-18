@@ -80,7 +80,7 @@ const initialJob: ImageAnalysisListItem = {
   totalImageCount: 3,
   completedImageCount: 0,
   failedImageCount: 0,
-  results: [],
+  images: [],
   error: null,
 };
 let job: ImageAnalysisListItem;

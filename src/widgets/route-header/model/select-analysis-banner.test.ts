@@ -12,7 +12,7 @@ const job: ImageAnalysisListItem = {
   totalImageCount: 3,
   completedImageCount: 1,
   failedImageCount: 1,
-  results: [],
+  images: [],
   error: null,
 };
 const now = Date.parse("2026-10-16T12:00:00Z");
