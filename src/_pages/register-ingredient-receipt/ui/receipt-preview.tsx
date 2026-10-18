@@ -22,7 +22,7 @@ export function ReceiptPreview({
   const shownPhoto = photos[shownIndex];
 
   return (
-    <div className="relative grid aspect-square place-items-center overflow-hidden rounded-[12px] bg-app-ink/[0.06]">
+    <div className="relative grid aspect-[4/3] place-items-center overflow-hidden rounded-[12px] bg-app-ink/[0.06]">
       {shownPhoto ? (
         <Image
           src={shownPhoto.url}
