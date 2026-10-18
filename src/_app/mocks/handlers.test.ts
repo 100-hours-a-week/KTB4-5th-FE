@@ -18,7 +18,7 @@ it("returns the mock health response", async () => {
 
 it("updates only the requested notification preference and returns the saved settings", async () => {
   const url = "http://localhost:3000/api/v1/notifications";
-  const response = await fetch(`${url}/setting`, {
+  const response = await fetch(`${url}/settings`, {
     method: "PATCH",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({

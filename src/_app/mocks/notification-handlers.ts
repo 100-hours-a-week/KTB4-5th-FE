@@ -72,7 +72,7 @@ export const notificationHandlers = [
       data: { notificationPreferences },
     }),
   ),
-  http.patch("*/api/v1/notifications/setting", async ({ request }) => {
+  http.patch("*/api/v1/notifications/settings", async ({ request }) => {
     const body: unknown = await request.json().catch(() => null);
     const changes =
       body && typeof body === "object" && "notificationPreferences" in body
