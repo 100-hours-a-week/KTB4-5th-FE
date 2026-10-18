@@ -16,7 +16,10 @@ import { useReceiptResultForm } from "./use-receipt-result-form";
 
 vi.mock("@lineiconshq/free-icons", () => ({ CalendarDaysOutlined: {} }));
 vi.mock("@lineiconshq/react-lineicons", () => ({ Lineicons: () => null }));
-vi.mock("@/entities/refrigerator", () => ({
+vi.mock("@/entities/refrigerator", async () => ({
+  refrigeratorQueries: (
+    await import("@/entities/refrigerator/api/refrigerator.queries")
+  ).refrigeratorQueries,
   useCurrentRefrigeratorId: () => "17",
 }));
 vi.mock("@/entities/notification", () => ({

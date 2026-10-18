@@ -3,10 +3,9 @@
 import { useQuery } from "@tanstack/react-query";
 
 import {
-  DEFAULT_INGREDIENT_LIST_SORT,
+  DEFAULT_INGREDIENT_LIST_QUERY,
   ingredientQueries,
   IngredientRefrigeratorRequiredState,
-  type IngredientListQuery,
   useIngredientDateStale,
   useIngredientRefreshToast,
 } from "@/entities/ingredient";
@@ -21,13 +20,6 @@ import { HomeAttentionSection } from "./home-attention-section";
 import { HomeCapacitySummary } from "./home-capacity-summary";
 import { HomeRecommendationNotice } from "./home-recommendation-notice";
 
-const HOME_LIST_QUERY: IngredientListQuery = {
-  filter: null,
-  category: null,
-  sort: DEFAULT_INGREDIENT_LIST_SORT,
-  keyword: null,
-};
-
 export function HomePage() {
   const refrigeratorId = useCurrentRefrigeratorId();
   const {
@@ -35,7 +27,10 @@ export function HomePage() {
     isError,
     refetch,
   } = useQuery({
-    ...ingredientQueries.firstPage(refrigeratorId ?? "", HOME_LIST_QUERY),
+    ...ingredientQueries.firstPage(
+      refrigeratorId ?? "",
+      DEFAULT_INGREDIENT_LIST_QUERY,
+    ),
     enabled: Boolean(refrigeratorId),
   });
   const isDateStale = useIngredientDateStale(page?.baseDate, page?.outdated);

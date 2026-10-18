@@ -1,4 +1,4 @@
-export const STOCK_TYPE_LIMIT = 100;
+export const STOCK_TYPE_LIMIT = 1500;
 export const INGREDIENT_REGISTER_BATCH_LIMIT = 20;
 
 /** 한 품목이 가질 수 있는 수량 상한. 품목 종류 한도(STOCK_TYPE_LIMIT)와는 별개다. */

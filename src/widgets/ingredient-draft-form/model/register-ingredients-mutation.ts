@@ -7,6 +7,8 @@ import {
   type RegisterBatchResult,
 } from "@/entities/ingredient";
 
+import { refrigeratorQueries } from "@/entities/refrigerator";
+
 import { getRegisterErrorMessage } from "./register-error-message";
 
 type RegisterIngredientsMutationOptionsParams = {
@@ -27,6 +29,9 @@ export function createRegisterIngredientsMutationOptions({
     mutationFn,
     onSuccess: (result, { refrigeratorId }) => {
       void invalidateIngredients(queryClient, refrigeratorId);
+      void queryClient.invalidateQueries({
+        queryKey: refrigeratorQueries.mypage(refrigeratorId).queryKey,
+      });
       onCompleted(result);
     },
     onError: (error, { refrigeratorId }) => {

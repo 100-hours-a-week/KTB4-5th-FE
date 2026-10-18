@@ -3,8 +3,11 @@
 import { useQuery } from "@tanstack/react-query";
 
 import {
+  DEFAULT_INGREDIENT_LIST_QUERY,
+  ingredientQueries,
+} from "@/entities/ingredient";
+import {
   formatRefrigeratorTitle,
-  refrigeratorQueries,
   useCurrentRefrigeratorId,
 } from "@/entities/refrigerator";
 
@@ -16,20 +19,18 @@ export function RefrigeratorHeaderTitle({
   fallback,
 }: RefrigeratorHeaderTitleProps) {
   const currentRefrigeratorId = useCurrentRefrigeratorId();
-  const { data, isPending } = useQuery(refrigeratorQueries.current());
+  const { data: name, isPending } = useQuery({
+    ...ingredientQueries.firstPage(
+      currentRefrigeratorId ?? "",
+      DEFAULT_INGREDIENT_LIST_QUERY,
+    ),
+    enabled: Boolean(currentRefrigeratorId),
+    select: (page) => page.refrigeratorName,
+  });
 
   if (isPending) {
     return null;
   }
 
-  if (!data || data.length === 0) {
-    return fallback;
-  }
-
-  const currentRefrigerator =
-    data.find(
-      (refrigerator) => refrigerator.refrigeratorId === currentRefrigeratorId,
-    ) ?? data[0];
-
-  return formatRefrigeratorTitle(currentRefrigerator.name);
+  return name ? formatRefrigeratorTitle(name) : fallback;
 }

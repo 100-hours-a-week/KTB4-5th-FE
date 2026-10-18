@@ -19,6 +19,7 @@ it("normalizes decimal weight strings while retaining the registered count", asy
               ingredientsNum: 1,
               filteredCount: 1,
               refrigeratorCapacity: 100,
+              refrigeratorName: "우리집",
               nextCursor: null,
               ingredients: [
                 {
@@ -54,5 +55,9 @@ it("normalizes decimal weight strings while retaining the registered count", asy
     weightValue: 400,
     measureType: "WEIGHT",
   });
-  expect(result).toMatchObject({ baseDate: "2026-09-16", outdated: false });
+  expect(result).toMatchObject({
+    baseDate: "2026-09-16",
+    outdated: false,
+    refrigeratorName: "우리집",
+  });
 });
