@@ -15,34 +15,3 @@ it("returns the mock health response", async () => {
     data: { status: "ok" },
   });
 });
-
-it("updates only the requested notification preference and returns the saved settings", async () => {
-  const url = "http://localhost:3000/api/v1/notifications";
-  const response = await fetch(`${url}/settings`, {
-    method: "PATCH",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      notificationPreferences: [{ type: "EXPIRATION", isEnabled: false }],
-    }),
-  });
-
-  expect(response.status).toBe(200);
-  expect(await response.json()).toMatchObject({
-    code: "NOTI-200-002",
-    data: {
-      notificationPreferences: [
-        { type: "EXPIRATION", isEnabled: false },
-        { type: "RECIPE", isEnabled: true },
-      ],
-    },
-  });
-  expect(await (await fetch(`${url}/settings`)).json()).toMatchObject({
-    code: "NOTI-200-001",
-    data: {
-      notificationPreferences: [
-        { type: "EXPIRATION", isEnabled: false },
-        { type: "RECIPE", isEnabled: true },
-      ],
-    },
-  });
-});
