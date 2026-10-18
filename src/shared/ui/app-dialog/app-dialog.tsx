@@ -5,6 +5,7 @@ import {
   useId,
   useRef,
   type MouseEvent,
+  type ReactNode,
   type SyntheticEvent,
 } from "react";
 
@@ -25,6 +26,7 @@ export type AppDialogProps = {
   secondaryAction?: AppDialogAction;
   primaryAction: AppDialogAction;
   dismissBehavior?: AppDialogDismissBehavior;
+  children?: ReactNode;
 };
 
 let scrollLockCount = 0;
@@ -58,6 +60,7 @@ export function AppDialog({
   secondaryAction,
   primaryAction,
   dismissBehavior = "secondary-action",
+  children,
 }: AppDialogProps) {
   const dialogRef = useRef<HTMLDialogElement>(null);
   const titleRef = useRef<HTMLHeadingElement>(null);
@@ -168,6 +171,7 @@ export function AppDialog({
         >
           {description}
         </p>
+        {children}
         <div className="mt-4 flex gap-2">
           {secondaryAction ? (
             <FooterButton
