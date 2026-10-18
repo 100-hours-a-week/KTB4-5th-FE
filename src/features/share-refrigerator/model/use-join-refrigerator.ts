@@ -6,11 +6,14 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   refrigeratorQueries,
   setCurrentRefrigeratorId,
+  useCurrentRefrigeratorId,
 } from "@/entities/refrigerator";
-import { joinRefrigerator } from "@/features/share-refrigerator";
 import { markAppNavigationIntent } from "@/shared/lib/navigation-history";
 import { routes } from "@/shared/routes";
 import { showAppToast } from "@/shared/ui/app-toast";
+
+import { joinRefrigerator } from "../api/share-refrigerator";
+import { dismissKakaotechJoinPrompt } from "./kakaotech-join-prompt";
 
 export function useJoinRefrigerator({
   onError,
@@ -18,11 +21,15 @@ export function useJoinRefrigerator({
   onError: (error: unknown) => void;
 }) {
   const router = useRouter();
+  const currentRefrigeratorId = useCurrentRefrigeratorId();
   const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: joinRefrigerator,
     onSuccess: async (refrigeratorId) => {
+      if (currentRefrigeratorId) {
+        dismissKakaotechJoinPrompt(currentRefrigeratorId);
+      }
       await queryClient.invalidateQueries({
         queryKey: refrigeratorQueries.all(),
       });

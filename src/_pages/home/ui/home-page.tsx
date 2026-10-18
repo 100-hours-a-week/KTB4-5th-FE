@@ -18,6 +18,7 @@ import {
 import { type HomeSummary, toHomeSummary } from "../model/home-summary";
 import { HomeAttentionSection } from "./home-attention-section";
 import { HomeCapacitySummary } from "./home-capacity-summary";
+import { HomeKakaotechJoinPrompt } from "./home-kakaotech-join-prompt";
 import { HomeRecommendationNotice } from "./home-recommendation-notice";
 
 export function HomePage() {
@@ -39,6 +40,12 @@ export function HomePage() {
 
   return (
     <main className="flex min-h-0 min-w-0 flex-1 flex-col overflow-y-auto pb-[calc(var(--space-6)+var(--safe-bottom))] [-webkit-overflow-scrolling:touch]">
+      {refrigeratorId ? (
+        <HomeKakaotechJoinPrompt
+          key={refrigeratorId}
+          refrigeratorId={refrigeratorId}
+        />
+      ) : null}
       {refrigeratorId === null ? (
         <IngredientRefrigeratorRequiredState />
       ) : page ? (

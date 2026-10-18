@@ -13,10 +13,14 @@ import {
   INVITE_CODE_LENGTH,
   normalizeInviteCodeInput,
 } from "../lib/invite-code";
-import { getJoinFailure, type JoinFailure } from "../model/join-failure";
-import { useJoinRefrigerator } from "../model/use-join-refrigerator";
+import {
+  getJoinFailure,
+  useJoinRefrigerator,
+  type JoinFailure,
+} from "@/features/share-refrigerator";
 
 const HELPER_TEXT = "영문 대문자·숫자 6자리";
+const INVALID_CHAR_TEXT = "영문과 숫자만 입력할 수 있어요";
 
 export function RefrigeratorJoinPage() {
   const [code, setCode] = useState("");
@@ -32,8 +36,13 @@ export function RefrigeratorJoinPage() {
     },
   });
 
-  const isComplete = code.length === INVITE_CODE_LENGTH;
-  const helperError = failure?.kind === "helper" ? failure.message : null;
+  const hasInvalidChar = /[^A-Z0-9]/.test(code);
+  const isComplete = code.length === INVITE_CODE_LENGTH && !hasInvalidChar;
+  const helperError = hasInvalidChar
+    ? INVALID_CHAR_TEXT
+    : failure?.kind === "helper"
+      ? failure.message
+      : null;
   const dialog = failure?.kind === "dialog" ? failure : null;
 
   return (
@@ -64,6 +73,7 @@ export function RefrigeratorJoinPage() {
             autoComplete="one-time-code"
             spellCheck={false}
             inputMode="text"
+            placeholder="XXX-XXX"
             value={formatInviteCode(code)}
             onChange={(event) => {
               setCode(normalizeInviteCodeInput(event.target.value));
