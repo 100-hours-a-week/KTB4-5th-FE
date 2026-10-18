@@ -31,10 +31,5 @@ export const imageAnalysisQueries = {
       queryFn: ({ signal }) => getImageAnalysis({ analysisId, signal }),
       staleTime: Infinity,
       retry: retryImageAnalysisRead,
-      refetchInterval: (query) =>
-        query.state.status === "error"
-          ? false
-          : (query.state.data?.pollAfterMs ?? false),
-      refetchIntervalInBackground: false,
     }),
 };
