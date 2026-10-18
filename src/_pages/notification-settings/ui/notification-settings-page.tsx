@@ -8,6 +8,7 @@ import {
   useNotificationSessionScope,
   type NotificationPreferencesResponse,
 } from "@/entities/notification";
+import { userQueries } from "@/entities/user";
 import { updateNotificationPreference } from "@/features/manage-push-notifications";
 import { SessionExpiredError } from "@/shared/api";
 import { showAppToast } from "@/shared/ui/app-toast";
@@ -65,6 +66,8 @@ export function NotificationSettingsPage() {
     ...queryOptions,
     enabled: sessionScope !== undefined,
   });
+  const meQuery = useQuery(userQueries.me());
+  const isKakaoUser = Boolean(meQuery.data?.email);
   const preferenceMutation = useMutation({
     mutationFn: (enabled: boolean) =>
       updateNotificationPreference("EXPIRATION", enabled),
@@ -136,7 +139,9 @@ export function NotificationSettingsPage() {
   return (
     <main className="min-h-0 flex-1 overflow-y-auto px-5 pt-4 pb-8">
       <p className="mb-4 text-[13px] text-app-ink/55">
-        변경한 내용은 바로 저장돼요
+        {meQuery.data && !isKakaoUser
+          ? "카카오 로그인으로 이용 시 푸시 알림을 받을 수 있어요"
+          : "변경한 내용은 바로 저장돼요"}
       </p>
 
       <div className="flex flex-col gap-4">
@@ -144,7 +149,7 @@ export function NotificationSettingsPage() {
           title="임박·만료 알림"
           description="D-3 이내 재료와 오늘까지인 재료를 알려드려요"
           checked={expirationEnabled}
-          disabled={preferenceMutation.isPending}
+          disabled={!isKakaoUser || preferenceMutation.isPending}
           onChange={() => preferenceMutation.mutate(!expirationEnabled)}
         />
 
