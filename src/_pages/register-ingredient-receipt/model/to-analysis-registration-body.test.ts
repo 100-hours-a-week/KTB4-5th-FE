@@ -63,7 +63,7 @@ it("groups confirmed items by image and preserves original IDs after removal", (
   };
   expect(body).toEqual({
     analysisId: "analysis-id",
-    results: [
+    images: [
       {
         imageObjectKey: "a.jpg",
         items: [expectedItem, { ...expectedItem, itemId: "a3" }],

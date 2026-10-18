@@ -16,7 +16,7 @@ export type AnalysisIngredientItem = Omit<
 
 export type RegisterIngredientsFromAnalysisBody = {
   analysisId: string;
-  results: { imageObjectKey: string; items: AnalysisIngredientItem[] }[];
+  images: { imageObjectKey: string; items: AnalysisIngredientItem[] }[];
 };
 
 export async function registerIngredientsFromAnalysis({

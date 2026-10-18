@@ -10,18 +10,18 @@ export function toAnalysisRegistrationBody(
   origins: ReceiptRecognitionResult["origins"],
   items: readonly RegisterIngredientItem[],
 ): RegisterIngredientsFromAnalysisBody {
-  const results: RegisterIngredientsFromAnalysisBody["results"] = [];
+  const images: RegisterIngredientsFromAnalysisBody["images"] = [];
 
   items.forEach((item, index) => {
     const origin = origins[index];
     if (!origin) throw new Error("분석 원본 항목을 찾을 수 없어요");
 
-    let image = results.find(
+    let image = images.find(
       (entry) => entry.imageObjectKey === origin.imageObjectKey,
     );
     if (!image) {
       image = { imageObjectKey: origin.imageObjectKey, items: [] };
-      results.push(image);
+      images.push(image);
     }
 
     const { weightValue, weightUnit, expirationDate, ...values } = item;
@@ -39,5 +39,5 @@ export function toAnalysisRegistrationBody(
     });
   });
 
-  return { analysisId, results };
+  return { analysisId, images };
 }
