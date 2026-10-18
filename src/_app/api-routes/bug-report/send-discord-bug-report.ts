@@ -1,7 +1,7 @@
 import { bugReportCategoryLabels } from "@/features/report-bug/index.server";
 import type {
   BugReportCategory,
-  BugReportClientContext,
+  BugReportRequest,
 } from "@/features/report-bug/index.server";
 
 const categoryColors = {
@@ -10,22 +10,10 @@ const categoryColors = {
   ETC: 0x7d7979,
 } satisfies Record<BugReportCategory, number>;
 
-const screenshotExtensions: Record<string, string> = {
-  "image/png": "png",
-  "image/jpeg": "jpg",
-  "image/webp": "webp",
-  "image/gif": "gif",
-};
-
 const WEBHOOK_TIMEOUT_MS = 10_000;
 
-export type DiscordBugReport = {
-  reporterName: string;
-  category: BugReportCategory;
-  description: string;
+export type DiscordBugReport = BugReportRequest & {
   userId: string | null;
-  context: Partial<BugReportClientContext>;
-  screenshot: File | null;
 };
 
 function truncate(value: string, maxLength: number): string {
@@ -49,11 +37,7 @@ export async function sendDiscordBugReport(
   webhookUrl: string,
   report: DiscordBugReport,
 ): Promise<void> {
-  const { reporterName, category, description, userId, context, screenshot } =
-    report;
-  const screenshotName = screenshot
-    ? `screenshot.${screenshotExtensions[screenshot.type] ?? "png"}`
-    : null;
+  const { reporterName, category, description, userId, pageUrl } = report;
 
   const payload = {
     username: "다먹자 버그 리포트",
@@ -74,27 +58,16 @@ export async function sendDiscordBugReport(
             true,
           ),
           field("앱 버전", process.env.NEXT_PUBLIC_SENTRY_RELEASE, true),
-          field("화면", context.pageUrl && `\`${context.pageUrl}\``),
-          field("뷰포트", context.viewport, true),
-          field("신고 시각(기기)", context.reportedAt, true),
-          field("User-Agent", context.userAgent),
+          field("화면", pageUrl && `\`${pageUrl}\``),
         ],
-        ...(screenshotName
-          ? { image: { url: `attachment://${screenshotName}` } }
-          : {}),
       },
     ],
   };
 
-  const body = new FormData();
-  body.set("payload_json", JSON.stringify(payload));
-  if (screenshot && screenshotName) {
-    body.set("files[0]", screenshot, screenshotName);
-  }
-
   const response = await fetch(webhookUrl, {
     method: "POST",
-    body,
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload),
     signal: AbortSignal.timeout(WEBHOOK_TIMEOUT_MS),
   });
 
