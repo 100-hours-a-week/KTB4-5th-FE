@@ -3,6 +3,7 @@ export type RefrigeratorMemberRole = "owner" | "member";
 export type RefrigeratorMember = {
   userId: string;
   nickname: string;
+  profileImageUrl: string | null;
   role: RefrigeratorMemberRole;
 };
 

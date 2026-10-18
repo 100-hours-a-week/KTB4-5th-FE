@@ -34,7 +34,10 @@ afterAll(() => vi.unstubAllEnvs());
 vi.mock("next/navigation", () => ({ useRouter: () => router }));
 vi.mock("next/image", () => ({ default: () => null }));
 vi.mock("@/shared/ui/app-toast", () => ({ showAppToast: vi.fn() }));
-vi.mock("@/entities/user", () => import("@/entities/user/api/user.queries"));
+vi.mock("@/entities/user", async () => ({
+  ...(await import("@/entities/user/api/user.queries")),
+  UserAvatar: () => null,
+}));
 vi.mock("@/shared/ui/app-dialog", () => ({
   AppDialog: ({
     open,
