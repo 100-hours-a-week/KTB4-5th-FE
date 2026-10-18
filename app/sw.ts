@@ -3,7 +3,7 @@
 
 import { defaultCache } from "@serwist/turbopack/worker";
 import type { PrecacheEntry, SerwistGlobalConfig } from "serwist";
-import { NetworkOnly, Serwist } from "serwist";
+import { disableNavigationPreload, NetworkOnly, Serwist } from "serwist";
 
 import { routes } from "@/shared/routes";
 
@@ -75,7 +75,6 @@ const serwist = new Serwist({
   precacheEntries: self.__SW_MANIFEST,
   skipWaiting: true,
   clientsClaim: true,
-  navigationPreload: true,
   runtimeCaching:
     process.env.NODE_ENV === "development"
       ? []
@@ -154,5 +153,7 @@ self.addEventListener("fetch", (event) => {
     event.stopImmediatePropagation();
   }
 });
+
+disableNavigationPreload();
 
 serwist.addEventListeners();
