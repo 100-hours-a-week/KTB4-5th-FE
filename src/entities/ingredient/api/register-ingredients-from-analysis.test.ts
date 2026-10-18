@@ -24,7 +24,7 @@ it("posts the analysis body to the dedicated endpoint and unwraps the response",
   vi.stubGlobal("document", { cookie: "XSRF-TOKEN=token" });
   const body = {
     analysisId: "analysis-id",
-    results: [
+    images: [
       {
         imageObjectKey: "a.jpg",
         items: [

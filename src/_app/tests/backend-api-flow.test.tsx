@@ -193,7 +193,7 @@ it("영수증 업로드 → AI 인식 → 누락 유통기한 수정 → 등록 
   expect(new Headers(request.headers).get("X-XSRF-TOKEN")).toBe("csrf");
   expect(JSON.parse(request.body)).toEqual({
     analysisId: job.analysisId,
-    results: [
+    images: [
       {
         imageObjectKey: "receipt.jpg",
         items: [
