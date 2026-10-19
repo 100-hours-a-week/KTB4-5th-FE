@@ -194,7 +194,8 @@ export function IngredientDraftCard({
                 <div className="min-w-0">
                   <label
                     htmlFor={`${idPrefix}-quantity`}
-                    className={FIELD_LABEL_CLASS_NAME}
+                    data-disabled={quantityDisabled}
+                    className={`${FIELD_LABEL_CLASS_NAME} data-[disabled=true]:text-app-ink/35`}
                   >
                     수량
                   </label>
@@ -222,7 +223,8 @@ export function IngredientDraftCard({
                 <div className="min-w-0">
                   <label
                     htmlFor={`${idPrefix}-weight`}
-                    className={FIELD_LABEL_CLASS_NAME}
+                    data-disabled={weightDisabled}
+                    className={`${FIELD_LABEL_CLASS_NAME} data-[disabled=true]:text-app-ink/35`}
                   >
                     무게
                   </label>
