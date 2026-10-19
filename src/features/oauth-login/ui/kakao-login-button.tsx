@@ -1,6 +1,8 @@
 "use client";
 
-import { useEffect, useState, type MouseEvent } from "react";
+import { useEffect, useState } from "react";
+
+import { showAppToast } from "@/shared/ui/app-toast";
 
 import { getOAuthAuthorizationPath } from "../api/oauth-authorization-path";
 import { markOAuthLoginStarted } from "../model/oauth-return";
@@ -18,34 +20,33 @@ export function KakaoLoginButton() {
     return () => window.removeEventListener("pageshow", restoreButton);
   }, []);
 
-  function handleClick(event: MouseEvent<HTMLAnchorElement>) {
-    if (
-      event.button !== 0 ||
-      event.metaKey ||
-      event.ctrlKey ||
-      event.shiftKey ||
-      event.altKey
-    ) {
-      markOAuthLoginStarted();
-      return;
-    }
-
-    event.preventDefault();
+  async function handleClick() {
     if (isPending) return;
 
-    markOAuthLoginStarted();
     setIsPending(true);
-    requestAnimationFrame(() => {
-      requestAnimationFrame(() => window.location.assign(authorizationPath));
-    });
+    try {
+      const registration = await navigator.serviceWorker?.getRegistration();
+      await registration?.navigationPreload?.disable();
+
+      markOAuthLoginStarted();
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => window.location.assign(authorizationPath));
+      });
+    } catch {
+      setIsPending(false);
+      showAppToast({
+        message: "잠시 후 다시 시도해 주세요",
+        variant: "error",
+      });
+    }
   }
 
   return (
-    <a
-      href={authorizationPath}
+    <button
+      type="button"
       onClick={handleClick}
+      disabled={isPending}
       aria-busy={isPending || undefined}
-      aria-disabled={isPending || undefined}
       className="inline-flex min-h-[52px] w-full items-center justify-center gap-2 rounded-[4px] bg-[#FEE500] px-5 py-3 font-app-heading text-[15px] font-black text-black/85 shadow-app-md hover:brightness-95"
     >
       {isPending ? (
@@ -64,6 +65,6 @@ export function KakaoLoginButton() {
         </svg>
       )}
       {isPending ? "냉장고로 이동 중..." : "카카오로 시작하기"}
-    </a>
+    </button>
   );
 }
