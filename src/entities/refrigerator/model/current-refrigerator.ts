@@ -64,6 +64,7 @@ export function useCurrentRefrigeratorRecovery() {
 
   return {
     refrigeratorId: storedId ?? recoveredId,
+    isRecovering: storedId === null && !data && !error,
     // 세션 만료는 로그인 화면으로 보내므로 복구 실패로 보지 않는다.
     isRecoveryError:
       storedId === null &&

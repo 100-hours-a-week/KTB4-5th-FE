@@ -131,7 +131,11 @@ export function IngredientEditForm({
         ingredientQueries.detail(refrigeratorId, ingredientId).queryKey,
         (previous) =>
           previous
-            ? { ...previous, ingredient: result.ingredient, etag: result.etag }
+            ? {
+                ...previous,
+                ingredient: { ...previous.ingredient, ...result.ingredient },
+                etag: result.etag,
+              }
             : undefined,
       );
       void invalidateIngredients(queryClient, refrigeratorId);

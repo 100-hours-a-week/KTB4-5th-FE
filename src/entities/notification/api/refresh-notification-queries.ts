@@ -2,6 +2,7 @@ import {
   hashKey,
   type InfiniteData,
   type QueryClient,
+  type QueryKey,
 } from "@tanstack/react-query";
 
 import type { NotificationListPage } from "./get-notification-list";
@@ -29,13 +30,17 @@ export async function refreshNotificationLists(
 
   const refresh = (async () => {
     const allList = notificationQueries.list(userScope, refrigeratorId, "ALL");
-    const isAllListActive = Boolean(
-      queryClient
-        .getQueryCache()
-        .find({ queryKey: allList.queryKey, exact: true })
-        ?.getObserversCount(),
-    );
+    const cache = queryClient.getQueryCache();
+    const queryKey: QueryKey = allList.queryKey;
+    const allListQuery = cache.build(queryClient, {
+      queryKey,
+    });
+    const isAllListActive = Boolean(allListQuery.getObserversCount());
+    // 냉장고 전환·로그아웃으로 제거한 목록을 await 이후 다시 만들지 않는다.
+    const wasRemoved = () =>
+      cache.find({ queryKey: allList.queryKey, exact: true }) !== allListQuery;
     await queryClient.cancelQueries({ queryKey: listsKey });
+    if (wasRemoved()) return;
     queryClient.setQueriesData<
       InfiniteData<NotificationListPage, string | null>
     >({ queryKey: listsKey }, (current) =>
@@ -50,7 +55,7 @@ export async function refreshNotificationLists(
       { queryKey: listsKey, refetchType: "active" },
       { throwOnError: true },
     );
-    if (!isAllListActive) {
+    if (!isAllListActive && !wasRemoved()) {
       await queryClient.fetchInfiniteQuery({ ...allList, staleTime: 0 });
     }
   })();

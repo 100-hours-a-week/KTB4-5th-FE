@@ -43,6 +43,10 @@ export function IngredientSummaryCard({
       value: INGREDIENT_CATEGORY_LABELS[ingredient.category],
     },
     {
+      label: "등록자",
+      value: ingredient.ownerNickname,
+    },
+    {
       label: "등록일",
       value: formatIsoDate(ingredient.createdDate),
     },

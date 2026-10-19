@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 
 import { refrigeratorQueries } from "@/entities/refrigerator";
-import { UserAvatar, userQueries, type Me } from "@/entities/user";
+import { userQueries, type Me } from "@/entities/user";
 import { useFormLeaveGuard } from "@/features/ingredient-form";
 import {
   isValidNickname,
@@ -26,7 +26,9 @@ import {
 import { FooterButton } from "@/shared/ui/footer-button";
 import { PageActionLayout } from "@/shared/ui/page-action-layout";
 
-import { updateMyNickname } from "../api/my-profile";
+import { updateMyProfile } from "../api/my-profile";
+import { useProfileImagePicker } from "../model/use-profile-image-picker";
+import { ProfileImageField } from "./profile-image-field";
 import { WithdrawAccountButton } from "./withdraw-account-button";
 
 const FORM_ID = "my-profile-form";
@@ -83,9 +85,18 @@ function MyProfileForm({ me }: { me: Me }) {
     null,
   );
   const [isSaved, setIsSaved] = useState(false);
+  const profileImage = useProfileImagePicker();
+  const imageChange = profileImage.change;
+  const displayedImageUrl =
+    imageChange.kind === "replace"
+      ? imageChange.previewUrl
+      : imageChange.kind === "reset"
+        ? null
+        : me.profileImageUrl;
 
   const trimmedNickname = nickname.trim();
-  const isDirty = trimmedNickname !== me.nickname;
+  const isDirty =
+    trimmedNickname !== me.nickname || imageChange.kind !== "keep";
   const nicknameError =
     trimmedNickname.length === 0
       ? "닉네임을 입력해주세요"
@@ -102,7 +113,7 @@ function MyProfileForm({ me }: { me: Me }) {
   });
 
   const saveMutation = useMutation({
-    mutationFn: updateMyNickname,
+    mutationFn: updateMyProfile,
     onSuccess: async () => {
       setIsSaved(true);
       await Promise.all([
@@ -137,7 +148,10 @@ function MyProfileForm({ me }: { me: Me }) {
               form={FORM_ID}
               type="submit"
               disabled={
-                !isDirty || nicknameError !== null || saveMutation.isPending
+                !isDirty ||
+                nicknameError !== null ||
+                profileImage.isUploading ||
+                saveMutation.isPending
               }
             >
               {saveMutation.isPending ? "로딩 중" : "저장"}
@@ -150,13 +164,24 @@ function MyProfileForm({ me }: { me: Me }) {
           noValidate
           onSubmit={(event) => {
             event.preventDefault();
-            saveMutation.mutate(trimmedNickname);
+            saveMutation.mutate({
+              nickname: trimmedNickname,
+              ...(imageChange.kind === "replace"
+                ? { profileImage: imageChange.objectKey }
+                : imageChange.kind === "reset"
+                  ? { profileImage: null }
+                  : {}),
+            });
           }}
           className="flex flex-col gap-5 px-5 pt-3 pb-6"
         >
-          <section className="flex flex-col items-center">
-            <UserAvatar src={me.profileImageUrl} size={88} />
-          </section>
+          <ProfileImageField
+            src={displayedImageUrl}
+            error={profileImage.error}
+            isUploading={profileImage.isUploading}
+            onPick={(file) => void profileImage.pick(file)}
+            onReset={profileImage.reset}
+          />
 
           <div>
             <label
