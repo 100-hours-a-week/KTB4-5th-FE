@@ -1,6 +1,6 @@
 "use client";
 
-import { Pencil1Outlined } from "@lineiconshq/free-icons";
+import { Camera1Outlined, Pencil1Outlined } from "@lineiconshq/free-icons";
 import { useQuery } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 
@@ -8,6 +8,7 @@ import {
   DEFAULT_INGREDIENT_LIST_SORT,
   getIngredientCapacity,
   ingredientQueries,
+  IngredientRefrigeratorRequiredState,
   type IngredientListQuery,
 } from "@/entities/ingredient";
 import { useCurrentRefrigeratorId } from "@/entities/refrigerator";
@@ -25,7 +26,9 @@ import { RegisterMethodCard } from "./register-method-card";
 
 const CAPACITY_LIST_QUERY: IngredientListQuery = {
   filter: null,
+  category: null,
   sort: DEFAULT_INGREDIENT_LIST_SORT,
+  keyword: null,
 };
 
 export function RegisterIngredientPage() {
@@ -51,6 +54,14 @@ export function RegisterIngredientPage() {
       },
     });
   };
+
+  if (refrigeratorId === null) {
+    return (
+      <main className="flex min-h-0 min-w-0 flex-1 flex-col overflow-y-auto">
+        <IngredientRefrigeratorRequiredState />
+      </main>
+    );
+  }
 
   if (error && !page) {
     return (
@@ -94,7 +105,20 @@ export function RegisterIngredientPage() {
         </p>
       )}
 
-      <ul className="mt-5" aria-labelledby="register-method-heading">
+      <ul
+        className="mt-5 flex flex-col gap-4"
+        aria-labelledby="register-method-heading"
+      >
+        <li>
+          <RegisterMethodCard
+            href={routes.registerIngredientReceipt}
+            icon={Camera1Outlined}
+            title="영수증 촬영"
+            description="영수증을 찍으면 재료명과 수량을 자동으로 읽어요"
+            disabled={capacity?.isLimitReached ?? false}
+            onDisabledClick={showCapacityLimitToast}
+          />
+        </li>
         <li>
           <RegisterMethodCard
             href={routes.registerIngredientManual}

@@ -5,6 +5,7 @@ export { getIngredientDetail } from "./api/get-ingredient-detail";
 export type { IngredientDetailView } from "./api/get-ingredient-detail";
 export type { IngredientListPage } from "./api/get-ingredient-list";
 export { ingredientQueries } from "./api/ingredient.queries";
+export { invalidateIngredients } from "./api/invalidate-ingredients";
 export { registerIngredients } from "./api/register-ingredients";
 export { updateIngredient } from "./api/update-ingredient";
 export type {
@@ -18,28 +19,30 @@ export type {
   RegisterMergedItem,
 } from "./api/register-ingredients";
 export {
+  INGREDIENT_CATEGORIES,
   INGREDIENT_MEASURE_TYPES,
-  INGREDIENT_REGISTRATION_SOURCES,
   INGREDIENT_STORAGE_TYPES,
 } from "./model/ingredient";
 export type {
   Ingredient,
+  IngredientCategory,
   IngredientDetail,
   IngredientMeasureType,
-  IngredientRegistrationSource,
   IngredientStatus,
   IngredientStorageType,
   IngredientWeightUnit,
 } from "./model/ingredient";
+export { useIngredientDateStale } from "./model/use-ingredient-date-stale";
 export { getIngredientCapacity } from "./model/ingredient-capacity";
 export type { IngredientCapacity } from "./model/ingredient-capacity";
 export {
+  DEFAULT_INGREDIENT_LIST_QUERY,
   DEFAULT_INGREDIENT_LIST_SORT,
   hasIngredientListCondition,
   INGREDIENT_LIST_FILTERS,
   INGREDIENT_LIST_SORTS,
-  isStorageFilter,
   parseIngredientListQuery,
+  toIngredientListKeyword,
   toIngredientListQueryString,
 } from "./model/ingredient-list-query";
 export type {
@@ -56,6 +59,7 @@ export {
   formatIngredientWeight,
 } from "./lib/format-ingredient";
 export {
+  INGREDIENT_CATEGORY_LABELS,
   INGREDIENT_MEASURE_TYPE_LABELS,
   INGREDIENT_LIST_FILTER_LABELS,
   INGREDIENT_LIST_SORT_LABELS,
@@ -67,3 +71,6 @@ export {
 export { IngredientExpiryStamp } from "./ui/ingredient-expiry-stamp";
 export { IngredientReadErrorState } from "./ui/ingredient-read-error-state";
 export { IngredientRefrigeratorRequiredState } from "./ui/ingredient-refrigerator-required-state";
+export { useIngredientRefreshToast } from "./ui/use-ingredient-refresh-toast";
+export { registerIngredientsFromAnalysis } from "./api/register-ingredients-from-analysis";
+export type { RegisterIngredientsFromAnalysisBody } from "./api/register-ingredients-from-analysis";

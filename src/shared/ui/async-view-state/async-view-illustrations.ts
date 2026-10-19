@@ -6,8 +6,6 @@ import loadingIllustration from "@/shared/assets/illustrations/illustration-load
 
 export type AsyncViewStatus = "loading" | "error" | "empty";
 
-export const ASYNC_VIEW_ILLUSTRATION_SIZES = "160px";
-
 export const asyncViewIllustrations: Record<AsyncViewStatus, StaticImageData> =
   {
     loading: loadingIllustration,

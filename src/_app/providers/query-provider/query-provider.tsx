@@ -5,20 +5,21 @@ import {
   QueryCache,
   QueryClient,
   QueryClientProvider,
-  type QueryClientConfig,
 } from "@tanstack/react-query";
 import type { ReactNode } from "react";
 
 import { reportOperationFailure } from "@/_app/monitoring/index.client";
 import { expireSession } from "@/_app/providers/session-expiry";
-import { SessionExpiredError } from "@/shared/api";
+import { ApiError, SessionExpiredError } from "@/shared/api";
 
-const defaultOptions: QueryClientConfig["defaultOptions"] = {
-  queries: {
-    // TODO: 도메인별 최신성 정책이 확정되면 각 Query Option Factory에서 재정의한다.
-    staleTime: 0,
-  },
-};
+const MAX_NETWORK_RETRIES = 1;
+
+function shouldRetryQuery(failureCount: number, error: unknown) {
+  if (error instanceof ApiError || error instanceof SessionExpiredError) {
+    return false;
+  }
+  return failureCount < MAX_NETWORK_RETRIES;
+}
 
 export function createQueryClient(): QueryClient {
   const clientRef: { current: QueryClient | null } = { current: null };
@@ -30,7 +31,7 @@ export function createQueryClient(): QueryClient {
   };
 
   const client = new QueryClient({
-    defaultOptions,
+    defaultOptions: { queries: { retry: shouldRetryQuery } },
     queryCache: new QueryCache({
       onError: (error, query) => {
         handleSessionExpired(error);
@@ -58,6 +59,37 @@ function getQueryClient() {
   }
 
   browserQueryClient ??= createQueryClient();
+
+  if (process.env.NEXT_PUBLIC_LIST_PERF === "true") {
+    (
+      window as Window & {
+        __listPerfQuerySnapshot?: (type: "ingredient" | "notification") => {
+          queryCount: number;
+          pages: number;
+          estimatedJsonBytes: number;
+        };
+      }
+    ).__listPerfQuerySnapshot = (type) => {
+      const queries = browserQueryClient!
+        .getQueryCache()
+        .getAll()
+        .filter(
+          (query) =>
+            query.queryKey.includes(
+              type === "ingredient" ? "ingredients" : "notifications",
+            ) && query.queryKey.includes("list"),
+        );
+      const values = queries.map((query) => query.state.data).filter(Boolean);
+      return {
+        queryCount: queries.length,
+        pages: values.flatMap(
+          (value) => (value as { pages?: unknown[] }).pages ?? [],
+        ).length,
+        estimatedJsonBytes: new TextEncoder().encode(JSON.stringify(values))
+          .length,
+      };
+    };
+  }
 
   return browserQueryClient;
 }

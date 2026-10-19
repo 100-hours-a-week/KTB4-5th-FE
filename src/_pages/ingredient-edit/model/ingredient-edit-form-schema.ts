@@ -1,6 +1,7 @@
 import { z } from "zod";
 
 import {
+  INGREDIENT_CATEGORIES,
   INGREDIENT_MEASURE_TYPES,
   INGREDIENT_STORAGE_TYPES,
   type IngredientWeightUnit,
@@ -17,6 +18,7 @@ export const EDIT_WEIGHT_UNITS = ["G", "ML"] as const;
 
 const baseSchema = z.object({
   name: ingredientNameSchema,
+  category: z.enum(INGREDIENT_CATEGORIES),
   measureType: z.enum(INGREDIENT_MEASURE_TYPES),
   storageType: z.enum(INGREDIENT_STORAGE_TYPES),
   quantity: ingredientQuantitySchema,
@@ -83,6 +85,7 @@ export function hasEditChanges(
   }
 
   if (
+    current.category !== initial.category ||
     current.storageType !== initial.storageType ||
     current.expirationDate !== initial.expirationDate
   ) {

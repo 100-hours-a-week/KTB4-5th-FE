@@ -15,6 +15,7 @@ export function toUpdateIngredientBody(
   const body: UpdateIngredientBody = {};
 
   if (values.name !== normalizeIngredientName(initial.name)) body.name = values.name;
+  if (values.category !== initial.category) body.category = values.category;
   if (values.storageType !== initial.storageType)
     body.storageType = values.storageType;
   if (values.expirationDate !== initial.expirationDate)

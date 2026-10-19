@@ -9,6 +9,7 @@ type LinkCardProps = {
   trailing?: ReactNode;
   trailingCaption?: ReactNode;
   className?: string;
+  prefetch?: boolean;
   onClick?: MouseEventHandler<HTMLAnchorElement>;
 };
 
@@ -20,10 +21,12 @@ export function LinkCard({
   trailing,
   trailingCaption,
   onClick,
+  prefetch,
 }: LinkCardProps) {
   return (
     <AppLink
       href={href}
+      prefetch={prefetch}
       onClick={onClick}
       className={`flex items-center gap-3 rounded-[4px] bg-white px-4 py-3 no-underline shadow-app-sm hover:bg-app-neutral-100 active:bg-app-neutral-200 ${className}`}
     >

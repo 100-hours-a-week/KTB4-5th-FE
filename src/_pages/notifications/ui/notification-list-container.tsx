@@ -7,12 +7,12 @@ import {
   type NotificationListFilter,
 } from "@/entities/notification";
 import { ApiError } from "@/shared/api";
+import { useInfiniteScrollTrigger } from "@/shared/lib/infinite-scroll";
 import {
   AsyncViewState,
   asyncViewActionClassName,
 } from "@/shared/ui/async-view-state";
 
-import { useInfiniteScrollTrigger } from "../model/use-infinite-scroll-trigger";
 import { NOTIFICATION_EMPTY_STATES } from "../model/notification-empty-states";
 import { groupNotificationsByDate } from "../model/notification-groups";
 import { NotificationCard } from "./notification-card";

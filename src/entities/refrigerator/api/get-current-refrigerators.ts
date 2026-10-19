@@ -9,22 +9,11 @@ type RefrigeratorResponseDto = {
   expiredCount: number;
 };
 
-export const REFRIGERATOR_STATUSES = ["ACTIVE", "INACTIVE"] as const;
-
-export type RefrigeratorStatus = (typeof REFRIGERATOR_STATUSES)[number];
-
-type GetCurrentRefrigeratorsParams = {
-  status?: RefrigeratorStatus;
-  signal?: AbortSignal;
-};
-
 export async function getCurrentRefrigerators({
-  status = "ACTIVE",
   signal,
-}: GetCurrentRefrigeratorsParams = {}): Promise<Refrigerator[]> {
-  const params = new URLSearchParams({ status });
+}: { signal?: AbortSignal } = {}): Promise<Refrigerator[]> {
   const { data } = await requestJson<RefrigeratorResponseDto[]>(
-    `/refrigerators/current?${params}`,
+    "/refrigerators/current",
     { signal },
   );
 

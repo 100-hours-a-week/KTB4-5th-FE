@@ -1,7 +1,4 @@
-import {
-  INGREDIENT_STORAGE_TYPES,
-  type IngredientStorageType,
-} from "./ingredient";
+import { INGREDIENT_CATEGORIES, type IngredientCategory } from "./ingredient";
 
 export const INGREDIENT_LIST_FILTERS = [
   "REFRIGERATED",
@@ -24,15 +21,33 @@ export const DEFAULT_INGREDIENT_LIST_SORT: IngredientListSort =
 
 export type IngredientListQuery = {
   filter: IngredientListFilter | null;
+  category: IngredientCategory | null;
   sort: IngredientListSort;
+  keyword: string | null;
+};
+
+export const DEFAULT_INGREDIENT_LIST_QUERY: IngredientListQuery = {
+  filter: null,
+  category: null,
+  sort: DEFAULT_INGREDIENT_LIST_SORT,
+  keyword: null,
 };
 
 export type RawQueryParams = Record<string, string | string[] | undefined>;
 
 const INGREDIENT_LIST_QUERY_KEYS = {
   filter: "filter",
+  category: "category",
   sort: "sort",
+  keyword: "keyword",
 } as const;
+
+const MIN_INGREDIENT_KEYWORD_LENGTH = 1;
+
+export function toIngredientListKeyword(value: string): string | null {
+  const keyword = value.trim();
+  return keyword.length >= MIN_INGREDIENT_KEYWORD_LENGTH ? keyword : null;
+}
 
 function readSingleValue(value: string | string[] | undefined): string {
   const single = Array.isArray(value) ? value[0] : value;
@@ -47,12 +62,6 @@ function readAllowedValue<T extends string>(
   return allowed.includes(single as T) ? (single as T) : null;
 }
 
-export function isStorageFilter(
-  filter: IngredientListFilter,
-): filter is IngredientStorageType {
-  return (INGREDIENT_STORAGE_TYPES as readonly string[]).includes(filter);
-}
-
 export function parseIngredientListQuery(
   queryParams: RawQueryParams,
 ): IngredientListQuery {
@@ -61,11 +70,18 @@ export function parseIngredientListQuery(
       queryParams[INGREDIENT_LIST_QUERY_KEYS.filter],
       INGREDIENT_LIST_FILTERS,
     ),
+    category: readAllowedValue(
+      queryParams[INGREDIENT_LIST_QUERY_KEYS.category],
+      INGREDIENT_CATEGORIES,
+    ),
     sort:
       readAllowedValue(
         queryParams[INGREDIENT_LIST_QUERY_KEYS.sort],
         INGREDIENT_LIST_SORTS,
       ) ?? DEFAULT_INGREDIENT_LIST_SORT,
+    keyword: toIngredientListKeyword(
+      readSingleValue(queryParams[INGREDIENT_LIST_QUERY_KEYS.keyword]),
+    ),
   };
 }
 
@@ -78,8 +94,16 @@ export function toIngredientListQueryString(
     queryParams.set(INGREDIENT_LIST_QUERY_KEYS.filter, query.filter);
   }
 
+  if (query.category) {
+    queryParams.set(INGREDIENT_LIST_QUERY_KEYS.category, query.category);
+  }
+
   if (query.sort !== DEFAULT_INGREDIENT_LIST_SORT) {
     queryParams.set(INGREDIENT_LIST_QUERY_KEYS.sort, query.sort);
+  }
+
+  if (query.keyword) {
+    queryParams.set(INGREDIENT_LIST_QUERY_KEYS.keyword, query.keyword);
   }
 
   return queryParams.toString();
@@ -88,5 +112,7 @@ export function toIngredientListQueryString(
 export function hasIngredientListCondition(
   query: IngredientListQuery,
 ): boolean {
-  return query.filter !== null;
+  return (
+    query.filter !== null || query.category !== null || query.keyword !== null
+  );
 }

@@ -8,14 +8,15 @@ import {
   type IngredientListQuery,
 } from "@/entities/ingredient";
 import { ApiError } from "@/shared/api";
+import { useInfiniteScrollTrigger } from "@/shared/lib/infinite-scroll";
 import {
   AsyncViewState,
   asyncViewActionClassName,
 } from "@/shared/ui/async-view-state";
 
 import { useIngredientListNavigation } from "../model/use-ingredient-list-navigation";
-import { useInfiniteScrollTrigger } from "../model/use-infinite-scroll-trigger";
 import { IngredientCardList } from "./ingredient-card-list";
+import { IngredientCardListSkeleton } from "./ingredient-card-list-skeleton";
 import { IngredientListEmpty } from "./ingredient-list-empty";
 
 type IngredientListContainerProps = {
@@ -53,7 +54,7 @@ export function IngredientListContainer({
   });
 
   if (isPending) {
-    return <AsyncViewState status="loading" title="재고를 불러오는 중입니다" />;
+    return <IngredientCardListSkeleton />;
   }
 
   if (isInitialError) {
@@ -84,7 +85,9 @@ export function IngredientListContainer({
     return (
       <IngredientListEmpty
         hasCondition={hasIngredientListCondition(query)}
-        onResetCondition={() => updateQuery({ filter: null })}
+        onResetCondition={() =>
+          updateQuery({ filter: null, category: null, keyword: null })
+        }
       />
     );
   }

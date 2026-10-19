@@ -1,14 +1,15 @@
 import type { QueryClient } from "@tanstack/react-query";
 
-import { setCurrentRefrigeratorId } from "@/entities/refrigerator";
+import { clearCurrentRefrigeratorId } from "@/entities/refrigerator";
 import { rotateNotificationSessionScope } from "@/entities/notification";
 import { clearLocalPushSubscription } from "@/entities/push-subscription";
+import { isIntentionalLogout } from "@/shared/api";
 import { loginRedirectReasons, routes } from "@/shared/routes";
 
 let isRedirectingToLogin = false;
 
 export function expireSession(queryClient: QueryClient) {
-  if (isRedirectingToLogin) {
+  if (isRedirectingToLogin || isIntentionalLogout()) {
     return;
   }
 
@@ -16,7 +17,7 @@ export function expireSession(queryClient: QueryClient) {
 
   if (typeof window !== "undefined") {
     isRedirectingToLogin = true;
-    setCurrentRefrigeratorId(null);
+    clearCurrentRefrigeratorId();
     rotateNotificationSessionScope();
     void clearLocalPushSubscription();
     window.location.replace(

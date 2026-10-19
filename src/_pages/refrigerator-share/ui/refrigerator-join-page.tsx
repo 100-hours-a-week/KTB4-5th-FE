@@ -1,0 +1,108 @@
+"use client";
+
+import { useState } from "react";
+
+import { AppDialog } from "@/shared/ui/app-dialog";
+import { showAppToast } from "@/shared/ui/app-toast";
+import { FieldHelperText } from "@/shared/ui/field-helper-text";
+import { FooterButton } from "@/shared/ui/footer-button";
+import { PageActionLayout } from "@/shared/ui/page-action-layout";
+
+import {
+  formatInviteCode,
+  INVITE_CODE_LENGTH,
+  normalizeInviteCodeInput,
+} from "../lib/invite-code";
+import {
+  getJoinFailure,
+  useJoinRefrigerator,
+  type JoinFailure,
+} from "@/features/share-refrigerator";
+
+const HELPER_TEXT = "영문 대문자·숫자 6자리";
+const INVALID_CHAR_TEXT = "영문과 숫자만 입력할 수 있어요";
+
+export function RefrigeratorJoinPage() {
+  const [code, setCode] = useState("");
+  const [failure, setFailure] = useState<JoinFailure | null>(null);
+  const joinMutation = useJoinRefrigerator({
+    onError: (error) => {
+      const nextFailure = getJoinFailure(error);
+      if (nextFailure.kind === "toast") {
+        showAppToast({ message: nextFailure.message, variant: "error" });
+        return;
+      }
+      setFailure(nextFailure);
+    },
+  });
+
+  const hasInvalidChar = /[^A-Z0-9]/.test(code);
+  const isComplete = code.length === INVITE_CODE_LENGTH && !hasInvalidChar;
+  const helperError = hasInvalidChar
+    ? INVALID_CHAR_TEXT
+    : failure?.kind === "helper"
+      ? failure.message
+      : null;
+  const dialog = failure?.kind === "dialog" ? failure : null;
+
+  return (
+    <>
+      <PageActionLayout
+        footerClassName="flex"
+        action={
+          <FooterButton
+            disabled={!isComplete || joinMutation.isPending}
+            onClick={() => joinMutation.mutate(code)}
+          >
+            {joinMutation.isPending ? "로딩 중" : "참여하기"}
+          </FooterButton>
+        }
+      >
+        <div className="px-5 pt-8 pb-6">
+          <h2 className="m-0 break-keep font-app-heading text-[22px] font-black leading-snug text-app-ink">
+            받은 초대 코드를
+            <br />
+            입력해 주세요
+          </h2>
+
+          <input
+            aria-label="초대 코드"
+            aria-invalid={helperError !== null}
+            aria-describedby="invite-code-helper"
+            autoCapitalize="characters"
+            autoComplete="one-time-code"
+            spellCheck={false}
+            inputMode="text"
+            placeholder="XXX-XXX"
+            value={formatInviteCode(code)}
+            onChange={(event) => {
+              setCode(normalizeInviteCodeInput(event.target.value));
+              setFailure(null);
+            }}
+            className={`mt-6 w-full rounded-[4px] border-[1.5px] bg-white px-4 py-4 text-center font-app-mono text-[22px] font-black tracking-[0.06em] text-app-ink outline-none placeholder:text-app-ink/25 focus:border-app-ink ${
+              helperError ? "border-app-primary" : "border-app-ink/18"
+            }`}
+          />
+          <FieldHelperText
+            id="invite-code-helper"
+            hint={HELPER_TEXT}
+            error={helperError ?? undefined}
+          />
+
+          <p className="m-0 mt-4 break-keep rounded-[4px] bg-app-neutral-100 px-3 py-2.5 text-[12.5px] leading-5 text-app-ink/70">
+            참여하는 동안에는 공유받은 냉장고만 쓸 수 있어요. 내 냉장고 재료는
+            옮겨지지 않고 따로 보관되며, 공유 냉장고에서 나가면 다시 쓸 수
+            있어요.
+          </p>
+        </div>
+      </PageActionLayout>
+
+      <AppDialog
+        open={dialog !== null}
+        title={dialog?.title ?? ""}
+        description={dialog?.description ?? ""}
+        primaryAction={{ label: "다시 시도", onClick: () => setFailure(null) }}
+      />
+    </>
+  );
+}

@@ -16,16 +16,6 @@ export const BUG_REPORT_REPORTER_NAME_EXAMPLE = "ojosama.five(오조사마)";
 
 export const BUG_REPORT_DESCRIPTION_MAX_LENGTH = 1000;
 
-// 디스코드 Webhook 첨부 한도(10MB) 안에서 요청 여유를 둔다.
-export const BUG_REPORT_SCREENSHOT_MAX_BYTES = 8 * 1024 * 1024;
-
-export const BUG_REPORT_SCREENSHOT_TYPES = [
-  "image/png",
-  "image/jpeg",
-  "image/webp",
-  "image/gif",
-] as const;
-
 export const BUG_REPORT_DESCRIPTION_HINT = `${BUG_REPORT_DESCRIPTION_MAX_LENGTH.toLocaleString("ko-KR")}자까지 입력할 수 있어요`;
 
 export const bugReportFormSchema = z.object({
@@ -47,14 +37,8 @@ export const bugReportFormSchema = z.object({
 
 export type BugReportFormValues = z.infer<typeof bugReportFormSchema>;
 
-export function getScreenshotError(file: File): string | null {
-  if (!(BUG_REPORT_SCREENSHOT_TYPES as readonly string[]).includes(file.type)) {
-    return "PNG·JPG·WEBP·GIF 이미지만 첨부할 수 있어요";
-  }
+export const bugReportRequestSchema = bugReportFormSchema.extend({
+  pageUrl: z.string().max(2048).optional(),
+});
 
-  if (file.size > BUG_REPORT_SCREENSHOT_MAX_BYTES) {
-    return "8MB 이하 이미지만 첨부할 수 있어요";
-  }
-
-  return null;
-}
+export type BugReportRequest = z.infer<typeof bugReportRequestSchema>;

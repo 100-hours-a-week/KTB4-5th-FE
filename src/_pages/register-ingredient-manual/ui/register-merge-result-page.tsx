@@ -13,8 +13,7 @@ import { routes } from "@/shared/routes";
 import { FooterButton } from "@/shared/ui/footer-button";
 import { NotePaper } from "@/shared/ui/note-paper";
 import { PageActionLayout } from "@/shared/ui/page-action-layout";
-
-import { useRegisterResultStore } from "../model/use-register-result-store";
+import { useRegisterResultStore } from "@/widgets/ingredient-draft-form";
 
 type AmountKey = "previous" | "added" | "total";
 
@@ -99,8 +98,6 @@ export function RegisterMergeResultPage() {
     );
   }
 
-  const registeredCount = result.createdCount + result.mergedCount;
-
   return (
     <PageActionLayout
       action={
@@ -123,11 +120,10 @@ export function RegisterMergeResultPage() {
     >
       <section className="px-5 pt-5 pb-6">
         <h2 className="m-0 font-app-heading text-[19px] font-black leading-[1.35]">
-          기존 재료와 합쳐졌어요
+          재료가 합쳐졌어요
         </h2>
         <p className="m-[6px_0_0] text-[14px] leading-[1.45] text-app-ink/50">
-          등록한 {registeredCount}건 중 {result.mergedCount}건의 수량이
-          합산됐습니다.
+          {result.mergedItems.length}종의 수량이 합산됐습니다.
         </p>
 
         <ul className="m-[22px_0_0] flex list-none flex-col gap-3 p-0">

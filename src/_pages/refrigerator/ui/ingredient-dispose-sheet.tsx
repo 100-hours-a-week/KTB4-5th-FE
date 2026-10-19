@@ -5,10 +5,10 @@ import { useRef, useState } from "react";
 
 import {
   disposeExpiredIngredients,
-  ingredientQueries,
+  invalidateIngredients,
   type Ingredient,
 } from "@/entities/ingredient";
-import { refrigeratorQueries } from "@/entities/refrigerator";
+import { ApiError } from "@/shared/api";
 import { AppBottomSheet } from "@/shared/ui/app-bottom-sheet";
 import { AppDialog } from "@/shared/ui/app-dialog";
 import { showAppToast } from "@/shared/ui/app-toast";
@@ -64,19 +64,19 @@ export function IngredientDisposeBottomSheet({
       await mutateAsync(pendingDisposal);
       setPendingDisposal(null);
 
-      void queryClient.invalidateQueries({
-        queryKey: ingredientQueries.byRefrigerator(
-          pendingDisposal.refrigeratorId,
-        ),
-      });
-      void queryClient.invalidateQueries({
-        queryKey: refrigeratorQueries.current().queryKey,
-      });
+      void invalidateIngredients(queryClient, pendingDisposal.refrigeratorId);
       showAppToast({
         message: "만료 재료 정리를 완료했어요.",
         variant: "success",
       });
     } catch (error) {
+      // 다른 기기에서 이미 정리했거나 바뀐 재고가 섞여 실패하면, 옛 목록이므로 다시 받는다.
+      if (
+        error instanceof ApiError &&
+        (error.status === 400 || error.status === 404)
+      ) {
+        void invalidateIngredients(queryClient, pendingDisposal.refrigeratorId);
+      }
       const message = getDisposeExpiredErrorMessage(error);
       if (message) {
         showAppToast({ message, variant: "error" });

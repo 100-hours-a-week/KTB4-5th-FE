@@ -6,19 +6,37 @@ import { useRef, useState } from "react";
 
 import {
   expireIngredient,
-  ingredientQueries,
+  formatIngredientQuantity,
+  formatIngredientWeight,
+  invalidateIngredients,
   type ExpireIngredientBody,
   type IngredientDetail,
 } from "@/entities/ingredient";
 import { ApiError } from "@/shared/api";
 import { markAppNavigationIntent } from "@/shared/lib/navigation-history";
 import { routes } from "@/shared/routes";
-import { AppBottomSheet } from "@/shared/ui/app-bottom-sheet";
+import { AppDialog } from "@/shared/ui/app-dialog";
 import { AppLink } from "@/shared/ui/app-link";
 import { showAppToast } from "@/shared/ui/app-toast";
 
 import { getExpireErrorMessage } from "../model/expire-error-message";
-import { IngredientExpireSheetContent } from "./ingredient-expire-sheet-content";
+
+function formatExpireAmount(ingredient: IngredientDetail) {
+  if (ingredient.measureType === "WEIGHT") {
+    const weight = formatIngredientWeight(
+      ingredient.weightValue,
+      ingredient.weightUnit,
+    );
+
+    if (weight !== null) {
+      return weight;
+    }
+  }
+
+  return ingredient.quantity === null
+    ? "-"
+    : formatIngredientQuantity(ingredient.quantity);
+}
 
 type IngredientDetailActionsProps = {
   ingredient: IngredientDetail;
@@ -36,9 +54,11 @@ export function IngredientDetailActions({
   const { mutateAsync: mutateExpire } = useMutation({
     mutationFn: expireIngredient,
   });
-  const [isExpireSheetOpen, setIsExpireSheetOpen] = useState(false);
+  const [isExpireDialogOpen, setIsExpireDialogOpen] = useState(false);
   const [isPending, setIsPending] = useState(false);
   const submittingRef = useRef(false);
+  const actionLabel =
+    ingredient.status === "EXPIRED" ? "폐기 처리" : "삭제 처리";
 
   async function handleExpire() {
     if (submittingRef.current) {
@@ -50,13 +70,8 @@ export function IngredientDetailActions({
         message: "재고 버전 정보가 없어요. 다시 불러와 주세요",
         variant: "error",
       });
-      setIsExpireSheetOpen(false);
-      void queryClient.invalidateQueries({
-        queryKey: ingredientQueries.detail(
-          refrigeratorId,
-          ingredient.ingredientId,
-        ).queryKey,
-      });
+      setIsExpireDialogOpen(false);
+      void invalidateIngredients(queryClient, refrigeratorId);
       return;
     }
 
@@ -74,13 +89,8 @@ export function IngredientDetailActions({
         message: "처리할 재고 값을 확인해 주세요",
         variant: "error",
       });
-      setIsExpireSheetOpen(false);
-      void queryClient.invalidateQueries({
-        queryKey: ingredientQueries.detail(
-          refrigeratorId,
-          ingredient.ingredientId,
-        ).queryKey,
-      });
+      setIsExpireDialogOpen(false);
+      void invalidateIngredients(queryClient, refrigeratorId);
       return;
     }
 
@@ -93,22 +103,17 @@ export function IngredientDetailActions({
         etag,
         body,
       });
-      setIsExpireSheetOpen(false);
-      void queryClient.invalidateQueries({
-        queryKey: ingredientQueries.byRefrigerator(refrigeratorId),
-        refetchType: "inactive",
-      });
+      setIsExpireDialogOpen(false);
+      void invalidateIngredients(
+        queryClient,
+        refrigeratorId,
+        result.removed ? ingredient.ingredientId : undefined,
+      );
 
       showAppToast({ message: "재고를 처리했어요.", variant: "success" });
       if (!result.removed) {
         submittingRef.current = false;
         setIsPending(false);
-        void queryClient.invalidateQueries({
-          queryKey: ingredientQueries.detail(
-            refrigeratorId,
-            ingredient.ingredientId,
-          ).queryKey,
-        });
         return;
       }
 
@@ -126,20 +131,16 @@ export function IngredientDetailActions({
         error instanceof ApiError &&
         (error.status === 412 || error.status === 428)
       ) {
-        setIsExpireSheetOpen(false);
-        void queryClient.invalidateQueries({
-          queryKey: ingredientQueries.detail(
-            refrigeratorId,
-            ingredient.ingredientId,
-          ).queryKey,
-        });
+        setIsExpireDialogOpen(false);
+        void invalidateIngredients(queryClient, refrigeratorId);
       }
 
       if (error instanceof ApiError && error.status === 404) {
-        void queryClient.invalidateQueries({
-          queryKey: ingredientQueries.byRefrigerator(refrigeratorId),
-          refetchType: "inactive",
-        });
+        void invalidateIngredients(
+          queryClient,
+          refrigeratorId,
+          ingredient.ingredientId,
+        );
         const href = routes.refrigerator;
         markAppNavigationIntent("replace", href);
         router.replace(href);
@@ -152,7 +153,7 @@ export function IngredientDetailActions({
       return;
     }
 
-    setIsExpireSheetOpen(true);
+    setIsExpireDialogOpen(true);
   }
 
   return (
@@ -171,22 +172,26 @@ export function IngredientDetailActions({
           aria-busy={isPending}
           className="flex-1 cursor-pointer rounded-[4px] border-0 bg-app-ink py-[15px] font-app-heading text-[14px] font-bold leading-[1.2] text-white hover:bg-app-neutral-800 active:bg-app-neutral-700 disabled:cursor-not-allowed disabled:opacity-45"
         >
-          {isPending ? "처리중..." : "만료 처리"}
+          {isPending ? "처리중..." : actionLabel}
         </button>
       </div>
 
-      <AppBottomSheet
-        open={isExpireSheetOpen}
-        onDismiss={() => setIsExpireSheetOpen(false)}
-        dismissBehavior={isPending ? "none" : "dismiss"}
-      >
-        <IngredientExpireSheetContent
-          ingredient={ingredient}
-          isPending={isPending}
-          onCancel={() => setIsExpireSheetOpen(false)}
-          onConfirm={() => void handleExpire()}
-        />
-      </AppBottomSheet>
+      <AppDialog
+        open={isExpireDialogOpen}
+        title={`${ingredient.name} ${formatExpireAmount(ingredient)} ${actionLabel}할까요?`}
+        description={`보유 수량 전부가 ${actionLabel === "폐기 처리" ? "폐기돼요" : "삭제돼요"}. 정리한 재료는 되돌릴 수 없어요.`}
+        dismissBehavior={isPending ? "none" : "secondary-action"}
+        secondaryAction={{
+          label: "취소",
+          disabled: isPending,
+          onClick: () => setIsExpireDialogOpen(false),
+        }}
+        primaryAction={{
+          label: isPending ? "처리중..." : `${actionLabel}하기`,
+          disabled: isPending,
+          onClick: () => void handleExpire(),
+        }}
+      />
     </>
   );
 }

@@ -1,7 +1,7 @@
-import { RefrigeratorPage } from "@/_pages/refrigerator";
+import { RefrigeratorServerPage } from "@/_pages/refrigerator/index.server";
 
 export default async function Page({
   searchParams,
 }: PageProps<"/refrigerator">) {
-  return <RefrigeratorPage queryParams={await searchParams} />;
+  return <RefrigeratorServerPage queryParams={await searchParams} />;
 }

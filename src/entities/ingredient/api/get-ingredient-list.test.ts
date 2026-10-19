@@ -11,12 +11,15 @@ it("normalizes decimal weight strings while retaining the registered count", asy
       async () =>
         new Response(
           JSON.stringify({
-            code: "INGREDIENT-200-001",
+            code: "INGREDIENT-200-002",
             message: "재고 목록 조회 성공",
             data: {
+              baseDate: "2026-09-16",
+              outdated: false,
               ingredientsNum: 1,
               filteredCount: 1,
               refrigeratorCapacity: 100,
+              refrigeratorName: "우리집",
               nextCursor: null,
               ingredients: [
                 {
@@ -40,11 +43,21 @@ it("normalizes decimal weight strings while retaining the registered count", asy
 
   const result = await getIngredientList({
     refrigeratorId: "1",
-    query: { filter: null, sort: "EXPIRATION_ASC" },
+    query: {
+      filter: null,
+      category: null,
+      sort: "EXPIRATION_ASC",
+      keyword: null,
+    },
   });
   expect(result.ingredients[0]).toMatchObject({
     quantity: 2,
     weightValue: 400,
     measureType: "WEIGHT",
+  });
+  expect(result).toMatchObject({
+    baseDate: "2026-09-16",
+    outdated: false,
+    refrigeratorName: "우리집",
   });
 });

@@ -1,16 +1,11 @@
 "use client";
 
-import { createContext, useContext, useState } from "react";
+import { createContext, useContext } from "react";
 import type { ReactNode } from "react";
 
 import { useEnterHome } from "./use-enter-home";
 
-type LoginStep = "login" | "notification-onboarding";
-
 type LoginFlowContextValue = {
-  step: LoginStep;
-  showLogin: () => void;
-  showNotificationOnboarding: () => void;
   enterHome: () => void;
   isEnteringHome: boolean;
 };
@@ -18,22 +13,11 @@ type LoginFlowContextValue = {
 const LoginFlowContext = createContext<LoginFlowContextValue | null>(null);
 
 export function LoginFlowProvider({ children }: { children: ReactNode }) {
-  const [step, setStep] = useState<LoginStep>("login");
   const { enterHome, isPending } = useEnterHome();
 
   return (
-    <LoginFlowContext.Provider
-      value={{
-        step,
-        showLogin: () => setStep("login"),
-        showNotificationOnboarding: () => setStep("notification-onboarding"),
-        enterHome,
-        isEnteringHome: isPending,
-      }}
-    >
-      <div className="group contents" data-login-step={step}>
-        {children}
-      </div>
+    <LoginFlowContext.Provider value={{ enterHome, isEnteringHome: isPending }}>
+      {children}
     </LoginFlowContext.Provider>
   );
 }

@@ -3,9 +3,11 @@
 import { useQuery } from "@tanstack/react-query";
 
 import {
-  DEFAULT_INGREDIENT_LIST_SORT,
+  DEFAULT_INGREDIENT_LIST_QUERY,
   ingredientQueries,
-  type IngredientListQuery,
+  IngredientRefrigeratorRequiredState,
+  useIngredientDateStale,
+  useIngredientRefreshToast,
 } from "@/entities/ingredient";
 import { useCurrentRefrigeratorId } from "@/entities/refrigerator";
 import {
@@ -16,12 +18,8 @@ import {
 import { type HomeSummary, toHomeSummary } from "../model/home-summary";
 import { HomeAttentionSection } from "./home-attention-section";
 import { HomeCapacitySummary } from "./home-capacity-summary";
+import { HomeKakaotechJoinPrompt } from "./home-kakaotech-join-prompt";
 import { HomeRecommendationNotice } from "./home-recommendation-notice";
-
-const HOME_LIST_QUERY: IngredientListQuery = {
-  filter: null,
-  sort: DEFAULT_INGREDIENT_LIST_SORT,
-};
 
 export function HomePage() {
   const refrigeratorId = useCurrentRefrigeratorId();
@@ -30,13 +28,27 @@ export function HomePage() {
     isError,
     refetch,
   } = useQuery({
-    ...ingredientQueries.firstPage(refrigeratorId ?? "", HOME_LIST_QUERY),
+    ...ingredientQueries.firstPage(
+      refrigeratorId ?? "",
+      DEFAULT_INGREDIENT_LIST_QUERY,
+    ),
     enabled: Boolean(refrigeratorId),
   });
+  const isDateStale = useIngredientDateStale(page?.baseDate, page?.outdated);
+
+  useIngredientRefreshToast(isDateStale);
 
   return (
     <main className="flex min-h-0 min-w-0 flex-1 flex-col overflow-y-auto pb-[calc(var(--space-6)+var(--safe-bottom))] [-webkit-overflow-scrolling:touch]">
-      {page ? (
+      {refrigeratorId ? (
+        <HomeKakaotechJoinPrompt
+          key={refrigeratorId}
+          refrigeratorId={refrigeratorId}
+        />
+      ) : null}
+      {refrigeratorId === null ? (
+        <IngredientRefrigeratorRequiredState />
+      ) : page ? (
         <HomeContent summary={toHomeSummary(page)} />
       ) : isError ? (
         <AsyncViewState

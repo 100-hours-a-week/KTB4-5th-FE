@@ -5,7 +5,7 @@
 이 문서는 다먹자 프론트엔드에 새 코드를 추가하거나 기존 코드를 이동·리뷰할
 때 반드시 적용하는 구조 규칙이다.
 
-- 대상: Next.js App Router 16.3.3, React 19.2.x, TypeScript 6.x
+- 대상: Next.js App Router 16.3.8, React 19.2.x, TypeScript 6.x
 - 서버 상태: TanStack Query 5.102.8와 공통 `fetch` 래퍼
 - 클라이언트 상태: Zustand 5.0.14
 - 폼과 검증: React Hook Form 7.87.0과 Zod 4.5.4

@@ -7,6 +7,7 @@ import { IngredientFieldHelper } from "@/features/ingredient-form";
 import { NotePaper } from "@/shared/ui/note-paper";
 
 import type { IngredientEditFormInput } from "../model/ingredient-edit-form-schema";
+import { EditCategoryField } from "./edit-category-field";
 import { EditCreatedDateField } from "./edit-created-date-field";
 import { EditExpirationDateField } from "./edit-expiration-date-field";
 import { EditMeasureTypeField } from "./edit-measure-type-field";
@@ -46,6 +47,16 @@ export function IngredientEditCard({
       <div className="px-5 pt-4 pb-7">
         <div>
           <div>
+            <label
+              htmlFor={`${idPrefix}-category`}
+              className={FIELD_LABEL_CLASS_NAME}
+            >
+              카테고리
+            </label>
+            <EditCategoryField id={`${idPrefix}-category`} />
+          </div>
+
+          <div className="mt-3">
             <label
               htmlFor={`${idPrefix}-name`}
               className={FIELD_LABEL_CLASS_NAME}

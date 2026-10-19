@@ -10,7 +10,7 @@ function retryIngredientList(failureCount: number, error: Error): boolean {
     !(
       error instanceof ApiError &&
       error.status === 400 &&
-      error.code === "REFRIGERATOR-400-008"
+      error.code === "INGREDIENT-400-004"
     ) && failureCount < 2
   );
 }
@@ -44,6 +44,7 @@ export const ingredientQueries = {
     infiniteQueryOptions({
       meta: { monitoringOperation: "ingredient.list" },
       queryKey: [...ingredientQueries.lists(refrigeratorId), query],
+      staleTime: query.keyword ? 30_000 : 0,
       queryFn: ({ pageParam, signal }) =>
         getIngredientList({ refrigeratorId, query, cursor: pageParam, signal }),
       initialPageParam: null as string | null,

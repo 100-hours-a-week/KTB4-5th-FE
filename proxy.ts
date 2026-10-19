@@ -3,11 +3,13 @@ import { NextResponse, type NextRequest } from "next/server";
 import {
   ACCESS_TOKEN_COOKIE_NAME,
   REFRESH_TOKEN_COOKIE_NAME,
+  REGISTRATION_TOKEN_COOKIE_NAME,
 } from "@/shared/api";
 import { loginRedirectReasons, routes } from "@/shared/routes";
 
 const PUBLIC_PATHS: ReadonlySet<string> = new Set([
   routes.login,
+  routes.localLogin,
   routes.offline,
 ]);
 
@@ -18,7 +20,17 @@ function hasSessionCookie(request: NextRequest): boolean {
   );
 }
 
+function isSignupPath(pathname: string): boolean {
+  return pathname === routes.signup || pathname.startsWith(`${routes.signup}/`);
+}
+
 export function proxy(request: NextRequest) {
+  if (isSignupPath(request.nextUrl.pathname)) {
+    return request.cookies.has(REGISTRATION_TOKEN_COOKIE_NAME)
+      ? NextResponse.next()
+      : NextResponse.redirect(new URL(routes.login, request.nextUrl));
+  }
+
   if (PUBLIC_PATHS.has(request.nextUrl.pathname) || hasSessionCookie(request)) {
     return NextResponse.next();
   }
@@ -35,6 +47,6 @@ export function proxy(request: NextRequest) {
 
 export const config = {
   matcher: [
-    "/((?!api|bug-reports|serwist/|_next/static|_next/image|manifest.webmanifest|favicon.ico|.*\\.png$).*)",
+    "/((?!api|bug-reports|serwist/|_next/static|_next/image|manifest.webmanifest|mockServiceWorker.js|favicon.ico|.*\\.png$).*)",
   ],
 };

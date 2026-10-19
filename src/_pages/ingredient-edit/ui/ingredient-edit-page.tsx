@@ -7,6 +7,7 @@ import {
   IngredientReadErrorState,
   IngredientRefrigeratorRequiredState,
   ingredientQueries,
+  useIngredientDateStale,
 } from "@/entities/ingredient";
 import { useCurrentRefrigeratorId } from "@/entities/refrigerator";
 import { useRetryControl } from "@/shared/lib/use-retry-control";
@@ -30,8 +31,10 @@ export function IngredientEditPage({ ingredientId }: IngredientEditPageProps) {
   const detailQuery = useQuery({
     ...ingredientQueries.detail(refrigeratorId ?? "", ingredientId),
     enabled: Boolean(refrigeratorId),
+    refetchOnWindowFocus: false,
   });
   const retry = useRetryControl();
+  const isDateStale = useIngredientDateStale(detailQuery.data?.baseDate);
 
   if (refrigeratorId === null) {
     return (
@@ -66,7 +69,7 @@ export function IngredientEditPage({ ingredientId }: IngredientEditPageProps) {
     );
   }
 
-  if (detailQuery.isPending) {
+  if (detailQuery.isPending || !detailQuery.isFetchedAfterMount) {
     return (
       <EditStateLayout>
         <AsyncViewState status="loading" title="재고를 불러오는 중입니다" />
@@ -79,6 +82,7 @@ export function IngredientEditPage({ ingredientId }: IngredientEditPageProps) {
       key={detailQuery.data.etag ?? ingredientId}
       target={toIngredientEditTarget(detailQuery.data)}
       refrigeratorId={refrigeratorId}
+      isDateStale={isDateStale}
     />
   );
 }

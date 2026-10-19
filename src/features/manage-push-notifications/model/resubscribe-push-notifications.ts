@@ -1,9 +1,6 @@
 import "client-only";
 
-import {
-  getNotificationPreferences,
-  isExpirationNotificationEnabled,
-} from "@/entities/notification";
+import { getNotificationPreferences } from "@/entities/notification";
 import { isPushOptedOut } from "@/entities/push-subscription";
 
 import {
@@ -29,7 +26,10 @@ export async function resubscribePushNotificationsIfEnabled(): Promise<void> {
 
   const { notificationPreferences } = await getNotificationPreferences();
 
-  if (isExpirationNotificationEnabled(notificationPreferences)) {
+  if (
+    notificationPreferences.length === 0 ||
+    notificationPreferences.some((preference) => preference.isEnabled)
+  ) {
     const result = await registerWebPush();
     if (result.status === "error") {
       throw new PushRegistrationFailure(result);

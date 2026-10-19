@@ -9,10 +9,13 @@ type IngredientListItemDto = Omit<Ingredient, "measureType" | "weightValue"> & {
   weightValue: string | null;
 };
 
-type IngredientListResponseDto = {
+export type IngredientListResponseDto = {
+  baseDate: string;
+  outdated: boolean;
   ingredientsNum: number;
   filteredCount: number;
   refrigeratorCapacity: number;
+  refrigeratorName: string;
   ingredients: IngredientListItemDto[];
   nextCursor: string | null;
 };
@@ -31,34 +34,49 @@ type GetIngredientListParams = {
   signal?: AbortSignal;
 };
 
-export async function getIngredientList({
-  refrigeratorId,
-  query,
-  cursor,
-  signal,
-}: GetIngredientListParams): Promise<IngredientListPage> {
+export function toIngredientListSearchParams(
+  query: IngredientListQuery,
+  cursor?: string | null,
+): URLSearchParams {
   const params = new URLSearchParams({
     size: String(INGREDIENT_LIST_PAGE_SIZE),
   });
 
   if (query.filter) params.set("filter", query.filter);
+  if (query.category) params.set("category", query.category);
   params.set("sort", query.sort);
+  if (query.keyword) params.set("keyword", query.keyword);
   if (cursor !== null && cursor !== undefined) params.set("cursor", cursor);
 
-  const response = await requestJson<IngredientListResponseDto>(
-    `/refrigerators/${encodeURIComponent(refrigeratorId)}/ingredients?${params}`,
-    { signal },
-  );
+  return params;
+}
 
+export function toIngredientListPage(
+  data: IngredientListResponseDto,
+): IngredientListPage {
   return {
-    ...response.data,
-    ingredients: response.data.ingredients.map((ingredient) => ({
+    ...data,
+    ingredients: data.ingredients.map((ingredient) => ({
       ...ingredient,
       weightValue:
         ingredient.weightValue === null ? null : Number(ingredient.weightValue),
       measureType: ingredient.weightUnit === "NONE" ? "COUNT" : "WEIGHT",
     })),
   };
+}
+
+export async function getIngredientList({
+  refrigeratorId,
+  query,
+  cursor,
+  signal,
+}: GetIngredientListParams): Promise<IngredientListPage> {
+  const response = await requestJson<IngredientListResponseDto>(
+    `/refrigerators/${encodeURIComponent(refrigeratorId)}/ingredients?${toIngredientListSearchParams(query, cursor)}`,
+    { signal },
+  );
+
+  return toIngredientListPage(response.data);
 }
 
 export async function getAllIngredients(

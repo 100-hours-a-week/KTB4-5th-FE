@@ -3,10 +3,12 @@ import { requestJsonWithHeaders } from "@/shared/api";
 import type { IngredientDetail } from "../model/ingredient";
 
 type IngredientDetailResponseDto = Omit<IngredientDetail, "weightValue"> & {
+  baseDate: string;
   weightValue: string | null;
 };
 
 export type IngredientDetailView = {
+  baseDate: string;
   ingredient: IngredientDetail;
   etag: string | null;
 };
@@ -26,11 +28,13 @@ export async function getIngredientDetail({
       { signal },
     );
 
+  const { baseDate, weightValue, ...ingredient } = body.data;
+
   return {
+    baseDate,
     ingredient: {
-      ...body.data,
-      weightValue:
-        body.data.weightValue === null ? null : Number(body.data.weightValue),
+      ...ingredient,
+      weightValue: weightValue === null ? null : Number(weightValue),
     },
     etag: headers.get("ETag"),
   };

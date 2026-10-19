@@ -1,43 +1,18 @@
 import * as Sentry from "@sentry/nextjs";
 import type { NextRequest } from "next/server";
-import { z } from "zod";
 
-import {
-  bugReportFormSchema,
-  getScreenshotError,
-} from "@/features/report-bug/index.server";
+import { bugReportRequestSchema } from "@/features/report-bug/index.server";
 import type { ApiResponse } from "@/shared/api";
 
 import { consumeBugReportQuota } from "./rate-limit";
 import { readSessionUser } from "./read-session-user-id";
 import { sendDiscordBugReport } from "./send-discord-bug-report";
 
-const clientContextSchema = z
-  .object({
-    pageUrl: z.string().max(2048),
-    userAgent: z.string().max(1024),
-    viewport: z.string().max(64),
-    reportedAt: z.string().max(64),
-  })
-  .partial();
-
 function problem(status: number, code: string, title: string) {
   return Response.json(
     { type: "about:blank", title, status, code },
     { status, headers: { "Content-Type": "application/problem+json" } },
   );
-}
-
-function parseClientContext(value: FormDataEntryValue | null) {
-  if (typeof value !== "string") {
-    return {};
-  }
-
-  try {
-    return clientContextSchema.safeParse(JSON.parse(value)).data ?? {};
-  } catch {
-    return {};
-  }
 }
 
 export async function postBugReport(request: NextRequest): Promise<Response> {
@@ -51,29 +26,16 @@ export async function postBugReport(request: NextRequest): Promise<Response> {
     return problem(401, "REPORT-401-001", "로그인이 필요합니다.");
   }
 
-  let formData: FormData;
+  let json: unknown;
   try {
-    formData = await request.formData();
+    json = await request.json();
   } catch {
     return problem(400, "REPORT-400-001", "요청 형식이 올바르지 않습니다.");
   }
 
-  const fields = bugReportFormSchema.safeParse({
-    reporterName: formData.get("reporterName"),
-    category: formData.get("category"),
-    description: formData.get("description"),
-  });
+  const fields = bugReportRequestSchema.safeParse(json);
   if (!fields.success) {
     return problem(400, "REPORT-400-002", "입력값이 올바르지 않습니다.");
-  }
-
-  const screenshotEntry = formData.get("screenshot");
-  const screenshot =
-    screenshotEntry instanceof File && screenshotEntry.size > 0
-      ? screenshotEntry
-      : null;
-  if (screenshot && getScreenshotError(screenshot)) {
-    return problem(400, "REPORT-400-003", "첨부 이미지가 올바르지 않습니다.");
   }
 
   const quotaKey =
@@ -83,12 +45,7 @@ export async function postBugReport(request: NextRequest): Promise<Response> {
   }
 
   try {
-    await sendDiscordBugReport(webhookUrl, {
-      ...fields.data,
-      userId,
-      context: parseClientContext(formData.get("context")),
-      screenshot,
-    });
+    await sendDiscordBugReport(webhookUrl, { ...fields.data, userId });
   } catch (error) {
     Sentry.captureException(error);
     return problem(502, "REPORT-502-001", "버그 리포트를 전달하지 못했습니다.");

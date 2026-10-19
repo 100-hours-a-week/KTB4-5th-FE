@@ -7,6 +7,8 @@ import {
   IngredientReadErrorState,
   IngredientRefrigeratorRequiredState,
   ingredientQueries,
+  useIngredientDateStale,
+  useIngredientRefreshToast,
 } from "@/entities/ingredient";
 import { useCurrentRefrigeratorId } from "@/entities/refrigerator";
 import { useRetryControl } from "@/shared/lib/use-retry-control";
@@ -38,6 +40,9 @@ export function IngredientDetailPage({
     enabled: Boolean(refrigeratorId),
   });
   const retryControl = useRetryControl();
+  const isDateStale = useIngredientDateStale(data?.baseDate);
+
+  useIngredientRefreshToast(isDateStale);
 
   // 서버 렌더와 hydration 직후에는 localStorage를 아직 읽지 못해 undefined다.
   if (refrigeratorId === null) {

@@ -29,15 +29,17 @@ interface ExpirationDateSheetProps {
 const calendarClassNames = {
   root: "relative w-full",
   months: "flex w-full flex-col",
-  month: "w-full",
-  month_caption: "flex h-11 items-center justify-center",
+  month: "relative w-full",
+  month_caption: "mx-11 flex h-11 items-center justify-center",
   caption_label:
-    "font-app-heading text-[14px] font-black leading-none text-app-ink",
-  nav: "absolute inset-x-0 top-0 flex h-11 items-center justify-between",
+    "flex items-center gap-1 font-app-heading text-[14px] font-black leading-none text-app-ink",
+  dropdowns: "flex items-center gap-2",
+  dropdown_root: "relative inline-flex h-11 cursor-pointer items-center",
+  dropdown: "absolute inset-0 z-10 h-full w-full cursor-pointer opacity-0",
   button_previous:
-    "grid size-11 cursor-pointer place-items-center rounded-full border-0 bg-transparent text-app-ink disabled:cursor-not-allowed disabled:text-app-ink/20",
+    "absolute left-0 top-0 grid size-11 cursor-pointer place-items-center rounded-full border-0 bg-transparent text-app-ink aria-disabled:cursor-not-allowed aria-disabled:text-app-ink/20",
   button_next:
-    "grid size-11 cursor-pointer place-items-center rounded-full border-0 bg-transparent text-app-ink disabled:cursor-not-allowed disabled:text-app-ink/20",
+    "absolute right-0 top-0 grid size-11 cursor-pointer place-items-center rounded-full border-0 bg-transparent text-app-ink aria-disabled:cursor-not-allowed aria-disabled:text-app-ink/20",
   chevron: "size-4 fill-current",
   month_grid: "mt-1 w-full border-collapse",
   weekdays: "",
@@ -77,6 +79,8 @@ export function ExpirationDateSheet({
 
       <DayPicker
         mode="single"
+        captionLayout="dropdown"
+        navLayout="around"
         locale={ko}
         weekStartsOn={0}
         fixedWeeks

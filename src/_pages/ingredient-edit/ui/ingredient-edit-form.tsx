@@ -2,10 +2,15 @@
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 
-import { ingredientQueries, updateIngredient } from "@/entities/ingredient";
+import {
+  ingredientQueries,
+  invalidateIngredients,
+  updateIngredient,
+  useIngredientRefreshToast,
+} from "@/entities/ingredient";
 import { ApiError } from "@/shared/api";
 import { FormProvider, useForm } from "react-hook-form";
 
@@ -45,11 +50,13 @@ const SUMMARY_ID = "ingredient-edit-summary";
 type IngredientEditFormProps = {
   target: IngredientEditTarget;
   refrigeratorId: string;
+  isDateStale: boolean;
 };
 
 export function IngredientEditForm({
   target,
   refrigeratorId,
+  isDateStale,
 }: IngredientEditFormProps) {
   const { ingredientId, etag, createdDate, initialValues } = target;
   const queryClient = useQueryClient();
@@ -76,6 +83,17 @@ export function IngredientEditForm({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isLeaving, setIsLeaving] = useState(false);
   const [isCancelConfirmOpen, setIsCancelConfirmOpen] = useState(false);
+  const [isRefreshConfirmOpen, setIsRefreshConfirmOpen] = useState(false);
+
+  const handleRefresh = useCallback(() => {
+    if (isSubmitting) return;
+    if (hasEditChanges(initialValues, form.getValues())) {
+      setIsRefreshConfirmOpen(true);
+    } else {
+      window.location.reload();
+    }
+  }, [isSubmitting, initialValues, form]);
+  useIngredientRefreshToast(isDateStale, handleRefresh);
 
   const detailHref = routes.ingredientDetail(ingredientId);
 
@@ -98,10 +116,7 @@ export function IngredientEditForm({
         message: "재고 버전 정보가 없어요. 다시 불러와 주세요",
         variant: "error",
       });
-      void queryClient.invalidateQueries({
-        queryKey: ingredientQueries.detail(refrigeratorId, ingredientId)
-          .queryKey,
-      });
+      void invalidateIngredients(queryClient, refrigeratorId);
       return;
     }
 
@@ -114,12 +129,16 @@ export function IngredientEditForm({
       });
       queryClient.setQueryData(
         ingredientQueries.detail(refrigeratorId, ingredientId).queryKey,
-        { ingredient: result.ingredient, etag: result.etag },
+        (previous) =>
+          previous
+            ? {
+                ...previous,
+                ingredient: { ...previous.ingredient, ...result.ingredient },
+                etag: result.etag,
+              }
+            : undefined,
       );
-      void queryClient.invalidateQueries({
-        queryKey: ingredientQueries.byRefrigerator(refrigeratorId),
-        refetchType: "inactive",
-      });
+      void invalidateIngredients(queryClient, refrigeratorId);
       showAppToast({
         message:
           result.mergedItems.length > 0
@@ -136,10 +155,10 @@ export function IngredientEditForm({
         error instanceof ApiError &&
         (error.status === 412 || error.status === 428)
       ) {
-        void queryClient.invalidateQueries({
-          queryKey: ingredientQueries.detail(refrigeratorId, ingredientId)
-            .queryKey,
-        });
+        void invalidateIngredients(queryClient, refrigeratorId);
+      }
+      if (error instanceof ApiError && error.status === 404) {
+        void invalidateIngredients(queryClient, refrigeratorId, ingredientId);
       }
     }
   }
@@ -223,6 +242,21 @@ export function IngredientEditForm({
             setIsCancelConfirmOpen(false);
             leaveToDetail();
           },
+        }}
+      />
+
+      <AppDialog
+        open={isRefreshConfirmOpen}
+        dismissBehavior="none"
+        title={LEAVE_DIALOG_TITLE}
+        description={LEAVE_DIALOG_DESCRIPTION}
+        secondaryAction={{
+          label: "계속 수정",
+          onClick: () => setIsRefreshConfirmOpen(false),
+        }}
+        primaryAction={{
+          label: "새로고침",
+          onClick: () => window.location.reload(),
         }}
       />
     </FormProvider>

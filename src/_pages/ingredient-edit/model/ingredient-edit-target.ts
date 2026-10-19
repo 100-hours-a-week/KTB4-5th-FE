@@ -19,6 +19,7 @@ export function toIngredientEditTarget({
     createdDate: detail.createdDate,
     initialValues: {
       name: detail.name,
+      category: detail.category,
       measureType: detail.measureType,
       storageType: detail.storageType,
       quantity: String(detail.quantity ?? 1),

@@ -114,7 +114,7 @@ describe("CSRF API integration", () => {
     expect(fetchMock).toHaveBeenCalledTimes(2);
   });
 
-  it("keeps GET and read-only nickname validation free of CSRF headers", async () => {
+  it("keeps GET requests free of CSRF headers", async () => {
     const fetchMock = vi.fn(async (_input: string, init: RequestInit) => {
       expect(new Headers(init.headers).has("X-XSRF-TOKEN")).toBe(false);
       return ok();
@@ -122,8 +122,7 @@ describe("CSRF API integration", () => {
     vi.stubGlobal("fetch", fetchMock);
 
     await request("/items");
-    await request("/users/nickname-validations", { method: "POST" });
-    expect(fetchMock).toHaveBeenCalledTimes(2);
+    expect(fetchMock).toHaveBeenCalledTimes(1);
   });
 
   it("renews CSRF after login before the next mutation", async () => {

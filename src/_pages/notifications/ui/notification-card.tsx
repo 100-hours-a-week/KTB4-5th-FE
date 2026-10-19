@@ -21,11 +21,13 @@ type NotificationCardProps = {
 };
 
 function toNotificationHref(type: Notification["type"]) {
-  if (type === "MEMBER") return routes.home;
+  if (type === "MEMBER") return routes.refrigeratorShare;
 
   const queryString = toIngredientListQueryString({
     filter: type,
+    category: null,
     sort: DEFAULT_INGREDIENT_LIST_SORT,
+    keyword: null,
   });
 
   return queryString

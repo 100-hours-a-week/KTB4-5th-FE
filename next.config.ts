@@ -31,7 +31,7 @@ const nextConfig = withSerwist({
     ];
   },
   async rewrites() {
-    if (process.env.NODE_ENV !== "development") {
+    if (process.env.NODE_ENV !== "development" && !process.env.BACKEND_ORIGIN) {
       return [];
     }
 

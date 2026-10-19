@@ -19,7 +19,6 @@ export type RouteHeaderPolicy =
 const tabHeaderTitles: Record<string, string> = {
   [routes.home]: "홈",
   [routes.refrigerator]: "냉장고",
-  [routes.recommendations]: "추천",
   [routes.me]: "MY",
 };
 
@@ -42,6 +41,46 @@ function getFlowHeaderPolicy(pathname: string): RouteHeaderPolicy {
     };
   }
 
+  if (pathname === routes.myProfile) {
+    return {
+      kind: "flow",
+      title: "개인 설정",
+      backFallbackHref: routes.me,
+    };
+  }
+
+  if (pathname === routes.notificationSettings) {
+    return {
+      kind: "flow",
+      title: "알림 상세",
+      backFallbackHref: routes.me,
+    };
+  }
+
+  if (pathname === routes.refrigeratorShare) {
+    return {
+      kind: "flow",
+      title: "냉장고 공유",
+      backFallbackHref: routes.me,
+    };
+  }
+
+  if (pathname === routes.refrigeratorShareInvite) {
+    return {
+      kind: "flow",
+      title: "초대 코드",
+      backFallbackHref: routes.refrigeratorShare,
+    };
+  }
+
+  if (pathname === routes.refrigeratorShareJoin) {
+    return {
+      kind: "flow",
+      title: "냉장고 참여",
+      backFallbackHref: routes.refrigeratorShare,
+    };
+  }
+
   if (pathname === routes.registerIngredient) {
     return {
       kind: "flow",
@@ -55,6 +94,22 @@ function getFlowHeaderPolicy(pathname: string): RouteHeaderPolicy {
       kind: "flow",
       title: "직접 쓰기",
       backFallbackHref: routes.registerIngredient,
+    };
+  }
+
+  if (pathname === routes.registerIngredientReceipt) {
+    return {
+      kind: "flow",
+      title: "영수증 촬영",
+      backFallbackHref: routes.registerIngredient,
+    };
+  }
+
+  if (pathname === routes.registerIngredientReceiptResult) {
+    return {
+      kind: "flow",
+      title: "인식 결과",
+      backFallbackHref: routes.registerIngredientReceipt,
     };
   }
 
