@@ -18,7 +18,10 @@ export type UpdateIngredientBody = Partial<{
   expirationDate: string;
 }>;
 
-type IngredientDetailResponseDto = Omit<IngredientDetail, "weightValue"> & {
+type IngredientDetailResponseDto = Omit<
+  IngredientDetail,
+  "weightValue" | "ownerNickname"
+> & {
   weightValue: string | null;
 };
 
@@ -49,7 +52,7 @@ export type UpdateIngredientMergedItem = Omit<
 };
 
 export type UpdateIngredientResult = {
-  ingredient: IngredientDetail;
+  ingredient: Omit<IngredientDetail, "ownerNickname">;
   mergedItems: UpdateIngredientMergedItem[];
   etag: string | null;
 };

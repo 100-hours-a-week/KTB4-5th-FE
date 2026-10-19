@@ -55,4 +55,5 @@ export type IngredientDetail = {
   createdDate: string;
   status: IngredientStatus;
   daysUntilExpiration: number;
+  ownerNickname: string;
 };
