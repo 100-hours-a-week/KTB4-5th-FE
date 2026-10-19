@@ -9,9 +9,14 @@ import { ApiError, SessionExpiredError } from "@/shared/api";
 
 import { useNotificationSse } from "./use-notification-sse";
 
-const { refresh, session } = vi.hoisted(() => ({
+const { refresh, session, recover } = vi.hoisted(() => ({
+  recover: vi.fn(),
   session: { loggingOut: false },
   refresh: vi.fn(() => Promise.resolve()),
+}));
+
+vi.mock("@/features/recover-refrigerator-access", () => ({
+  useRecoverRefrigeratorAccess: () => recover,
 }));
 
 vi.mock("@/entities/notification", () => ({
@@ -79,6 +84,7 @@ let queryClient: QueryClient;
 beforeEach(() => {
   FakeEventSource.instances = [];
   refresh.mockClear();
+  recover.mockClear();
   session.loggingOut = false;
   vi.spyOn(document, "visibilityState", "get").mockReturnValue("visible");
   vi.stubGlobal("EventSource", FakeEventSource);
@@ -259,6 +265,7 @@ it("이전 냉장고 연결과 언마운트 후 도착한 이벤트·오류·화
   rerender({ id: "18" });
   function sendLateEvents(source: FakeEventSource) {
     source.emit("connected");
+    source.emit("kicked", "{}");
     source.emit("notifications-changed", '{"refrigeratorId":"17"}');
     source.emit("image-analysis.image-finished", '{"analysisId":"job-1"}');
     source.emit("image-analysis.finished", '{"analysisId":"job-1"}');
@@ -273,7 +280,31 @@ it("이전 냉장고 연결과 언마운트 후 도착한 이벤트·오류·화
   expect(refresh).not.toHaveBeenCalled();
   expect(invalidate).not.toHaveBeenCalled();
   expect(fetch).not.toHaveBeenCalled();
+  expect(recover).not.toHaveBeenCalled();
   expect(FakeEventSource.instances).toHaveLength(2);
+});
+
+it("kicked는 연결을 닫고 한 번만 복구하며 이후 이벤트·foreground·online을 무시한다", () => {
+  renderHook(() => useNotificationSse("user", "17"), { wrapper });
+  const source = FakeEventSource.instances[0];
+  for (const data of ["invalid", "null", "[]"]) {
+    act(() => source.emit("kicked", data));
+  }
+  expect(recover).not.toHaveBeenCalled();
+  act(() => source.emit("kicked", "{}"));
+  expect(source.readyState).toBe(FakeEventSource.CLOSED);
+  expect(recover).toHaveBeenCalledTimes(1);
+  act(() => {
+    source.emit("kicked", "{}");
+    source.emit("connected", "{}");
+    source.emit("notifications-changed", '{"refrigeratorId":"17"}');
+    source.onerror?.(new Event("error"));
+    document.dispatchEvent(new Event("visibilitychange"));
+    window.dispatchEvent(new Event("online"));
+  });
+  expect(recover).toHaveBeenCalledTimes(1);
+  expect(refresh).not.toHaveBeenCalled();
+  expect(FakeEventSource.instances).toHaveLength(1);
 });
 
 it("브라우저가 스스로 재연결 중인 오류에서는 REST 인증 확인도 새 연결도 만들지 않는다", async () => {

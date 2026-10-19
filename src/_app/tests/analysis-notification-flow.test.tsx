@@ -21,8 +21,12 @@ import { NotificationStream } from "@/widgets/notification-stream";
 import { AnalysisTaskBanner } from "@/widgets/route-header";
 
 const navigation = vi.hoisted(() => ({ pathname: "/" }));
-vi.mock("next/navigation", () => ({ usePathname: () => navigation.pathname }));
-vi.mock("@/entities/refrigerator", () => ({
+vi.mock("next/navigation", () => ({
+  usePathname: () => navigation.pathname,
+  useRouter: () => ({ replace: vi.fn() }),
+}));
+vi.mock("@/entities/refrigerator", async (importOriginal) => ({
+  ...(await importOriginal<object>()),
   useCurrentRefrigeratorId: () => "17",
 }));
 vi.mock("@/entities/notification", async (importOriginal) => ({

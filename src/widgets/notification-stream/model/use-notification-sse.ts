@@ -4,6 +4,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { useEffect } from "react";
 
 import { imageAnalysisQueries } from "@/entities/image";
+import { useRecoverRefrigeratorAccess } from "@/features/recover-refrigerator-access";
 
 import {
   getNotificationEventsUrl,
@@ -21,6 +22,10 @@ const RETRY_MAX_MS = 30_000;
 
 export function useNotificationSse(userScope: string, refrigeratorId: string) {
   const queryClient = useQueryClient();
+  const recoverRefrigeratorAccess = useRecoverRefrigeratorAccess(
+    userScope,
+    refrigeratorId,
+  );
 
   useEffect(() => {
     if (typeof EventSource === "undefined") {
@@ -65,6 +70,25 @@ export function useNotificationSse(userScope: string, refrigeratorId: string) {
         withCredentials: true,
       });
       source = stream;
+
+      stream.addEventListener("kicked", (event) => {
+        if (!active || stream !== source || isIntentionalLogout()) return;
+        try {
+          const payload: unknown = JSON.parse(event.data);
+          if (
+            typeof payload !== "object" ||
+            payload === null ||
+            Array.isArray(payload)
+          )
+            return;
+        } catch {
+          return;
+        }
+        active = false;
+        window.clearTimeout(retryTimer);
+        stream.close();
+        recoverRefrigeratorAccess();
+      });
 
       stream.addEventListener("connected", () => {
         if (!active || stream !== source) return;
@@ -139,6 +163,7 @@ export function useNotificationSse(userScope: string, refrigeratorId: string) {
     }
 
     function onVisibilityChange() {
+      if (!active) return;
       if (document.visibilityState === "hidden") {
         void queryClient.cancelQueries({
           queryKey: notificationQueries.byRefrigerator(
@@ -158,6 +183,7 @@ export function useNotificationSse(userScope: string, refrigeratorId: string) {
     }
 
     function onOnline() {
+      if (!active) return;
       if (source.readyState === EventSource.CLOSED && !isIntentionalLogout()) {
         connect();
       }
@@ -173,5 +199,5 @@ export function useNotificationSse(userScope: string, refrigeratorId: string) {
       document.removeEventListener("visibilitychange", onVisibilityChange);
       window.removeEventListener("online", onOnline);
     };
-  }, [queryClient, userScope, refrigeratorId]);
+  }, [queryClient, userScope, refrigeratorId, recoverRefrigeratorAccess]);
 }
