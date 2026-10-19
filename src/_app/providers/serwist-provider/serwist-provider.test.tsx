@@ -2,7 +2,7 @@
 
 import { cleanup, render, waitFor } from "@testing-library/react";
 import type { ReactNode } from "react";
-import { afterEach, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, expect, it, vi } from "vitest";
 
 import { SerwistProvider } from "./serwist-provider";
 
@@ -11,6 +11,8 @@ const { register, captureException, setContext } = vi.hoisted(() => ({
   captureException: vi.fn(),
   setContext: vi.fn(),
 }));
+
+const getRegistration = vi.fn();
 
 vi.mock("@serwist/turbopack/react", () => ({
   SerwistProvider: ({ children }: { children: ReactNode }) => children,
@@ -23,9 +25,62 @@ vi.mock("@sentry/nextjs", () => ({
 }));
 vi.mock("../../mocks/enabled", () => ({ isMswActive: () => false }));
 
+beforeEach(() => {
+  getRegistration.mockResolvedValue(undefined);
+  register.mockResolvedValue(undefined);
+  vi.stubGlobal("navigator", {
+    userAgent: "test-browser",
+    serviceWorker: { getRegistration },
+  });
+});
+
 afterEach(() => {
   cleanup();
-  vi.clearAllMocks();
+  vi.resetAllMocks();
+  vi.unstubAllGlobals();
+});
+
+it("disables preload on the existing registration while registration is pending", async () => {
+  const disable = vi.fn().mockResolvedValue(undefined);
+  getRegistration.mockResolvedValue({ navigationPreload: { disable } });
+  register.mockReturnValue(new Promise(() => {}));
+
+  render(<SerwistProvider>login</SerwistProvider>);
+
+  await waitFor(() => expect(disable).toHaveBeenCalledTimes(1));
+  expect(register).toHaveBeenCalledTimes(1);
+});
+
+it("disables preload on a newly returned registration", async () => {
+  const disable = vi.fn().mockResolvedValue(undefined);
+  register.mockResolvedValue({ navigationPreload: { disable } });
+
+  render(<SerwistProvider>login</SerwistProvider>);
+
+  await waitFor(() => expect(disable).toHaveBeenCalledTimes(1));
+  expect(captureException).not.toHaveBeenCalled();
+});
+
+it("supports registrations without navigation preload", async () => {
+  getRegistration.mockResolvedValue({});
+  register.mockResolvedValue({});
+
+  render(<SerwistProvider>login</SerwistProvider>);
+
+  await waitFor(() => expect(register).toHaveBeenCalledTimes(1));
+  expect(captureException).not.toHaveBeenCalled();
+});
+
+it("records preload failures without preventing registration", async () => {
+  const error = new DOMException("Preload blocked", "InvalidStateError");
+  getRegistration.mockResolvedValue({
+    navigationPreload: { disable: vi.fn().mockRejectedValue(error) },
+  });
+
+  render(<SerwistProvider>login</SerwistProvider>);
+
+  await waitFor(() => expect(captureException).toHaveBeenCalledWith(error));
+  expect(register).toHaveBeenCalledTimes(1);
 });
 
 it("handles registration rejection and records its cause", async () => {
