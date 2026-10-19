@@ -5,7 +5,7 @@ import { Lineicons } from "@lineiconshq/react-lineicons";
 import { useMutation } from "@tanstack/react-query";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useTransition } from "react";
+import { useRef, useState, useTransition } from "react";
 
 import {
   getPushNotificationSupport,
@@ -28,6 +28,8 @@ import { useSignupDraftStore } from "../model/use-signup-draft-store";
 export function SignupNotificationPage() {
   const router = useRouter();
   const [isEnteringHome, startTransition] = useTransition();
+  const isStartingRef = useRef(false);
+  const [isStarting, setIsStarting] = useState(false);
   const nickname = useSignupDraftStore((state) => state.nickname);
   const notificationEnabled = useSignupDraftStore(
     (state) => state.notificationEnabled,
@@ -47,6 +49,10 @@ export function SignupNotificationPage() {
   });
 
   async function startService() {
+    if (isStartingRef.current) return;
+    isStartingRef.current = true;
+    setIsStarting(true);
+
     if (notificationEnabled && getPushNotificationSupport() === "supported") {
       await requestPushPermission().catch(() => null);
     }
@@ -68,6 +74,8 @@ export function SignupNotificationPage() {
       } else {
         showAppToast({ message: signupError.message, variant: "error" });
       }
+      isStartingRef.current = false;
+      setIsStarting(false);
       return;
     }
 
@@ -88,7 +96,7 @@ export function SignupNotificationPage() {
           variant="highlight"
           shape="note"
           className="w-full shadow-app-md"
-          loading={signupMutation.isPending || isEnteringHome}
+          loading={isStarting || isEnteringHome}
           onClick={startService}
         >
           시작하기
