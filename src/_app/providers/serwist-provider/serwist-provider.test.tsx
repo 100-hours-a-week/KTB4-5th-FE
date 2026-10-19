@@ -42,7 +42,10 @@ afterEach(() => {
 
 it("disables preload on the existing registration while registration is pending", async () => {
   const disable = vi.fn().mockResolvedValue(undefined);
-  getRegistration.mockResolvedValue({ navigationPreload: { disable } });
+  getRegistration.mockResolvedValue({
+    active: { state: "activated" },
+    navigationPreload: { disable },
+  });
   register.mockReturnValue(new Promise(() => {}));
 
   render(<SerwistProvider>login</SerwistProvider>);
@@ -53,7 +56,10 @@ it("disables preload on the existing registration while registration is pending"
 
 it("disables preload on a newly returned registration", async () => {
   const disable = vi.fn().mockResolvedValue(undefined);
-  register.mockResolvedValue({ navigationPreload: { disable } });
+  register.mockResolvedValue({
+    active: { state: "activated" },
+    navigationPreload: { disable },
+  });
 
   render(<SerwistProvider>login</SerwistProvider>);
 
@@ -62,8 +68,8 @@ it("disables preload on a newly returned registration", async () => {
 });
 
 it("supports registrations without navigation preload", async () => {
-  getRegistration.mockResolvedValue({});
-  register.mockResolvedValue({});
+  getRegistration.mockResolvedValue({ active: { state: "activated" } });
+  register.mockResolvedValue({ active: { state: "activated" } });
 
   render(<SerwistProvider>login</SerwistProvider>);
 
@@ -71,9 +77,32 @@ it("supports registrations without navigation preload", async () => {
   expect(captureException).not.toHaveBeenCalled();
 });
 
+it("skips preload disable while the first worker is installing without an active worker", async () => {
+  const disable = vi
+    .fn()
+    .mockRejectedValue(
+      new DOMException("No active worker", "InvalidStateError"),
+    );
+  const registration = {
+    active: null,
+    installing: { state: "installing" },
+    navigationPreload: { disable },
+  };
+  getRegistration.mockResolvedValue(registration);
+  register.mockResolvedValue(registration);
+
+  render(<SerwistProvider>login</SerwistProvider>);
+
+  await waitFor(() => expect(getRegistration).toHaveResolvedWith(registration));
+  expect(register).toHaveResolvedWith(registration);
+  expect(disable).not.toHaveBeenCalled();
+  expect(captureException).not.toHaveBeenCalled();
+});
+
 it("records preload failures without preventing registration", async () => {
   const error = new DOMException("Preload blocked", "InvalidStateError");
   getRegistration.mockResolvedValue({
+    active: { state: "activated" },
     navigationPreload: { disable: vi.fn().mockRejectedValue(error) },
   });
 

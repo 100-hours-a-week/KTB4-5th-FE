@@ -42,7 +42,10 @@ it("waits for preload disable before scheduling OAuth navigation and blocks repe
       finishDisable = resolve;
     }),
   );
-  getRegistration.mockResolvedValue({ navigationPreload: { disable } });
+  getRegistration.mockResolvedValue({
+    active: { state: "activated" },
+    navigationPreload: { disable },
+  });
   render(<KakaoLoginButton />);
 
   const button = screen.getByRole("button", { name: "카카오로 시작하기" });
@@ -61,7 +64,7 @@ it("waits for preload disable before scheduling OAuth navigation and blocks repe
   expect(scheduleFrame).toHaveBeenCalledTimes(1);
 });
 
-it.each([undefined, {}])(
+it.each([undefined, { active: { state: "activated" } }])(
   "continues when registration or preload is absent: %j",
   async (registration) => {
     getRegistration.mockResolvedValue(registration);
@@ -73,6 +76,27 @@ it.each([undefined, {}])(
     expect(showAppToast).not.toHaveBeenCalled();
   },
 );
+
+it("continues login without calling disable when the first worker has no active worker", async () => {
+  const disable = vi
+    .fn()
+    .mockRejectedValue(
+      new DOMException("No active worker", "InvalidStateError"),
+    );
+  getRegistration.mockResolvedValue({
+    active: null,
+    installing: { state: "installing" },
+    navigationPreload: { disable },
+  });
+  render(<KakaoLoginButton />);
+
+  fireEvent.click(screen.getByRole("button", { name: "카카오로 시작하기" }));
+
+  await waitFor(() => expect(scheduleFrame).toHaveBeenCalledTimes(1));
+  expect(disable).not.toHaveBeenCalled();
+  expect(markOAuthLoginStarted).toHaveBeenCalledTimes(1);
+  expect(showAppToast).not.toHaveBeenCalled();
+});
 
 it("continues when service workers are unsupported", async () => {
   vi.stubGlobal("navigator", {});
@@ -92,6 +116,7 @@ it.each(["lookup", "disable"])(
       getRegistration.mockRejectedValueOnce(error);
     } else {
       getRegistration.mockResolvedValueOnce({
+        active: { state: "activated" },
         navigationPreload: { disable: vi.fn().mockRejectedValue(error) },
       });
     }

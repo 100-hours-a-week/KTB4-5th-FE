@@ -26,7 +26,9 @@ export function KakaoLoginButton() {
     setIsPending(true);
     try {
       const registration = await navigator.serviceWorker?.getRegistration();
-      await registration?.navigationPreload?.disable();
+      if (registration?.active) {
+        await registration.navigationPreload?.disable();
+      }
 
       markOAuthLoginStarted();
       requestAnimationFrame(() => {
