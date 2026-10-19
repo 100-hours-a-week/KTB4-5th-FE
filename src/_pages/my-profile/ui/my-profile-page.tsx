@@ -27,6 +27,7 @@ import { FooterButton } from "@/shared/ui/footer-button";
 import { PageActionLayout } from "@/shared/ui/page-action-layout";
 
 import { updateMyNickname } from "../api/my-profile";
+import { WithdrawAccountButton } from "./withdraw-account-button";
 
 const FORM_ID = "my-profile-form";
 
@@ -216,6 +217,8 @@ function MyProfileForm({ me }: { me: Me }) {
               </div>
             </div>
           ) : null}
+
+          <WithdrawAccountButton />
         </form>
       </PageActionLayout>
 
