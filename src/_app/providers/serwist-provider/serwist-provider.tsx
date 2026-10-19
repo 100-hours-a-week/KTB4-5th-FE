@@ -23,7 +23,15 @@ function RegisterServiceWorker() {
     if (!serwist || started.current || isMswActive()) return;
     started.current = true;
 
-    void serwist.register().catch((cause: unknown) => {
+    // 새 워커의 설치·활성화가 지연돼도 기존 등록의 preload는 즉시 끈다.
+    void Promise.all([
+      navigator.serviceWorker
+        .getRegistration()
+        .then((registration) => registration?.navigationPreload?.disable()),
+      serwist
+        .register()
+        .then((registration) => registration?.navigationPreload?.disable()),
+    ]).catch((cause: unknown) => {
       const error =
         cause instanceof Error || cause instanceof DOMException
           ? cause
