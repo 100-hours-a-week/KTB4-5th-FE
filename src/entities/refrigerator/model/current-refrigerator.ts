@@ -25,9 +25,22 @@ function readCookie(): string | null {
 }
 
 function readCurrentRefrigeratorId(): string | null {
-  return (
-    readCookie() ?? (window.localStorage.getItem(LEGACY_STORAGE_KEY) || null)
-  );
+  const cookieId = readCookie();
+  if (cookieId) return cookieId;
+
+  try {
+    return window.localStorage.getItem(LEGACY_STORAGE_KEY) || null;
+  } catch {
+    return null;
+  }
+}
+
+function removeLegacyRefrigeratorId(): void {
+  try {
+    window.localStorage.removeItem(LEGACY_STORAGE_KEY);
+  } catch {
+    // 현재 식별자는 쿠키가 소유하므로 레거시 저장소 차단이 인증을 막지 않게 한다.
+  }
 }
 
 function subscribe(onChange: () => void): () => void {
@@ -77,7 +90,7 @@ export function useCurrentRefrigeratorRecovery() {
 
 export function setCurrentRefrigeratorId(refrigeratorId: string | null): void {
   writeCookie(refrigeratorId);
-  window.localStorage.removeItem(LEGACY_STORAGE_KEY);
+  removeLegacyRefrigeratorId();
 
   window.dispatchEvent(new Event(CHANGE_EVENT));
 }
@@ -85,5 +98,5 @@ export function setCurrentRefrigeratorId(refrigeratorId: string | null): void {
 // 세션 종료용
 export function clearCurrentRefrigeratorId(): void {
   writeCookie(null);
-  window.localStorage.removeItem(LEGACY_STORAGE_KEY);
+  removeLegacyRefrigeratorId();
 }
