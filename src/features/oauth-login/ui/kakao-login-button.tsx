@@ -1,5 +1,6 @@
 "use client";
 
+import * as Sentry from "@sentry/nextjs";
 import { useEffect, useState } from "react";
 
 import { showAppToast } from "@/shared/ui/app-toast";
@@ -34,7 +35,8 @@ export function KakaoLoginButton() {
       requestAnimationFrame(() => {
         requestAnimationFrame(() => window.location.assign(authorizationPath));
       });
-    } catch {
+    } catch (error) {
+      Sentry.captureException(error, { tags: { operation: "oauth.prepare" } });
       setIsPending(false);
       showAppToast({
         message: "잠시 후 다시 시도해 주세요",

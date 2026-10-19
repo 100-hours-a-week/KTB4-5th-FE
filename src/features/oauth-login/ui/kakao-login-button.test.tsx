@@ -12,13 +12,17 @@ import { afterEach, beforeEach, expect, it, vi } from "vitest";
 
 import { KakaoLoginButton } from "./kakao-login-button";
 
-const { markOAuthLoginStarted, showAppToast } = vi.hoisted(() => ({
-  markOAuthLoginStarted: vi.fn(),
-  showAppToast: vi.fn(),
-}));
+const { markOAuthLoginStarted, showAppToast, captureException } = vi.hoisted(
+  () => ({
+    markOAuthLoginStarted: vi.fn(),
+    showAppToast: vi.fn(),
+    captureException: vi.fn(),
+  }),
+);
 
 vi.mock("../model/oauth-return", () => ({ markOAuthLoginStarted }));
 vi.mock("@/shared/ui/app-toast", () => ({ showAppToast }));
+vi.mock("@sentry/nextjs", () => ({ captureException }));
 
 const getRegistration = vi.fn();
 const scheduleFrame = vi.fn();
@@ -35,7 +39,7 @@ afterEach(() => {
   vi.unstubAllGlobals();
 });
 
-it("waits for preload disable before scheduling OAuth navigation and blocks repeated clicks", async () => {
+it("waits for preload disable and blocks 50 repeated login clicks", async () => {
   let finishDisable!: () => void;
   const disable = vi.fn().mockReturnValue(
     new Promise<void>((resolve) => {
@@ -49,8 +53,7 @@ it("waits for preload disable before scheduling OAuth navigation and blocks repe
   render(<KakaoLoginButton />);
 
   const button = screen.getByRole("button", { name: "카카오로 시작하기" });
-  fireEvent.click(button);
-  fireEvent.click(button);
+  for (let attempt = 0; attempt < 50; attempt++) fireEvent.click(button);
 
   await waitFor(() => expect(disable).toHaveBeenCalledTimes(1));
   expect(button.hasAttribute("disabled")).toBe(true);
@@ -108,10 +111,25 @@ it("continues when service workers are unsupported", async () => {
   expect(showAppToast).not.toHaveBeenCalled();
 });
 
+it("restores the login button when returning through the back-forward cache", async () => {
+  render(<KakaoLoginButton />);
+  fireEvent.click(screen.getByRole("button", { name: "카카오로 시작하기" }));
+  await waitFor(() => expect(scheduleFrame).toHaveBeenCalledTimes(1));
+
+  fireEvent(window, new PageTransitionEvent("pageshow", { persisted: true }));
+  const button = screen.getByRole("button", { name: "카카오로 시작하기" });
+  expect(button.hasAttribute("disabled")).toBe(false);
+  fireEvent.click(button);
+  await waitFor(() => expect(scheduleFrame).toHaveBeenCalledTimes(2));
+});
+
 it.each(["lookup", "disable"])(
   "stops navigation and allows retry after %s failure",
   async (failure) => {
-    const error = new Error("Service worker unavailable");
+    const error = new DOMException(
+      "Service worker unavailable",
+      "SecurityError",
+    );
     if (failure === "lookup") {
       getRegistration.mockRejectedValueOnce(error);
     } else {
@@ -130,6 +148,9 @@ it.each(["lookup", "disable"])(
         variant: "error",
       }),
     );
+    expect(captureException).toHaveBeenCalledWith(error, {
+      tags: { operation: "oauth.prepare" },
+    });
     const button = screen.getByRole("button", { name: "카카오로 시작하기" });
     expect(button.hasAttribute("disabled")).toBe(false);
     expect(markOAuthLoginStarted).not.toHaveBeenCalled();
