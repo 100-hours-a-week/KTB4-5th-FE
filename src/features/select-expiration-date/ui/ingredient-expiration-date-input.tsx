@@ -2,12 +2,17 @@
 
 import { CalendarDaysOutlined } from "@lineiconshq/free-icons";
 import { Lineicons } from "@lineiconshq/react-lineicons";
+import dynamic from "next/dynamic";
 import { useState } from "react";
 import type { Ref } from "react";
 
 import { formatIsoDate } from "@/shared/lib/date";
 
-import { ExpirationDateSheet } from "./expiration-date-sheet";
+const ExpirationDateSheet = dynamic(
+  () =>
+    import("./expiration-date-sheet").then((mod) => mod.ExpirationDateSheet),
+  { ssr: false },
+);
 
 interface IngredientExpirationDateInputProps {
   id: string;
@@ -42,6 +47,7 @@ export function IngredientExpirationDateInput({
   onBlur,
 }: IngredientExpirationDateInputProps) {
   const [isCalendarOpen, setIsCalendarOpen] = useState(false);
+  const [hasOpenedCalendar, setHasOpenedCalendar] = useState(false);
 
   function selectDate(isoDate: string) {
     onValueChange(isoDate);
@@ -55,7 +61,10 @@ export function IngredientExpirationDateInput({
         id={id}
         ref={inputRef}
         type="button"
-        onClick={() => setIsCalendarOpen(true)}
+        onClick={() => {
+          setHasOpenedCalendar(true);
+          setIsCalendarOpen(true);
+        }}
         aria-labelledby={`${labelId} ${id}-value`}
         aria-describedby={describedBy}
         className={getControlClassName(invalid)}
@@ -76,12 +85,14 @@ export function IngredientExpirationDateInput({
         />
       </button>
 
-      <ExpirationDateSheet
-        open={isCalendarOpen}
-        value={value}
-        onSelect={selectDate}
-        onDismiss={() => setIsCalendarOpen(false)}
-      />
+      {hasOpenedCalendar ? (
+        <ExpirationDateSheet
+          open={isCalendarOpen}
+          value={value}
+          onSelect={selectDate}
+          onDismiss={() => setIsCalendarOpen(false)}
+        />
+      ) : null}
     </>
   );
 }
