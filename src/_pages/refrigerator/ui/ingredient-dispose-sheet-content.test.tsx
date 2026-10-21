@@ -52,6 +52,9 @@ it("passes only the checked ingredient ids to the confirmation step", () => {
   render(
     <IngredientDisposeBottomSheetContent
       ingredients={INGREDIENTS}
+      isComplete
+      isError={false}
+      onRetry={vi.fn()}
       onCancel={vi.fn()}
       onConfirm={onConfirm}
     />,

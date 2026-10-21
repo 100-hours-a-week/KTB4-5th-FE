@@ -1,12 +1,14 @@
 "use client";
 
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useRef, useState } from "react";
 
 import {
   disposeExpiredIngredients,
+  ingredientQueries,
   invalidateIngredients,
   type Ingredient,
+  type IngredientListQuery,
 } from "@/entities/ingredient";
 import { ApiError } from "@/shared/api";
 import { AppBottomSheet } from "@/shared/ui/app-bottom-sheet";
@@ -19,9 +21,42 @@ import { IngredientDisposeBottomSheetContent } from "./ingredient-dispose-sheet-
 type IngredientDisposeBottomSheetProps = {
   open: boolean;
   refrigeratorId: string;
-  ingredients: Ingredient[];
+  query: IngredientListQuery;
+  initialIngredients: Ingredient[];
   onClose: () => void;
 };
+
+type ExpiredIngredientsSheetBodyProps = {
+  refrigeratorId: string;
+  query: IngredientListQuery;
+  initialIngredients: Ingredient[];
+  onCancel: () => void;
+  onConfirm: (ingredientIds: string[]) => void;
+};
+
+function ExpiredIngredientsSheetBody({
+  refrigeratorId,
+  query,
+  initialIngredients,
+  onCancel,
+  onConfirm,
+}: ExpiredIngredientsSheetBodyProps) {
+  const { data, isSuccess, isError, isFetching, refetch } = useQuery({
+    ...ingredientQueries.expired(refrigeratorId, query),
+    gcTime: 0,
+  });
+
+  return (
+    <IngredientDisposeBottomSheetContent
+      ingredients={data?.ingredients ?? initialIngredients}
+      isComplete={isSuccess}
+      isError={isError && !isFetching}
+      onRetry={() => void refetch()}
+      onCancel={onCancel}
+      onConfirm={onConfirm}
+    />
+  );
+}
 
 type PendingDisposal = {
   refrigeratorId: string;
@@ -31,7 +66,8 @@ type PendingDisposal = {
 export function IngredientDisposeBottomSheet({
   open,
   refrigeratorId,
-  ingredients,
+  query,
+  initialIngredients,
   onClose,
 }: IngredientDisposeBottomSheetProps) {
   const queryClient = useQueryClient();
@@ -90,8 +126,10 @@ export function IngredientDisposeBottomSheet({
     <>
       <AppBottomSheet open={open} onDismiss={onClose}>
         {/* 닫히면 내용이 unmount되므로 열 때마다 선택값이 전체 선택으로 초기화된다. */}
-        <IngredientDisposeBottomSheetContent
-          ingredients={ingredients}
+        <ExpiredIngredientsSheetBody
+          refrigeratorId={refrigeratorId}
+          query={query}
+          initialIngredients={initialIngredients}
           onCancel={onClose}
           onConfirm={openConfirm}
         />

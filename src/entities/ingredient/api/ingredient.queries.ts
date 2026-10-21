@@ -3,7 +3,10 @@ import { ApiError, SessionExpiredError } from "@/shared/api";
 
 import type { IngredientListQuery } from "../model/ingredient-list-query";
 import { getIngredientDetail } from "./get-ingredient-detail";
-import { getAllIngredients, getIngredientList } from "./get-ingredient-list";
+import {
+  getExpiredIngredients,
+  getIngredientList,
+} from "./get-ingredient-list";
 
 function retryIngredientList(failureCount: number, error: Error): boolean {
   return (
@@ -64,16 +67,16 @@ export const ingredientQueries = {
         getIngredientList({ refrigeratorId, query, cursor: null, signal }),
       retry: retryIngredientList,
     }),
-  allPages: (refrigeratorId: string, query: IngredientListQuery) =>
+  expired: (refrigeratorId: string, query: IngredientListQuery) =>
     queryOptions({
       meta: { monitoringOperation: "ingredient.list" },
       queryKey: [
         ...ingredientQueries.byRefrigerator(refrigeratorId),
-        "all-pages",
+        "expired",
         query,
       ] as const,
       queryFn: ({ signal }) =>
-        getAllIngredients({ refrigeratorId, query, signal }),
+        getExpiredIngredients({ refrigeratorId, query, signal }),
       retry: retryIngredientRead,
     }),
 };

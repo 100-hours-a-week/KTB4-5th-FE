@@ -97,18 +97,6 @@ export function RefrigeratorPage({
   const canDisposeExpired =
     deferredQuery.filter === "EXPIRED" && (firstPage?.filteredCount ?? 0) > 0;
 
-  async function fetchAllPages() {
-    let hasMore = Boolean(hasNextPage);
-    while (hasMore) {
-      const result = await fetchNextPage({ cancelRefetch: false });
-      if (result.isError) {
-        return false;
-      }
-      hasMore = result.hasNextPage;
-    }
-    return true;
-  }
-
   useIngredientRefreshToast(isDateStale);
 
   return (
@@ -134,9 +122,9 @@ export function RefrigeratorPage({
           <div className="pb-4">
             <IngredientDisposeBanner
               refrigeratorId={refrigeratorId}
+              query={deferredQuery}
               expiredCount={firstPage?.filteredCount ?? 0}
-              expiredIngredients={ingredients}
-              onLoadAll={fetchAllPages}
+              initialIngredients={ingredients}
             />
           </div>
         ) : null}
