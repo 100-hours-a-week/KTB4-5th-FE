@@ -1,6 +1,6 @@
 import "server-only";
 
-import { API_BASE_PATH } from "@/shared/api";
+import { API_BASE_PATH, ApiError, readProblem } from "@/shared/api";
 import type { ApiResponse } from "@/shared/api";
 
 import type { IngredientListQuery } from "../model/ingredient-list-query";
@@ -26,23 +26,67 @@ type GetIngredientListOnServerParams = {
   cookie: string;
 };
 
-export async function getIngredientListOnServer({
+type FetchIngredientListPageParams = GetIngredientListOnServerParams & {
+  cursor: string | null;
+  signal: AbortSignal;
+};
+
+async function fetchIngredientListPage({
   refrigeratorId,
   query,
   cookie,
-}: GetIngredientListOnServerParams): Promise<IngredientListPage> {
+  cursor,
+  signal,
+}: FetchIngredientListPageParams): Promise<
+  ApiResponse<IngredientListResponseDto>
+> {
   const response = await fetch(
-    `${BACKEND_ORIGIN}${API_BASE_PATH}/refrigerators/${encodeURIComponent(refrigeratorId)}/ingredients?${toIngredientListSearchParams(query)}`,
+    `${BACKEND_ORIGIN}${API_BASE_PATH}/refrigerators/${encodeURIComponent(refrigeratorId)}/ingredients?${toIngredientListSearchParams(query, cursor)}`,
     {
-      headers: { Accept: "application/json", Cookie: cookie },
+      headers: {
+        Accept: "application/json, application/problem+json",
+        Cookie: cookie,
+      },
       cache: "no-store",
-      signal: AbortSignal.timeout(500),
+      signal,
     },
   );
   if (!response.ok) {
-    throw new Error(`재고 목록 서버 조회 실패: ${response.status}`);
+    throw new ApiError(response.status, await readProblem(response));
   }
 
-  const body = (await response.json()) as ApiResponse<IngredientListResponseDto>;
+  return (await response.json()) as ApiResponse<IngredientListResponseDto>;
+}
+
+export async function getIngredientListOnServer(
+  params: GetIngredientListOnServerParams,
+): Promise<IngredientListPage> {
+  const body = await fetchIngredientListPage({
+    ...params,
+    cursor: null,
+    signal: AbortSignal.timeout(500),
+  });
   return toIngredientListPage(body.data);
+}
+
+export async function getAllIngredientListOnServer(
+  params: GetIngredientListOnServerParams & { signal: AbortSignal },
+): Promise<ApiResponse<IngredientListResponseDto>> {
+  const first = await fetchIngredientListPage({ ...params, cursor: null });
+  const ingredients = [...first.data.ingredients];
+  const seenCursors = new Set<string>();
+  let cursor = first.data.nextCursor;
+
+  while (cursor !== null) {
+    if (seenCursors.has(cursor)) {
+      throw new TypeError("재고 목록의 페이지 커서가 반복되었습니다.");
+    }
+    seenCursors.add(cursor);
+
+    const page = await fetchIngredientListPage({ ...params, cursor });
+    ingredients.push(...page.data.ingredients);
+    cursor = page.data.nextCursor;
+  }
+
+  return { ...first, data: { ...first.data, ingredients, nextCursor: null } };
 }

@@ -9,6 +9,7 @@ const runs = Number(option("n", "10"));
 const fixture = Number(option("fixture", "1000"));
 const backendPort = Number(option("backend-port", "3020"));
 const only = option("only", "");
+const variants = option("variants", "a,b").split(",");
 const out = path.resolve(option("out", "scripts/perf/out/refrigerator-entry"));
 fs.mkdirSync(path.join(out, "traces"), { recursive: true });
 
@@ -24,15 +25,19 @@ const conditions = [
   { name: "entry-backend500", scenario: "entry", network: "slow4g", backendDelay: 500 },
   { name: "entry-backend3000", scenario: "entry", network: "slow4g", backendDelay: 3000 },
   { name: "entry-nocookie", scenario: "entry", network: "slow4g", backendDelay: 20, noState: true },
-].filter((c) => !only || only.split(",").includes(c.name));
+  { name: "dispose-slow4g-100", scenario: "dispose", network: "slow4g", backendDelay: 20, fixture: 400, optIn: true },
+  { name: "dispose-slow4g-450", scenario: "dispose", network: "slow4g", backendDelay: 20, fixture: 1800, optIn: true },
+  { name: "dispose-fast4g-450", scenario: "dispose", network: "fast4g", backendDelay: 20, fixture: 1800, optIn: true },
+].filter((c) => (only ? only.split(",").includes(c.name) : !c.optIn));
 
 const card = 'section[aria-label="재고 목록"] a[href^="/refrigerator/ingredients/"]';
 const statuses = ["NORMAL", "NORMAL", "EXPIRING_SOON", "EXPIRED"];
 const categories = ["VEGETABLE", "FRUIT", "MEAT"];
-const items = Array.from({ length: fixture }, (_, i) => {
+const makeItems = (count) => Array.from({ length: count }, (_, i) => {
   const status = statuses[i % 4];
   return { ingredientId: String(i + 1), name: `재료 ${String(i + 1).padStart(4, "0")}`, category: categories[i % 3], quantity: 1, weightValue: null, weightUnit: "NONE", storageType: i % 3 === 2 ? "FROZEN" : "REFRIGERATED", status, daysUntilExpiration: status === "EXPIRED" ? -1 : status === "EXPIRING_SOON" ? 2 : 10 };
 });
+let items = makeItems(fixture);
 const envelope = (data) => JSON.stringify({ code: "PERF-200-001", message: "OK", data });
 function respond(url) {
   if (/\/refrigerators\/[^/]+\/ingredients$/.test(url.pathname)) {
@@ -41,7 +46,7 @@ function respond(url) {
     const matched = items.filter((x) => (!category || x.category === category) && (!filter || (filter === "REFRIGERATED" || filter === "FROZEN" ? x.storageType === filter : x.status === filter)));
     const cursor = Number(url.searchParams.get("cursor") ?? 0);
     const size = Number(url.searchParams.get("size") ?? 10);
-    return envelope({ ingredientsNum: fixture, filteredCount: matched.length, refrigeratorCapacity: Math.max(100, fixture), ingredients: matched.slice(cursor, cursor + size), nextCursor: cursor + size < matched.length ? String(cursor + size) : null });
+    return envelope({ ingredientsNum: items.length, filteredCount: matched.length, refrigeratorCapacity: Math.max(100, items.length), ingredients: matched.slice(cursor, cursor + size), nextCursor: cursor + size < matched.length ? String(cursor + size) : null });
   }
   if (url.pathname.endsWith("/refrigerators/current")) return envelope([{ refrigeratorId: 1, name: "성능 측정", capacity: Math.max(100, fixture), expiredCount: 0 }]);
   if (url.pathname.endsWith("/notifications/stream")) return envelope({ notificationId: null });
@@ -89,6 +94,7 @@ async function sample(browser, condition, variant, trace) {
   const base = bases[variant];
   const network = networks[condition.network];
   backendDelay = condition.backendDelay;
+  if (items.length !== (condition.fixture ?? fixture)) items = makeItems(condition.fixture ?? fixture);
   const context = await browser.newContext({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 2, serviceWorkers: "block" });
   const cookies = [{ name: "accessToken", value: "local-perf-fixture", url: base }];
   if (!condition.noState) cookies.push({ name: "currentRefrigeratorId", value: "1", url: base });
@@ -100,8 +106,21 @@ async function sample(browser, condition, variant, trace) {
   });
   await context.addInitScript(({ card, noState }) => {
     if (!noState) localStorage.setItem("dameokja.currentRefrigeratorId", "1");
-    const m = { tap: null, cardDom: null, cardPaint: null, fcp: null, lcp: null, cls: 0 };
+    const m = { tap: null, cardDom: null, cardPaint: null, fcp: null, lcp: null, cls: 0, sheetDom: null, sheetPaint: null, sheetFull: null, events: [], longTasks: [] };
     window.__entry = m;
+    new MutationObserver(() => {
+      const open = [...document.querySelectorAll('[role="dialog"]')].some((e) => e.textContent.includes("정리할 재료를 확인해 주세요"));
+      if (!open) { m.sheetDom = null; m.sheetPaint = null; m.sheetFull = null; return; }
+      if (m.sheetDom === null) {
+        m.sheetDom = performance.now();
+        requestAnimationFrame(() => setTimeout(() => { m.sheetPaint = performance.now(); }, 0));
+      }
+      if (m.sheetFull !== null) return;
+      const ready = [...document.querySelectorAll('[role="dialog"] button')].some((e) => /^\d+종 폐기하기$/.test(e.textContent.trim()) && !e.disabled);
+      if (ready) { m.sheetFull = -1; requestAnimationFrame(() => setTimeout(() => { m.sheetFull = performance.now(); }, 0)); }
+    }).observe(document, { childList: true, subtree: true, characterData: true, attributes: true, attributeFilter: ["disabled"] });
+    new PerformanceObserver((list) => { for (const e of list.getEntries()) if (e.interactionId) m.events.push({ start: e.startTime, duration: e.duration }); }).observe({ type: "event", durationThreshold: 16, buffered: true });
+    new PerformanceObserver((list) => { for (const e of list.getEntries()) m.longTasks.push({ start: e.startTime, duration: e.duration }); }).observe({ type: "longtask", buffered: true });
     const check = () => {
       if (m.cardDom !== null || !document.querySelector(card)) return;
       m.cardDom = performance.now();
@@ -125,6 +144,11 @@ async function sample(browser, condition, variant, trace) {
       await page.waitForTimeout(2500);
     }
     if (trace) await browser.startTracing(page, { path: trace, screenshots: true, categories: ["devtools.timeline", "disabled-by-default-devtools.timeline", "disabled-by-default-devtools.timeline.frame", "disabled-by-default-devtools.screenshot", "blink.user_timing", "loading", "latencyInfo", "v8.execute", "disabled-by-default-v8.cpu_profiler"] });
+    if (condition.scenario === "dispose") {
+      const r = await dispose(page, base);
+      if (trace) await browser.stopTracing();
+      return { ...r, serverFetches: backendHits - hitsBefore };
+    }
     if (condition.scenario === "tab") await page.locator('a[href="/refrigerator"]').first().click();
     else await page.goto(`${base}/refrigerator`, { waitUntil: "commit", timeout: 60000 });
     await page.waitForFunction(() => window.__entry?.cardPaint !== null, null, { timeout: 30000 });
@@ -151,20 +175,67 @@ async function sample(browser, condition, variant, trace) {
   }
 }
 
-const metrics = ["firstCardMs", "ttfbMs", "htmlMs", "fcpMs", "lcpMs", "apiBeforeCard", "serverFetches", "cls"];
+async function dispose(page, base) {
+  await page.goto(`${base}/refrigerator`, { waitUntil: "commit", timeout: 60000 });
+  await page.waitForFunction(() => window.__entry?.cardPaint !== null, null, { timeout: 30000 });
+  await page.waitForLoadState("load", { timeout: 60000 });
+  await page.waitForTimeout(1000);
+  await page.locator('[role="group"][aria-label="재고 필터"] button').filter({ hasText: /^만료$/ }).click();
+  const banner = page.locator("button", { hasText: "한 번에 정리하기" });
+  await banner.waitFor({ timeout: 30000 }).catch(async (error) => {
+    await page.screenshot({ path: path.join(out, "dispose-fail.png") });
+    throw error;
+  });
+  await page.waitForTimeout(3000);
+  const open = async () => {
+    const from = await page.evaluate(() => performance.now());
+    await banner.click();
+    await page.waitForFunction(() => window.__entry.sheetPaint !== null && window.__entry.sheetFull > 0, null, { timeout: 300000 });
+    await page.waitForTimeout(1000);
+    return from;
+  };
+  const firstFrom = await open();
+  const first = await page.evaluate((from) => {
+    const m = window.__entry;
+    const inWindow = (e, a, b) => e.start >= a && e.start < b;
+    return {
+      tapToSheetMs: m.sheetPaint - m.tap,
+      tapToFullMs: m.sheetFull - m.tap,
+      apiAfterTap: performance.getEntriesByType("resource").filter((e) => /ingredients\?/.test(e.name) && e.startTime >= m.tap && e.startTime < m.sheetFull).length,
+      longTaskMs: m.longTasks.filter((e) => inWindow(e, m.tap, m.sheetFull)).reduce((a, e) => a + e.duration, 0),
+      bannerInpMs: Math.max(0, ...m.events.filter((e) => inWindow(e, from, m.sheetDom)).map((e) => e.duration)),
+    };
+  }, firstFrom);
+  const closeFrom = await page.evaluate(() => performance.now());
+  await page.locator('[role="dialog"] button', { hasText: "취소" }).click();
+  await page.waitForFunction(() => window.__entry.sheetDom === null, null, { timeout: 10000 });
+  await page.waitForTimeout(1000);
+  const reopenFrom = await open();
+  const second = await page.evaluate(({ closeFrom, reopenFrom }) => {
+    const m = window.__entry;
+    const max = (a, b) => Math.max(0, ...m.events.filter((e) => e.start >= a && e.start < b).map((e) => e.duration));
+    return { closeInpMs: max(closeFrom, reopenFrom), reopenInpMs: max(reopenFrom, Infinity), reopenToSheetMs: m.sheetPaint - m.tap, reopenToFullMs: m.sheetFull - m.tap, inpMs: Math.max(0, ...m.events.map((e) => e.duration)) };
+  }, { closeFrom, reopenFrom });
+  return { ...first, ...second };
+}
+
+const entryMetrics = ["firstCardMs", "ttfbMs", "htmlMs", "fcpMs", "lcpMs", "apiBeforeCard", "serverFetches", "cls"];
+const disposeMetrics = ["tapToSheetMs", "tapToFullMs", "apiAfterTap", "serverFetches", "longTaskMs", "bannerInpMs", "closeInpMs", "reopenInpMs", "reopenToSheetMs", "reopenToFullMs", "inpMs"];
+const metricsFor = (condition) => (condition.scenario === "dispose" ? disposeMetrics : entryMetrics);
 const browser = await chromium.launch({ channel: "chrome", headless: true });
 const rows = [];
 try {
   for (const condition of conditions) {
-    for (const variant of ["a", "b"]) await sample(browser, condition, variant).catch(() => null);
+    const metrics = metricsFor(condition);
+    for (const variant of variants) await sample(browser, condition, variant).catch(() => null);
     for (let run = 1; run <= runs; run++) {
-      for (const variant of run % 2 ? ["a", "b"] : ["b", "a"]) {
+      for (const variant of run % 2 ? variants : [...variants].reverse()) {
         const row = await sample(browser, condition, variant).catch((error) => ({ error: error.message }));
         rows.push({ condition: condition.name, variant, run, ...row });
         console.log(condition.name, variant, run, row.error ?? metrics.map((k) => `${k}=${Number(row[k]).toFixed(k === "cls" ? 3 : 0)}`).join(" "));
       }
     }
-    for (const variant of ["a", "b"]) await sample(browser, condition, variant, path.join(out, "traces", `${condition.name}-${variant}.json`)).catch((error) => console.log("trace 실패", condition.name, variant, error.message));
+    for (const variant of variants) await sample(browser, condition, variant, path.join(out, "traces", `${condition.name}-${variant}.json`)).catch((error) => console.log("trace 실패", condition.name, variant, error.message));
   }
 } finally {
   await browser.close();
@@ -174,17 +245,17 @@ try {
 const summary = {};
 for (const condition of conditions) {
   summary[condition.name] = {};
-  for (const k of metrics) {
+  for (const k of metricsFor(condition)) {
     const pick = (v) => rows.filter((r) => r.condition === condition.name && r.variant === v && Number.isFinite(r[k])).map((r) => r[k]);
+    const s = (v) => (v.length ? { n: v.length, p50: q(v, 0.5), min: Math.min(...v), max: Math.max(...v) } : null);
     const a = pick("a"), b = pick("b");
-    if (!a.length || !b.length) continue;
-    const s = (v) => ({ n: v.length, p50: q(v, 0.5), min: Math.min(...v), max: Math.max(...v) });
-    summary[condition.name][k] = { a: s(a), b: s(b), p: mannWhitney(a, b) };
+    summary[condition.name][k] = { a: s(a), b: s(b), p: a.length && b.length ? mannWhitney(a, b) : null };
   }
 }
 fs.writeFileSync(path.join(out, "raw.json"), JSON.stringify(rows, null, 2));
 fs.writeFileSync(path.join(out, "summary.json"), JSON.stringify(summary, null, 2));
 for (const [name, m] of Object.entries(summary)) {
   console.log(`\n${name}`);
-  for (const [k, v] of Object.entries(m)) console.log(`  ${k.padEnd(14)} a ${v.a.p50.toFixed(0)} [${v.a.min.toFixed(0)}-${v.a.max.toFixed(0)}]  b ${v.b.p50.toFixed(0)} [${v.b.min.toFixed(0)}-${v.b.max.toFixed(0)}]  p=${v.p.toFixed(4)}`);
+  const f = (v) => (v ? `${v.p50.toFixed(0)} [${v.min.toFixed(0)}-${v.max.toFixed(0)}]` : "-");
+  for (const [k, v] of Object.entries(m)) console.log(`  ${k.padEnd(16)} a ${f(v.a)}  b ${f(v.b)}  p=${v.p?.toFixed(4) ?? "-"}`);
 }

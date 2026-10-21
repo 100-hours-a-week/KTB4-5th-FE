@@ -7,6 +7,7 @@ import type { ReactNode } from "react";
 import { afterEach, beforeEach, expect, it, vi } from "vitest";
 
 import { routes } from "@/shared/routes";
+import { getTodayInSeoul } from "@/shared/lib/seoul-date";
 import { toHomeSummary } from "@/_pages/home/model/home-summary";
 import { useReceiptAnalysis } from "@/_pages/register-ingredient-receipt/model/use-receipt-analysis";
 import { useReceiptResultForm } from "@/_pages/register-ingredient-receipt/model/use-receipt-result-form";
@@ -31,6 +32,7 @@ vi.mock("@/entities/notification", () => ({
 }));
 vi.mock("@/shared/ui/app-toast", () => ({ showAppToast: vi.fn() }));
 
+const today = getTodayInSeoul();
 let client: QueryClient;
 const fetchMock = vi.fn();
 function ok(data: unknown) {
@@ -181,7 +183,7 @@ it("영수증 업로드 → AI 인식 → 누락 유통기한 수정 → 등록 
   analysis.unmount();
   const form = renderHook(() => useReceiptResultForm(recognition), { wrapper });
   await act(async () => {
-    form.result.current.form.setValue("drafts.0.expirationDate", "2026-10-20");
+    form.result.current.form.setValue("drafts.0.expirationDate", today);
     await form.result.current.submit();
   });
   await waitFor(() =>
@@ -205,7 +207,7 @@ it("영수증 업로드 → AI 인식 → 누락 유통기한 수정 → 등록 
             measureType: "WEIGHT",
             quantity: null,
             weight: { value: 1000, unit: "ML" },
-            expiration: "2026-10-20",
+            expiration: today,
           },
         ],
       },

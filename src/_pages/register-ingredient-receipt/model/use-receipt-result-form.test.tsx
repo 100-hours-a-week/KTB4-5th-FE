@@ -11,6 +11,7 @@ import {
   type ImageAnalysisList,
 } from "@/entities/image";
 import { analysisFixture } from "@/entities/image/api/image-analysis.test-fixtures";
+import { getTodayInSeoul } from "@/shared/lib/seoul-date";
 import { toRecognitionResult } from "./receipt-recognition";
 import { useReceiptResultForm } from "./use-receipt-result-form";
 
@@ -31,7 +32,7 @@ let queryClient: QueryClient;
 const fetchMock = vi.fn();
 const listKey = imageAnalysisQueries.list("session").queryKey;
 const recognition = toRecognitionResult(analysisFixture);
-recognition.drafts[0].expirationDate = "2026-10-20";
+recognition.drafts[0].expirationDate = getTodayInSeoul();
 
 beforeEach(() => {
   queryClient = new QueryClient({

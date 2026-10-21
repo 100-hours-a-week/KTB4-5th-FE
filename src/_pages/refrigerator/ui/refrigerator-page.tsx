@@ -97,18 +97,6 @@ export function RefrigeratorPage({
   const canDisposeExpired =
     deferredQuery.filter === "EXPIRED" && (firstPage?.filteredCount ?? 0) > 0;
 
-  async function fetchAllPages() {
-    let hasMore = Boolean(hasNextPage);
-    while (hasMore) {
-      const result = await fetchNextPage({ cancelRefetch: false });
-      if (result.isError) {
-        return false;
-      }
-      hasMore = result.hasNextPage;
-    }
-    return true;
-  }
-
   useIngredientRefreshToast(isDateStale);
 
   return (
@@ -130,13 +118,13 @@ export function RefrigeratorPage({
         className="min-h-0 flex-1 overflow-y-auto px-5 pt-4 pb-[calc(var(--space-6)+var(--safe-bottom))] [-webkit-overflow-scrolling:touch]"
         aria-label="재고 목록"
       >
-        {!isDateStale && canDisposeExpired && refrigeratorId ? (
+        {!isDateStale && canDisposeExpired && firstPage && refrigeratorId ? (
           <div className="pb-4">
             <IngredientDisposeBanner
               refrigeratorId={refrigeratorId}
-              expiredCount={firstPage?.filteredCount ?? 0}
-              expiredIngredients={ingredients}
-              onLoadAll={fetchAllPages}
+              query={deferredQuery}
+              expiredCount={firstPage.filteredCount}
+              initialPage={{ ...firstPage, ingredients }}
             />
           </div>
         ) : null}
