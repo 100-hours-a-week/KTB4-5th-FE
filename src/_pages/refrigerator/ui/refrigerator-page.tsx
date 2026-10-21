@@ -118,13 +118,13 @@ export function RefrigeratorPage({
         className="min-h-0 flex-1 overflow-y-auto px-5 pt-4 pb-[calc(var(--space-6)+var(--safe-bottom))] [-webkit-overflow-scrolling:touch]"
         aria-label="재고 목록"
       >
-        {!isDateStale && canDisposeExpired && refrigeratorId ? (
+        {!isDateStale && canDisposeExpired && firstPage && refrigeratorId ? (
           <div className="pb-4">
             <IngredientDisposeBanner
               refrigeratorId={refrigeratorId}
               query={deferredQuery}
-              expiredCount={firstPage?.filteredCount ?? 0}
-              initialIngredients={ingredients}
+              expiredCount={firstPage.filteredCount}
+              initialPage={{ ...firstPage, ingredients }}
             />
           </div>
         ) : null}

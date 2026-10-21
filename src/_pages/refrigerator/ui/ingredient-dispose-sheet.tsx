@@ -7,7 +7,7 @@ import {
   disposeExpiredIngredients,
   ingredientQueries,
   invalidateIngredients,
-  type Ingredient,
+  type IngredientListPage,
   type IngredientListQuery,
 } from "@/entities/ingredient";
 import { ApiError } from "@/shared/api";
@@ -22,14 +22,14 @@ type IngredientDisposeBottomSheetProps = {
   open: boolean;
   refrigeratorId: string;
   query: IngredientListQuery;
-  initialIngredients: Ingredient[];
+  initialPage: IngredientListPage;
   onClose: () => void;
 };
 
 type ExpiredIngredientsSheetBodyProps = {
   refrigeratorId: string;
   query: IngredientListQuery;
-  initialIngredients: Ingredient[];
+  initialPage: IngredientListPage;
   onCancel: () => void;
   onConfirm: (ingredientIds: string[]) => void;
 };
@@ -37,19 +37,21 @@ type ExpiredIngredientsSheetBodyProps = {
 function ExpiredIngredientsSheetBody({
   refrigeratorId,
   query,
-  initialIngredients,
+  initialPage,
   onCancel,
   onConfirm,
 }: ExpiredIngredientsSheetBodyProps) {
-  const { data, isSuccess, isError, isFetching, refetch } = useQuery({
-    ...ingredientQueries.expired(refrigeratorId, query),
-    gcTime: 0,
-  });
+  const { data, isSuccess, isPlaceholderData, isError, isFetching, refetch } =
+    useQuery({
+      ...ingredientQueries.expired(refrigeratorId, query),
+      gcTime: 0,
+      placeholderData: initialPage,
+    });
 
   return (
     <IngredientDisposeBottomSheetContent
-      ingredients={data?.ingredients ?? initialIngredients}
-      isComplete={isSuccess}
+      ingredients={data?.ingredients ?? initialPage.ingredients}
+      isComplete={isSuccess && !isPlaceholderData}
       isError={isError && !isFetching}
       onRetry={() => void refetch()}
       onCancel={onCancel}
@@ -67,7 +69,7 @@ export function IngredientDisposeBottomSheet({
   open,
   refrigeratorId,
   query,
-  initialIngredients,
+  initialPage,
   onClose,
 }: IngredientDisposeBottomSheetProps) {
   const queryClient = useQueryClient();
@@ -129,7 +131,7 @@ export function IngredientDisposeBottomSheet({
         <ExpiredIngredientsSheetBody
           refrigeratorId={refrigeratorId}
           query={query}
-          initialIngredients={initialIngredients}
+          initialPage={initialPage}
           onCancel={onClose}
           onConfirm={openConfirm}
         />

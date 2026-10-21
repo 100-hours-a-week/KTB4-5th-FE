@@ -2,7 +2,10 @@
 
 import { useState } from "react";
 
-import type { Ingredient, IngredientListQuery } from "@/entities/ingredient";
+import type {
+  IngredientListPage,
+  IngredientListQuery,
+} from "@/entities/ingredient";
 
 import { IngredientDisposeBottomSheet } from "./ingredient-dispose-sheet";
 
@@ -10,14 +13,14 @@ type IngredientDisposeBannerProps = {
   refrigeratorId: string;
   query: IngredientListQuery;
   expiredCount: number;
-  initialIngredients: Ingredient[];
+  initialPage: IngredientListPage;
 };
 
 export function IngredientDisposeBanner({
   refrigeratorId,
   query,
   expiredCount,
-  initialIngredients,
+  initialPage,
 }: IngredientDisposeBannerProps) {
   const [isDisposeSheetOpen, setIsDisposeSheetOpen] = useState(false);
 
@@ -55,7 +58,7 @@ export function IngredientDisposeBanner({
         open={isDisposeSheetOpen}
         refrigeratorId={refrigeratorId}
         query={query}
-        initialIngredients={initialIngredients}
+        initialPage={initialPage}
         onClose={closeDisposeSheet}
       />
     </>
