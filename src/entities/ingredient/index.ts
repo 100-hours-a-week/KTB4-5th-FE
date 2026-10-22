@@ -3,6 +3,10 @@ export { expireIngredient } from "./api/expire-ingredient";
 export type { ExpireIngredientBody } from "./api/expire-ingredient";
 export { getIngredientDetail } from "./api/get-ingredient-detail";
 export type { IngredientDetailView } from "./api/get-ingredient-detail";
+export {
+  toIngredientListEarlyFetchScript,
+  toIngredientListPath,
+} from "./api/get-ingredient-list";
 export type { IngredientListPage } from "./api/get-ingredient-list";
 export { ingredientQueries } from "./api/ingredient.queries";
 export { invalidateIngredients } from "./api/invalidate-ingredients";
