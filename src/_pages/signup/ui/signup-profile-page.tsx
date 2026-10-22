@@ -7,10 +7,10 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 
 import {
+  getNicknameFormatError,
   isValidNickname,
   NICKNAME_DISALLOWED_CHARS,
   NICKNAME_HINT,
-  NICKNAME_LENGTH_ERROR,
   NICKNAME_MAX_LENGTH,
   getOAuthSignupError,
   validateNickname,
@@ -57,7 +57,7 @@ export function SignupProfilePage() {
   }
 
   const nicknameError =
-    serverError ?? (nickname.length === 1 ? NICKNAME_LENGTH_ERROR : null);
+    serverError ?? (nickname ? getNicknameFormatError(nickname) : null);
 
   return (
     <PageActionLayout
