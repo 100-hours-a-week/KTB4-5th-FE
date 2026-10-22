@@ -21,10 +21,10 @@ ENV NEXT_PUBLIC_API_BASE_URL=${NEXT_PUBLIC_API_BASE_URL} \
     NEXT_PUBLIC_SENTRY_RELEASE=${NEXT_PUBLIC_SENTRY_RELEASE} \
     NEXT_PUBLIC_MSW=${NEXT_PUBLIC_MSW} \
     NEXT_PUBLIC_KAKAOTECH_INVITE_CODE=${NEXT_PUBLIC_KAKAOTECH_INVITE_CODE}
+RUN if [ "$NEXT_PUBLIC_SENTRY_ENVIRONMENT" != "dev" ]; then rm -f public/mockServiceWorker.js; fi
 # 업로드 토큰은 빌드 명령에서만 사용하고 이미지 레이어에는 저장하지 않는다.
 RUN --mount=type=secret,id=SENTRY_AUTH_TOKEN,env=SENTRY_AUTH_TOKEN \
     test -n "$NEXT_PUBLIC_API_BASE_URL" && pnpm build
-RUN if [ "$NEXT_PUBLIC_SENTRY_ENVIRONMENT" != "dev" ]; then rm -f public/mockServiceWorker.js; fi
 
 FROM base AS dependencies
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
