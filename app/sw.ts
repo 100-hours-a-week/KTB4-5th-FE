@@ -87,6 +87,14 @@ const serwist = new Serwist({
             method: "GET",
             handler: new NetworkOnly(),
           },
+          {
+            matcher: ({ sameOrigin, url: { pathname } }) =>
+              sameOrigin &&
+              pathname.startsWith("/refrigerators/") &&
+              pathname.endsWith("/expired-ingredients"),
+            method: "GET",
+            handler: new NetworkOnly(),
+          },
           ...defaultCache,
         ],
   fallbacks: {

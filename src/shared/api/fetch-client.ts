@@ -39,6 +39,7 @@ const INITIAL_RETRY_STATE: RetryState = {
 
 export type ApiRequestOptions = Omit<RequestInit, "body"> & {
   json?: unknown;
+  basePath?: string;
 };
 
 async function sendRequest(
@@ -46,7 +47,12 @@ async function sendRequest(
   options: ApiRequestOptions = {},
   retryState: RetryState = INITIAL_RETRY_STATE,
 ): Promise<Response> {
-  const { json, headers: inputHeaders, ...init } = options;
+  const {
+    json,
+    basePath = API_BASE_PATH,
+    headers: inputHeaders,
+    ...init
+  } = options;
 
   if (!path.startsWith("/") || path.startsWith("//")) {
     throw new TypeError("API 경로는 /로 시작하는 상대 경로여야 합니다.");
@@ -77,7 +83,7 @@ async function sendRequest(
     headers.set(CSRF_HEADER_NAME, csrfToken);
   }
 
-  const response = await fetch(`${API_BASE_PATH}${path}`, {
+  const response = await fetch(`${basePath}${path}`, {
     ...init,
     headers,
     body,
