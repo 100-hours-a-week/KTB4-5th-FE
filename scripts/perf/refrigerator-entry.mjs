@@ -1,10 +1,16 @@
+import { execFileSync } from "node:child_process";
 import fs from "node:fs";
 import http from "node:http";
+import http2 from "node:http2";
 import path from "node:path";
 import { chromium } from "playwright-core";
 
 const option = (name, fallback) => process.argv.find((x) => x.startsWith(`--${name}=`))?.slice(name.length + 3) ?? fallback;
-const bases = { a: option("a", "http://localhost:3013"), b: option("b", "http://localhost:3014") };
+const bases = { a: option("a", "http://localhost:3013"), b: option("b", "http://localhost:3014"), c: option("c", "http://localhost:3015") };
+const h2 = process.argv.includes("--h2");
+const realApi = h2 || process.argv.includes("--real-api");
+const record = process.argv.includes("--record");
+const tapMode = record || process.argv.includes("--tap");
 const runs = Number(option("n", "10"));
 const fixture = Number(option("fixture", "1000"));
 const backendPort = Number(option("backend-port", "3020"));
@@ -67,6 +73,32 @@ const backend = http.createServer((req, res) => {
 });
 await new Promise((resolve) => backend.listen(backendPort, resolve));
 
+const proxies = [];
+if (h2) {
+  const key = path.join(out, "localhost.key");
+  const cert = path.join(out, "localhost.crt");
+  if (!fs.existsSync(cert)) execFileSync("openssl", ["req", "-x509", "-newkey", "rsa:2048", "-nodes", "-keyout", key, "-out", cert, "-days", "7", "-subj", "/CN=localhost"], { stdio: "ignore" });
+  const tls = { key: fs.readFileSync(key), cert: fs.readFileSync(cert), allowHTTP1: true };
+  const hopHeaders = ["connection", "keep-alive", "transfer-encoding", "proxy-connection", "upgrade"];
+  for (const [i, variant] of variants.entries()) {
+    const target = new URL(bases[variant]);
+    const server = http2.createSecureServer(tls, (req, res) => {
+      const headers = Object.fromEntries(Object.entries(req.headers).filter(([k]) => !k.startsWith(":") && !hopHeaders.includes(k)));
+      headers.host = target.host;
+      const upstream = http.request({ host: target.hostname, port: target.port, path: req.url, method: req.method, headers }, (r) => {
+        res.writeHead(r.statusCode, Object.fromEntries(Object.entries(r.headers).filter(([k]) => !hopHeaders.includes(k))));
+        r.pipe(res);
+      });
+      upstream.on("error", () => { if (!res.headersSent) res.writeHead(502); res.end(); });
+      req.pipe(upstream);
+    });
+    const port = 3443 + i;
+    await new Promise((resolve) => server.listen(port, resolve));
+    proxies.push(server);
+    bases[variant] = `https://localhost:${port}`;
+  }
+}
+
 const q = (values, p) => {
   const v = [...values].sort((x, y) => x - y);
   const i = (v.length - 1) * p;
@@ -95,11 +127,13 @@ async function sample(browser, condition, variant, trace) {
   const network = networks[condition.network];
   backendDelay = condition.backendDelay;
   if (items.length !== (condition.fixture ?? fixture)) items = makeItems(condition.fixture ?? fixture);
-  const context = await browser.newContext({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 2, serviceWorkers: "block" });
+  const recordDir = trace && record && condition.scenario === "entry" ? path.join(out, `record-${variant}`) : null;
+  if (recordDir) fs.mkdirSync(recordDir, { recursive: true });
+  const context = await browser.newContext({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 2, serviceWorkers: "block", ignoreHTTPSErrors: true, ...(recordDir ? { recordVideo: { dir: recordDir, size: { width: 390, height: 844 } }, recordHar: { path: path.join(recordDir, "network.har") } } : {}) });
   const cookies = [{ name: "accessToken", value: "local-perf-fixture", url: base }];
   if (!condition.noState) cookies.push({ name: "currentRefrigeratorId", value: "1", url: base });
   await context.addCookies(cookies);
-  await context.route("**/api/v1/**", async (route) => {
+  if (!realApi) await context.route("**/api/v1/**", async (route) => {
     const body = respond(new URL(route.request().url()));
     await sleep(network.latency + body.length / network.bytesPerMs);
     await route.fulfill({ status: 200, contentType: "application/json", body });
@@ -108,6 +142,13 @@ async function sample(browser, condition, variant, trace) {
     if (!noState) localStorage.setItem("dameokja.currentRefrigeratorId", "1");
     const m = { tap: null, cardDom: null, cardPaint: null, fcp: null, lcp: null, cls: 0, sheetDom: null, sheetPaint: null, sheetFull: null, events: [], longTasks: [] };
     window.__entry = m;
+    m.skeleton = [];
+    let skeletonOn = null;
+    new MutationObserver(() => {
+      const sk = document.querySelector('[role="status"][aria-label="재고를 불러오는 중입니다"]');
+      if (sk && skeletonOn === null) skeletonOn = performance.now();
+      if (!sk && skeletonOn !== null) { m.skeleton.push([skeletonOn, performance.now()]); skeletonOn = null; }
+    }).observe(document, { childList: true, subtree: true });
     new MutationObserver(() => {
       const open = [...document.querySelectorAll('[role="dialog"]')].some((e) => e.textContent.includes("정리할 재료를 확인해 주세요"));
       if (!open) { m.sheetDom = null; m.sheetPaint = null; m.sheetFull = null; return; }
@@ -152,7 +193,31 @@ async function sample(browser, condition, variant, trace) {
     if (condition.scenario === "tab") await page.locator('a[href="/refrigerator"]').first().click();
     else await page.goto(`${base}/refrigerator`, { waitUntil: "commit", timeout: 60000 });
     await page.waitForFunction(() => window.__entry?.cardPaint !== null, null, { timeout: 30000 });
-    await page.waitForTimeout(1500);
+    await page.waitForLoadState("load", { timeout: 60000 });
+    let tap = null;
+    if (tapMode && condition.scenario === "entry") {
+      await page.evaluate(() => new Promise((resolve) => {
+        const tick = () => {
+          const chip = [...document.querySelectorAll('[role="group"][aria-label="재고 필터"] button')].find((e) => e.textContent.trim() === "냉동");
+          if (!chip || !Object.keys(chip).some((k) => k.startsWith("__reactProps"))) return requestAnimationFrame(tick);
+          chip.dispatchEvent(new PointerEvent("pointerdown", { bubbles: true }));
+          chip.click();
+          resolve();
+        };
+        tick();
+      }));
+      await page.waitForTimeout(3000);
+      tap = await page.evaluate(() => {
+        const m = window.__entry;
+        const frozen = performance.getEntriesByType("resource").find((e) => e.name.includes("filter=FROZEN") && !e.name.includes("cursor"));
+        return { tapMs: m.tap, frozenReadyMs: frozen?.responseEnd ?? null, readyBeforeTap: frozen ? frozen.responseEnd < m.tap : null, skeletonAfterTapMs: m.skeleton.filter(([on]) => on >= m.tap).reduce((a, [on, off]) => a + off - on, 0) };
+      });
+      if (recordDir) {
+        console.log("record", variant, JSON.stringify(tap));
+        fs.writeFileSync(path.join(recordDir, "tap.json"), JSON.stringify(tap, null, 2));
+      }
+    }
+    await page.waitForTimeout(2500);
     if (trace) await browser.stopTracing();
     return await page.evaluate(({ scenario }) => {
       const m = window.__entry;
@@ -160,7 +225,12 @@ async function sample(browser, condition, variant, trace) {
       const from = scenario === "tab" ? m.tap : 0;
       const api = performance.getEntriesByType("resource").filter((e) => /\/ingredients\?/.test(e.name) && e.startTime >= from && e.startTime < m.cardDom);
       const rsc = performance.getEntriesByType("resource").filter((e) => /_rsc=/.test(e.name) && e.startTime >= from && e.startTime < m.cardDom);
+      const filtered = performance.getEntriesByType("resource").filter((e) => /\/ingredients\?/.test(e.name) && /[?&]filter=/.test(e.name) && !/[?&]cursor=/.test(e.name));
       return {
+        filterApiCount: filtered.length,
+        lastJsMs: Math.max(...performance.getEntriesByType("resource").filter((e) => /\.js(\?|$)/.test(e.name)).map((e) => e.responseEnd)),
+        protocol: nav.nextHopProtocol,
+        filterReadyMs: filtered.length ? Math.max(...filtered.map((e) => e.responseEnd)) : nav.responseEnd,
         ttfbMs: scenario === "tab" ? rsc[0]?.responseStart - rsc[0]?.startTime : nav.responseStart,
         htmlMs: scenario === "tab" ? rsc[0]?.responseEnd - rsc[0]?.startTime : nav.responseEnd,
         fcpMs: m.fcp,
@@ -169,9 +239,16 @@ async function sample(browser, condition, variant, trace) {
         apiBeforeCard: api.length,
         cls: m.cls,
       };
-    }, { scenario: condition.scenario }).then((r) => ({ ...r, serverFetches: backendHits - hitsBefore }));
+    }, { scenario: condition.scenario }).then((r) => ({ ...r, serverFetches: backendHits - hitsBefore, ...(tap ? { tapSkeletonMs: tap.skeletonAfterTapMs, tapReadyBefore: tap.readyBeforeTap ? 1 : 0 } : {}) }));
   } finally {
+    const video = recordDir ? page.video() : null;
     await context.close();
+    if (video) {
+      const webm = path.join(recordDir, "screen.webm");
+      fs.renameSync(await video.path(), webm);
+      execFileSync("ffmpeg", ["-y", "-loglevel", "error", "-i", webm, "-c:v", "libx264", "-pix_fmt", "yuv420p", "-movflags", "+faststart", path.join(recordDir, "screen.mp4")]);
+      execFileSync("ffmpeg", ["-y", "-loglevel", "error", "-i", webm, "-vf", "fps=12,scale=390:-1:flags=lanczos,split[s0][s1];[s0]palettegen[p];[s1][p]paletteuse", path.join(recordDir, "screen.gif")]);
+    }
   }
 }
 
@@ -219,7 +296,7 @@ async function dispose(page, base) {
   return { ...first, ...second };
 }
 
-const entryMetrics = ["firstCardMs", "ttfbMs", "htmlMs", "fcpMs", "lcpMs", "apiBeforeCard", "serverFetches", "cls"];
+const entryMetrics = [...(tapMode ? ["tapSkeletonMs", "tapReadyBefore"] : []), "filterReadyMs", "filterApiCount", "lastJsMs", "firstCardMs", "ttfbMs", "htmlMs", "fcpMs", "lcpMs", "apiBeforeCard", "serverFetches", "cls"];
 const disposeMetrics = ["tapToSheetMs", "tapToFullMs", "apiAfterTap", "serverFetches", "longTaskMs", "bannerInpMs", "closeInpMs", "reopenInpMs", "reopenToSheetMs", "reopenToFullMs", "inpMs"];
 const metricsFor = (condition) => (condition.scenario === "dispose" ? disposeMetrics : entryMetrics);
 const browser = await chromium.launch({ channel: "chrome", headless: true });
@@ -240,6 +317,7 @@ try {
 } finally {
   await browser.close();
   backend.close();
+  for (const proxy of proxies) proxy.close();
 }
 
 const summary = {};
@@ -247,15 +325,18 @@ for (const condition of conditions) {
   summary[condition.name] = {};
   for (const k of metricsFor(condition)) {
     const pick = (v) => rows.filter((r) => r.condition === condition.name && r.variant === v && Number.isFinite(r[k])).map((r) => r[k]);
-    const s = (v) => (v.length ? { n: v.length, p50: q(v, 0.5), min: Math.min(...v), max: Math.max(...v) } : null);
-    const a = pick("a"), b = pick("b");
-    summary[condition.name][k] = { a: s(a), b: s(b), p: a.length && b.length ? mannWhitney(a, b) : null };
+    const s = (v) => (v.length ? { n: v.length, p50: q(v, 0.5), p95: q(v, 0.95), p99: q(v, 0.99), min: Math.min(...v), max: Math.max(...v) } : null);
+    const base = pick(variants[0]);
+    summary[condition.name][k] = Object.fromEntries(variants.map((v) => {
+      const x = pick(v);
+      return [v, { ...s(x), p: v !== variants[0] && base.length && x.length ? mannWhitney(base, x) : null }];
+    }));
   }
 }
 fs.writeFileSync(path.join(out, "raw.json"), JSON.stringify(rows, null, 2));
 fs.writeFileSync(path.join(out, "summary.json"), JSON.stringify(summary, null, 2));
 for (const [name, m] of Object.entries(summary)) {
   console.log(`\n${name}`);
-  const f = (v) => (v ? `${v.p50.toFixed(0)} [${v.min.toFixed(0)}-${v.max.toFixed(0)}]` : "-");
-  for (const [k, v] of Object.entries(m)) console.log(`  ${k.padEnd(16)} a ${f(v.a)}  b ${f(v.b)}  p=${v.p?.toFixed(4) ?? "-"}`);
+  const f = (v) => (v ? `${v.p50.toFixed(0)} p95 ${v.p95.toFixed(0)} p99 ${v.p99.toFixed(0)} [${v.min.toFixed(0)}-${v.max.toFixed(0)}]` : "-");
+  for (const [k, v] of Object.entries(m)) console.log(`  ${k.padEnd(16)} ${variants.map((x) => `${x} ${f(v[x]?.n ? v[x] : null)}${v[x]?.p != null ? ` (p=${v[x].p.toFixed(4)})` : ""}`).join("  ")}`);
 }
