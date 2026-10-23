@@ -303,3 +303,27 @@ it("알림 갱신 도중 kicked가 오면 이전 목록 조회를 뒤늦게 시�
     client.getQueriesData({ queryKey: ["notifications", userScope, "17"] }),
   ).toEqual([]);
 });
+
+it("방장 전용 초대 조회·생성의 403은 강퇴로 처리하지 않는다", async () => {
+  renderFlow();
+  const key = refrigeratorQueries.invitation("17").queryKey;
+  const error = new ApiError(403, {
+    code: "REFRIGERATOR-403-001",
+    title: "방장 전용",
+  });
+  await act(async () => {
+    await client
+      .fetchQuery({ queryKey: key, queryFn: () => Promise.reject(error) })
+      .catch(() => {});
+    await client
+      .getMutationCache()
+      .build(client, {
+        mutationKey: key,
+        mutationFn: () => Promise.reject(error),
+      })
+      .execute(undefined)
+      .catch(() => {});
+  });
+  expect(router.replace).not.toHaveBeenCalled();
+  expect(screen.getByText("냉장고 화면 17")).toBeTruthy();
+});

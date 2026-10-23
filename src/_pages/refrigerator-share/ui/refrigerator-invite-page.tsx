@@ -1,5 +1,7 @@
 "use client";
 
+import { useRouter } from "next/navigation";
+
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useRef, useState } from "react";
 
@@ -7,6 +9,9 @@ import {
   refrigeratorQueries,
   useCurrentRefrigeratorId,
 } from "@/entities/refrigerator";
+import { ApiError } from "@/shared/api";
+import { markAppNavigationIntent } from "@/shared/lib/navigation-history";
+import { routes } from "@/shared/routes";
 import { createInviteCode } from "@/features/share-refrigerator";
 import { showAppToast } from "@/shared/ui/app-toast";
 import {
@@ -32,19 +37,51 @@ function useNow(enabled: boolean): number {
 }
 
 export function RefrigeratorInvitePage() {
+  const router = useRouter();
   const queryClient = useQueryClient();
   const refrigeratorId = useCurrentRefrigeratorId() ?? "";
-  const invitationQuery = useQuery({
-    ...refrigeratorQueries.invitation(refrigeratorId),
+  const membersQuery = useQuery({
+    ...refrigeratorQueries.members(refrigeratorId),
     enabled: Boolean(refrigeratorId),
   });
+  const isOwner =
+    membersQuery.data?.members.some(
+      (member) =>
+        member.userId === membersQuery.data.currentUserId &&
+        member.role === "owner",
+    ) ?? false;
+  const invitationQuery = useQuery({
+    ...refrigeratorQueries.invitation(refrigeratorId),
+    enabled: Boolean(refrigeratorId) && isOwner,
+  });
   const createMutation = useMutation({
+    mutationKey: refrigeratorQueries.invitation(refrigeratorId).queryKey,
     mutationFn: createInviteCode,
     onSuccess: () =>
       queryClient.invalidateQueries({
         queryKey: refrigeratorQueries.invitation(refrigeratorId).queryKey,
       }),
   });
+  const invitationError = invitationQuery.error ?? createMutation.error;
+  const isOwnerDenied =
+    invitationError instanceof ApiError && invitationError.status === 403;
+  useEffect(() => {
+    if ((membersQuery.data && !isOwner) || isOwnerDenied) {
+      if (isOwnerDenied)
+        void queryClient.invalidateQueries({
+          queryKey: refrigeratorQueries.members(refrigeratorId).queryKey,
+        });
+      markAppNavigationIntent("replace", routes.refrigeratorShare);
+      router.replace(routes.refrigeratorShare);
+    }
+  }, [
+    membersQuery.data,
+    isOwner,
+    isOwnerDenied,
+    queryClient,
+    refrigeratorId,
+    router,
+  ]);
   const handledUpdateRef = useRef(0);
   const data = invitationQuery.data;
   const now = useNow(Boolean(data?.expiresAt));
@@ -54,13 +91,25 @@ export function RefrigeratorInvitePage() {
   const { mutate } = createMutation;
 
   useEffect(() => {
-    if (data !== null || handledUpdateRef.current === dataUpdatedAt) return;
+    if (
+      !isOwner ||
+      isOwnerDenied ||
+      data !== null ||
+      handledUpdateRef.current === dataUpdatedAt
+    )
+      return;
     handledUpdateRef.current = dataUpdatedAt;
     mutate(refrigeratorId);
-  }, [data, dataUpdatedAt, mutate, refrigeratorId]);
+  }, [data, dataUpdatedAt, mutate, refrigeratorId, isOwner, isOwnerDenied]);
 
-  if (invitationQuery.isError || createMutation.isError) {
-    const isRetrying = invitationQuery.isFetching || createMutation.isPending;
+  if (
+    membersQuery.isError ||
+    (!isOwnerDenied && (invitationQuery.isError || createMutation.isError))
+  ) {
+    const isRetrying =
+      membersQuery.isFetching ||
+      invitationQuery.isFetching ||
+      createMutation.isPending;
 
     return (
       <ShareStateLayout>
@@ -73,9 +122,11 @@ export function RefrigeratorInvitePage() {
               type="button"
               disabled={isRetrying}
               onClick={() =>
-                invitationQuery.isError
-                  ? void invitationQuery.refetch()
-                  : createCode()
+                membersQuery.isError
+                  ? void membersQuery.refetch()
+                  : invitationQuery.isError
+                    ? void invitationQuery.refetch()
+                    : createCode()
               }
               className={asyncViewActionClassName}
             >
@@ -87,7 +138,7 @@ export function RefrigeratorInvitePage() {
     );
   }
 
-  if (!data) {
+  if (!isOwner || isOwnerDenied || !data) {
     return (
       <ShareStateLayout>
         <AsyncViewState
