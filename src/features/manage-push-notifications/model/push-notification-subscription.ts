@@ -9,6 +9,7 @@ import { ApiError, SessionExpiredError } from "@/shared/api";
 import {
   getVapidPublicKey,
   PUSH_ENDPOINT_IN_USE_ERROR_CODE,
+  PUSH_SUBSCRIPTION_EXPIRED_ERROR_CODE,
   registerPushSubscription,
   type RegisterPushSubscriptionRequest,
 } from "../api/push-subscription";
@@ -191,7 +192,7 @@ function subscribe(
   });
 }
 
-// PUSH-409-001: 이 endpoint를 다른 계정이 쓰고 있다. 새 endpoint로 한 번만 다시 등록한다.
+// 다른 계정 소유이거나 만료된 endpoint는 새 구독으로 한 번만 다시 등록한다.
 async function registerWithEndpointRetry(
   registration: ServiceWorkerRegistration,
   subscription: PushSubscription,
@@ -202,7 +203,8 @@ async function registerWithEndpointRetry(
   } catch (error) {
     if (
       !(error instanceof ApiError) ||
-      error.code !== PUSH_ENDPOINT_IN_USE_ERROR_CODE
+      (error.code !== PUSH_ENDPOINT_IN_USE_ERROR_CODE &&
+        error.code !== PUSH_SUBSCRIPTION_EXPIRED_ERROR_CODE)
     ) {
       throw error;
     }
