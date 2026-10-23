@@ -8,8 +8,6 @@ import {
 } from "@/entities/ingredient";
 import { INGREDIENT_WEIGHT_MAX, INGREDIENT_WEIGHT_MIN } from "@/shared/config";
 
-import { sanitizeIntegerInput } from "../lib/sanitize-integer-input";
-
 type IngredientWeightUnitOption = Exclude<IngredientWeightUnit, "NONE">;
 
 interface IngredientWeightInputProps {
@@ -34,7 +32,6 @@ const WEIGHT_UNITS = [
   "G",
   "ML",
 ] as const satisfies readonly IngredientWeightUnitOption[];
-const WEIGHT_MAX_LENGTH = String(INGREDIENT_WEIGHT_MAX).length;
 
 const CONTROL_BASE_CLASS_NAME =
   "flex h-10 w-full items-center gap-1.5 border-b-[1.5px] px-0.5 text-left";
@@ -80,18 +77,13 @@ export function IngredientWeightInput({
         ref={inputRef}
         name={name}
         type="text"
-        inputMode="numeric"
+        inputMode="decimal"
         autoComplete="off"
-        maxLength={WEIGHT_MAX_LENGTH}
         min={INGREDIENT_WEIGHT_MIN}
         max={INGREDIENT_WEIGHT_MAX}
         placeholder={disabled ? "입력 불가" : "선택"}
         value={value}
-        onChange={(event) =>
-          onValueChange(
-            sanitizeIntegerInput(event.target.value, WEIGHT_MAX_LENGTH),
-          )
-        }
+        onChange={(event) => onValueChange(event.target.value)}
         onBlur={onBlur}
         aria-invalid={invalid || undefined}
         aria-describedby={describedBy}
