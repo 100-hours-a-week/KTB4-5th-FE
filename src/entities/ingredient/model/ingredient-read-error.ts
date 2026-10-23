@@ -39,6 +39,17 @@ export function getIngredientReadError(
       };
     }
 
+    if (
+      resource === "detail" &&
+      (error.status === 400 || error.status === 422)
+    ) {
+      return {
+        title: "재고 주소를 확인해 주세요",
+        description: "냉장고에서 재고 목록을 확인해 주세요",
+        action: "refrigerator",
+      };
+    }
+
     if (error.status === 404) {
       return {
         title:

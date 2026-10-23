@@ -1,16 +1,10 @@
-const ACCEPTED_TYPES = [
-  "image/jpeg",
-  "image/png",
-  "image/webp",
-  "image/heic",
-  "image/heif",
-];
-const ACCEPTED_EXTENSIONS = /\.(jpe?g|png|webp|heic|heif)$/i;
+const ACCEPTED_TYPES = ["image/jpeg", "image/png", "image/webp"];
+const ACCEPTED_EXTENSIONS = /\.(jpe?g|png|webp)$/i;
 const MAX_SOURCE_BYTES = 10 * 1024 * 1024;
 const MAX_DIMENSION = 1024;
 const JPEG_QUALITY = 0.85;
 
-export const PROFILE_IMAGE_ACCEPT = `${ACCEPTED_TYPES.join(",")},.heic,.heif`;
+export const PROFILE_IMAGE_ACCEPT = ACCEPTED_TYPES.join(",");
 
 export type ProfileImageError = "type" | "size" | "read";
 
