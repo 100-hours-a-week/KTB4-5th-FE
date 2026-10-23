@@ -35,7 +35,7 @@ export function LinkCard({
           {title}
         </span>
         {description ? (
-          <span className="mt-0.5 block truncate text-[12.5px] leading-tight text-app-ink/55">
+          <span className="mt-0.5 line-clamp-2 wrap-anywhere text-[12.5px] leading-tight text-app-ink/55">
             {description}
           </span>
         ) : null}
