@@ -42,3 +42,11 @@ describe("register error messages", () => {
     );
   });
 });
+
+it("분석 결과 404는 냉장고 오류로 안내하지 않는다", () => {
+  expect(
+    getRegisterErrorMessage(
+      new ApiError(404, { code: "IMAGE-404-001", title: "expired" }),
+    ),
+  ).toContain("분석 결과");
+});

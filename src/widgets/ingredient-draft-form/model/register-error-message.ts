@@ -18,6 +18,9 @@ export function getRegisterErrorMessage(error: unknown): string | null {
   }
 
   if (error instanceof ApiError) {
+    if (error.code === "IMAGE-404-001") {
+      return "분석 결과가 만료되었거나 이미 등록됐어요. 다시 촬영해 주세요";
+    }
     return (
       REGISTER_ERROR_MESSAGES[
         error.status as keyof typeof REGISTER_ERROR_MESSAGES
