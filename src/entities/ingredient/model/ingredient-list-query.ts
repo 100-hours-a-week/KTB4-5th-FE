@@ -45,7 +45,7 @@ const INGREDIENT_LIST_QUERY_KEYS = {
 const MIN_INGREDIENT_KEYWORD_LENGTH = 1;
 
 export function toIngredientListKeyword(value: string): string | null {
-  const keyword = value.trim();
+  const keyword = value.normalize("NFC").trim();
   return keyword.length >= MIN_INGREDIENT_KEYWORD_LENGTH ? keyword : null;
 }
 

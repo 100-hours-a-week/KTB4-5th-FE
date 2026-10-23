@@ -7,11 +7,13 @@ import {
   INGREDIENT_CATEGORIES,
   INGREDIENT_STORAGE_TYPES,
 } from "@/entities/ingredient";
+import { sanitizeIngredientNameInput } from "@/features/ingredient-form";
 import { INGREDIENT_REGISTER_BATCH_LIMIT } from "@/shared/config";
 import { formatIsoDate } from "@/shared/lib/date";
 import { getTodayInSeoul } from "@/shared/lib/seoul-date";
 import {
   createEmptyDraft,
+  ingredientDraftFormSchema,
   type IngredientDraft,
 } from "@/widgets/ingredient-draft-form";
 
@@ -94,7 +96,7 @@ function toDraft(item: ImageAnalysisItem): IngredientDraft {
     category: isOneOf(INGREDIENT_CATEGORIES, category)
       ? category
       : empty.category,
-    name: item.name ?? "",
+    name: sanitizeIngredientNameInput(item.name ?? ""),
     storageType: isOneOf(INGREDIENT_STORAGE_TYPES, storageType)
       ? storageType
       : empty.storageType,
@@ -120,7 +122,11 @@ export function toRecognitionResult(
     analysisId: analysis.analysisId,
     photoCount: analysis.results.length,
     drafts: items.map(toDraft),
-    hints: items.map((item) => RECOGNITION_HINTS[item.displayStatus]),
+    hints: items.map((item) =>
+      item.name && item.name !== sanitizeIngredientNameInput(item.name)
+        ? "NEEDS_CHECK"
+        : RECOGNITION_HINTS[item.displayStatus],
+    ),
     expirationNotes: items.map(toExpirationNote),
     origins,
     unreadCount: analysis.results.filter((result) => result.items.length === 0)
@@ -139,6 +145,9 @@ export function getRecognitionStatus(
     draft.expirationDate === "";
 
   if (isMissing) return "UNRECOGNIZED";
+  if (!ingredientDraftFormSchema.safeParse({ drafts: [draft] }).success) {
+    return "NEEDS_CHECK";
+  }
   return hint ?? "RECOGNIZED";
 }
 

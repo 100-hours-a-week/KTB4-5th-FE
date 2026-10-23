@@ -9,9 +9,8 @@ import { useEffect } from "react";
 import {
   getNicknameFormatError,
   isValidNickname,
-  NICKNAME_DISALLOWED_CHARS,
+  sanitizeNicknameInput,
   NICKNAME_HINT,
-  NICKNAME_MAX_LENGTH,
   getOAuthSignupError,
   validateNickname,
 } from "@/features/oauth-signup";
@@ -146,11 +145,8 @@ export function SignupProfilePage() {
             type="text"
             value={nickname}
             onChange={(event) =>
-              setNickname(
-                event.target.value.replace(NICKNAME_DISALLOWED_CHARS, ""),
-              )
+              setNickname(sanitizeNicknameInput(event.target.value))
             }
-            maxLength={NICKNAME_MAX_LENGTH}
             autoComplete="nickname"
             aria-describedby="nickname-help"
             aria-invalid={nicknameError ? true : undefined}

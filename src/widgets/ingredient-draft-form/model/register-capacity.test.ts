@@ -37,6 +37,22 @@ it("reconstructs existing expiration dates from the response base date", () => {
   };
 
   expect(getRegisterCapacity(page).existingStockKeys).toContain(
-    "두부|REFRIGERATED|2026-09-15",
+    "두부|REFRIGERATED|2026-09-15|NONE",
   );
+});
+
+it("합산 후보가 일부만 로드됐어도 서버 전체 개수를 사용하고 추정임을 명시한다", () => {
+  const capacity = getRegisterCapacity({
+    baseDate: "2026-10-23",
+    outdated: false,
+    ingredientsNum: 1500,
+    filteredCount: 1500,
+    refrigeratorCapacity: 1500,
+    refrigeratorName: "QA",
+    ingredients: [],
+    nextCursor: "next",
+  });
+  expect(capacity.stockTypeCount).toBe(1500);
+  expect(capacity.remainingSlots).toBe(0);
+  expect(capacity.isEstimate).toBe(true);
 });

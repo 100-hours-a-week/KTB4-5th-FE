@@ -1,4 +1,5 @@
 export { useFormLeaveGuard } from "./model/use-form-leave-guard";
+export { sanitizeIngredientNameInput } from "./lib/ingredient-name";
 export {
   ingredientNameSchema,
   ingredientQuantitySchema,

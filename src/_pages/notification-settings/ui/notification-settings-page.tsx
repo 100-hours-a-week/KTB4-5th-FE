@@ -8,7 +8,16 @@ import {
   useNotificationSessionScope,
   type NotificationPreferencesResponse,
 } from "@/entities/notification";
-import { updateNotificationPreference } from "@/features/manage-push-notifications";
+import {
+  refrigeratorQueries,
+  type MypageOverview,
+} from "@/entities/refrigerator";
+import {
+  updateNotificationPreference,
+  usePushNotificationSetting,
+  PushInstallGuideSheet,
+  PushPermissionGuideSheet,
+} from "@/features/manage-push-notifications";
 import { SessionExpiredError } from "@/shared/api";
 import { showAppToast } from "@/shared/ui/app-toast";
 import {
@@ -59,6 +68,7 @@ function SettingSwitch({
 
 export function NotificationSettingsPage() {
   const queryClient = useQueryClient();
+  const push = usePushNotificationSetting();
   const sessionScope = useNotificationSessionScope();
   const queryOptions = notificationQueries.preferences(sessionScope ?? "");
   const preferencesQuery = useQuery({
@@ -88,8 +98,22 @@ export function NotificationSettingsPage() {
       );
       return previous;
     },
-    onSuccess: (saved) => {
+    onSuccess: async (saved) => {
+      const mypageFilter = {
+        queryKey: refrigeratorQueries.all(),
+        predicate: (query: { queryKey: readonly unknown[] }) =>
+          query.queryKey[2] === "mypage",
+      };
+      await queryClient.cancelQueries(mypageFilter);
       queryClient.setQueryData(queryOptions.queryKey, saved);
+      queryClient.setQueriesData<MypageOverview>(
+        mypageFilter,
+        (current) =>
+          current && {
+            ...current,
+            notificationPreferences: saved.notificationPreferences,
+          },
+      );
     },
     onError: (error, _enabled, previous) => {
       if (previous) queryClient.setQueryData(queryOptions.queryKey, previous);
@@ -148,6 +172,25 @@ export function NotificationSettingsPage() {
           onChange={() => preferenceMutation.mutate(!expirationEnabled)}
         />
 
+        <SettingSwitch
+          title="이 기기 푸시 수신"
+          description={
+            push.status === null
+              ? "기기 상태 확인 중"
+              : {
+                  on: "이 기기에서 푸시를 받을 수 있어요",
+                  off: "켜면 알림 권한을 요청하고 이 기기를 등록해요",
+                  blocked: "기기 또는 브라우저 설정에서 알림을 허용해 주세요",
+                  "blocked-ios": "알림 권한 설정 방법을 확인해 주세요",
+                  "needs-install": "홈 화면에 앱을 추가한 후 받을 수 있어요",
+                  unsupported: "이 브라우저에서는 푸시를 지원하지 않아요",
+                }[push.status]
+          }
+          checked={push.status === "on"}
+          disabled={push.status === null || push.isPending}
+          onChange={push.handleClick}
+        />
+
         <div className="flex min-h-[112px] items-center justify-between gap-4 rounded-[24px] bg-app-neutral-100 px-5 py-5">
           <div className="min-w-0">
             <p className="m-0 font-app-heading text-[18px] font-black text-app-ink">
@@ -162,6 +205,14 @@ export function NotificationSettingsPage() {
           </span>
         </div>
       </div>
+      <PushInstallGuideSheet
+        open={push.isGuideOpen}
+        onDismiss={push.closeGuide}
+      />
+      <PushPermissionGuideSheet
+        open={push.isPermissionGuideOpen}
+        onDismiss={push.closePermissionGuide}
+      />
     </main>
   );
 }

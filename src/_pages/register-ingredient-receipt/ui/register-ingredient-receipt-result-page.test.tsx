@@ -25,6 +25,11 @@ vi.mock("@/entities/image", () => ({
     }),
   },
 }));
+vi.mock("@/features/ingredient-form", async () => ({
+  sanitizeIngredientNameInput: (
+    await import("@/features/ingredient-form/lib/ingredient-name")
+  ).sanitizeIngredientNameInput,
+}));
 vi.mock("@/entities/ingredient", () => ({
   INGREDIENT_CATEGORIES: ["DAIRY", "OTHER"],
   INGREDIENT_STORAGE_TYPES: ["REFRIGERATED", "FROZEN"],

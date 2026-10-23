@@ -1,5 +1,6 @@
 import {
   type IngredientStorageType,
+  type IngredientWeightUnit,
   normalizeIngredientName,
   toStockKey,
 } from "@/entities/ingredient";
@@ -11,6 +12,8 @@ export type DraftStockFields = {
   name: string;
   storageType: IngredientStorageType;
   expirationDate: string;
+  weightValue: string;
+  weightUnit: IngredientWeightUnit;
 };
 
 export type DraftSummary = {
@@ -32,7 +35,12 @@ function getDraftStockKey(draft: DraftStockFields) {
     return null;
   }
 
-  return toStockKey(name, draft.storageType, draft.expirationDate);
+  return toStockKey(
+    name,
+    draft.storageType,
+    draft.expirationDate,
+    draft.weightValue === "" ? "NONE" : draft.weightUnit,
+  );
 }
 
 export function summarizeDrafts(

@@ -30,7 +30,11 @@ export function RegisterSubmitButton({
       type="submit"
       form={formId}
       aria-busy={isSubmitting}
-      disabled={isSubmitting || !isValid || summary.overLimitCount > 0}
+      disabled={
+        isSubmitting ||
+        !isValid ||
+        (!capacity.isEstimate && summary.overLimitCount > 0)
+      }
     >
       {isSubmitting ? "로딩 중" : "등록하기"}
     </FooterButton>

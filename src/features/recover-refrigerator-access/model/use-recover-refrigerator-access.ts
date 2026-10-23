@@ -58,7 +58,8 @@ export function useRecoverRefrigeratorAccess(
         const key = event.query.queryKey;
         const isCurrentRefrigerator =
           (key[0] === refrigeratorQueries.all()[0] &&
-            key[1] === refrigeratorId) ||
+            key[1] === refrigeratorId &&
+            key[2] !== "invitation") ||
           (key[0] === notificationQueries.all()[0] &&
             key[1] === userScope &&
             key[2] === refrigeratorId);
@@ -77,6 +78,7 @@ export function useRecoverRefrigeratorAccess(
         } else if (event.action.type === "error") {
           if (
             pendingMutations.delete(event.mutation) &&
+            event.mutation.options.mutationKey?.[2] !== "invitation" &&
             isAccessLost(event.action.error)
           ) {
             recover();

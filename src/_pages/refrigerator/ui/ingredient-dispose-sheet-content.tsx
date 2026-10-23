@@ -102,8 +102,8 @@ export function IngredientDisposeBottomSheetContent({
                 className="peer sr-only"
               />
               <CheckMark />
-              <span className="flex min-w-0 flex-1 items-baseline gap-2">
-                <span className="truncate font-app-heading text-[13px] font-black leading-[1.35]">
+              <span className="flex min-w-0 flex-1 flex-col gap-1">
+                <span className="w-full wrap-anywhere font-app-heading text-[13px] font-black leading-[1.35]">
                   {ingredient.name}
                 </span>
                 <span className="flex-none font-app-body text-[12px] text-app-neutral-600">

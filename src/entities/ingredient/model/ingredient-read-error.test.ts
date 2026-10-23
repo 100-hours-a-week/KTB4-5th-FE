@@ -33,3 +33,9 @@ describe("getIngredientReadError", () => {
     });
   });
 });
+
+it.each([400, 422])("잘못된 주소 오류 %s는 냉장고로 복귀한다", (status) => {
+  expect(getIngredientReadError(apiError(status), "detail").action).toBe(
+    "refrigerator",
+  );
+});

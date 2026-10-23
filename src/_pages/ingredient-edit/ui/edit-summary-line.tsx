@@ -48,7 +48,7 @@ export function EditSummaryLine({ id, initialValues }: EditSummaryLineProps) {
     <p
       id={id}
       aria-live="polite"
-      className="m-0 text-[11.5px] leading-tight text-app-ink/60"
+      className="m-0 wrap-anywhere text-[11.5px] leading-tight text-app-ink/60"
     >
       수정 전 {formatStock(initialValues)}
       {" · "}

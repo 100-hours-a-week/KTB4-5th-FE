@@ -40,3 +40,19 @@ it("keeps the detail base date and ETag outside the ingredient", async () => {
   expect(result.ingredient.weightValue).toBe(300);
   expect(result.ingredient).not.toHaveProperty("baseDate");
 });
+
+it.each([
+  "not-a-number",
+  "0",
+  "-1",
+  "1.2",
+  "9223372036854775808",
+  "999999999999999999999",
+])("비정상 ID %s는 서버 요청 전에 차단한다", async (ingredientId) => {
+  const fetchMock = vi.fn();
+  vi.stubGlobal("fetch", fetchMock);
+  await expect(getIngredientDetail({ ingredientId })).rejects.toMatchObject({
+    status: 400,
+  });
+  expect(fetchMock).not.toHaveBeenCalled();
+});

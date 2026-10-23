@@ -33,7 +33,13 @@ export function RegisterSummaryLine({
       className="m-0 text-[11.5px] leading-tight text-app-ink/60"
     >
       {summary.draftCount} / {summary.batchLimit}건
-      {summary.overLimitCount > 0 ? (
+      {capacity.isEstimate ? (
+        <>
+          {" "}
+          · 현재 {capacity.stockTypeCount} / {capacity.stockTypeLimit}종 ·
+          합산·용량은 등록 시 확인해요
+        </>
+      ) : summary.overLimitCount > 0 ? (
         <>
           {" · "}
           <span className="font-bold text-app-primary">

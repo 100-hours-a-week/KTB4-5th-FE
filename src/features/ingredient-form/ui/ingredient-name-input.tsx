@@ -2,8 +2,6 @@
 
 import type { Ref } from "react";
 
-import { TEXT_FIELD_MAX_LENGTH } from "@/shared/config";
-
 import { sanitizeIngredientNameInput } from "../lib/ingredient-name";
 
 interface IngredientNameInputProps {
@@ -50,7 +48,6 @@ export function IngredientNameInput({
         type="text"
         autoComplete="off"
         inputMode="text"
-        maxLength={TEXT_FIELD_MAX_LENGTH}
         placeholder="예) 두부"
         value={value}
         onChange={(event) =>
