@@ -8,6 +8,13 @@ const NICKNAME_JAMO_ERROR = "자음이나 모음만 따로 쓸 수 없어요";
 const NICKNAME_PATTERN = /^[가-힣a-zA-Z0-9]{2,10}$/;
 const NICKNAME_JAMO = /[ㄱ-ㅎㅏ-ㅣ]/;
 
+export function sanitizeNicknameInput(value: string) {
+  return value
+    .normalize("NFC")
+    .replace(NICKNAME_DISALLOWED_CHARS, "")
+    .slice(0, NICKNAME_MAX_LENGTH);
+}
+
 export function isValidNickname(nickname: string): boolean {
   return NICKNAME_PATTERN.test(nickname);
 }

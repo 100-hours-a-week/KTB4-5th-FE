@@ -37,7 +37,7 @@ it("reconstructs existing expiration dates from the response base date", () => {
   };
 
   expect(getRegisterCapacity(page).existingStockKeys).toContain(
-    "두부|REFRIGERATED|2026-09-15",
+    "두부|REFRIGERATED|2026-09-15|NONE",
   );
 });
 

@@ -9,7 +9,7 @@ import { userQueries, type Me } from "@/entities/user";
 import { useFormLeaveGuard } from "@/features/ingredient-form";
 import {
   getNicknameFormatError,
-  NICKNAME_DISALLOWED_CHARS,
+  sanitizeNicknameInput,
   NICKNAME_HINT,
   NICKNAME_MAX_LENGTH,
 } from "@/features/oauth-signup";
@@ -193,12 +193,9 @@ function MyProfileForm({ me }: { me: Me }) {
                 type="text"
                 value={nickname}
                 onChange={(event) => {
-                  setNickname(
-                    event.target.value.replace(NICKNAME_DISALLOWED_CHARS, ""),
-                  );
+                  setNickname(sanitizeNicknameInput(event.target.value));
                   setNicknameServerError(null);
                 }}
-                maxLength={NICKNAME_MAX_LENGTH}
                 autoComplete="nickname"
                 aria-describedby="nickname-help"
                 aria-invalid={nicknameError ? true : undefined}

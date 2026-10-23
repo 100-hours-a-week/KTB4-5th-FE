@@ -1,5 +1,6 @@
 export {
   getNicknameFormatError,
+  sanitizeNicknameInput,
   isValidNickname,
   NICKNAME_DISALLOWED_CHARS,
   NICKNAME_HINT,
