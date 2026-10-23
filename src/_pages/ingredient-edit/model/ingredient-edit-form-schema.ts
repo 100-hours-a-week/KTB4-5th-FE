@@ -27,42 +27,58 @@ const baseSchema = z.object({
   expirationDate: z.string(),
 });
 
-export function createIngredientEditFormSchema(initialExpirationDate: string) {
-  return (
-    baseSchema
-      .superRefine((values, ctx) => {
-        if (values.expirationDate !== initialExpirationDate) {
-          const date = ingredientExpirationDateSchema.safeParse(
-            values.expirationDate,
-          );
-          if (!date.success) {
+export function createIngredientEditFormSchema(
+  initialExpirationDate: string,
+  initialName: string,
+) {
+  return baseSchema
+    .extend({
+      name: z
+        .string()
+        .superRefine((name, ctx) => {
+          if (name === initialName && name.trim() && name.length <= 100) return;
+          const result = ingredientNameSchema.safeParse(name);
+          if (!result.success) {
             ctx.addIssue({
               code: "custom",
-              path: ["expirationDate"],
               message:
-                date.error.issues[0]?.message ?? "유통기한을 확인해주세요",
+                result.error.issues[0]?.message ?? "재료 이름을 확인해 주세요",
             });
           }
-        }
-        if (values.measureType === "WEIGHT" && values.weightValue === null) {
+        })
+        .transform(normalizeIngredientName),
+    })
+    .superRefine((values, ctx) => {
+      if (values.expirationDate !== initialExpirationDate) {
+        const date = ingredientExpirationDateSchema.safeParse(
+          values.expirationDate,
+        );
+        if (!date.success) {
           ctx.addIssue({
             code: "custom",
-            path: ["weightValue"],
-            message: "무게 또는 부피 값을 입력해주세요",
+            path: ["expirationDate"],
+            message: date.error.issues[0]?.message ?? "유통기한을 확인해주세요",
           });
         }
-      })
-      .transform((values) => ({
-        ...values,
-        weightUnit:
-          values.measureType === "COUNT"
-            ? ("NONE" as const)
-            : (values.weightUnit as IngredientWeightUnit),
-      }))
-  );
+      }
+      if (values.measureType === "WEIGHT" && values.weightValue === null) {
+        ctx.addIssue({
+          code: "custom",
+          path: ["weightValue"],
+          message: "무게 또는 부피 값을 입력해주세요",
+        });
+      }
+    })
+    .transform((values) => ({
+      ...values,
+      weightUnit:
+        values.measureType === "COUNT"
+          ? ("NONE" as const)
+          : (values.weightUnit as IngredientWeightUnit),
+    }));
 }
 
-export const ingredientEditFormSchema = createIngredientEditFormSchema("");
+export const ingredientEditFormSchema = createIngredientEditFormSchema("", "");
 
 export type IngredientEditFormInput = z.input<typeof ingredientEditFormSchema>;
 export type IngredientEditFormValues = z.output<
