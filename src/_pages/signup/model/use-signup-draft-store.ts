@@ -9,6 +9,12 @@ export const TERMS = [
 
 export type TermId = (typeof TERMS)[number]["id"];
 
+export function hasRequiredSignupTerms(
+  agreed: Partial<Record<TermId, boolean>>,
+) {
+  return TERMS.every((term) => !term.required || agreed[term.id] === true);
+}
+
 type SignupDraftState = {
   agreed: Partial<Record<TermId, boolean>>;
   nickname: string;

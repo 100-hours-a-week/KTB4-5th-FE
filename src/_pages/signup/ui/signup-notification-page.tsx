@@ -3,9 +3,8 @@
 import { ArrowLeftOutlined } from "@lineiconshq/free-icons";
 import { Lineicons } from "@lineiconshq/react-lineicons";
 import { useMutation } from "@tanstack/react-query";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useRef, useState, useTransition } from "react";
+import { useEffect, useRef, useState, useTransition } from "react";
 
 import {
   getPushNotificationSupport,
@@ -14,16 +13,21 @@ import {
 } from "@/features/manage-push-notifications";
 import {
   getOAuthSignupError,
+  isValidNickname,
   useCompleteOAuthSignup,
 } from "@/features/oauth-signup";
 import { markAppNavigationIntent } from "@/shared/lib/navigation-history";
 import { routes } from "@/shared/routes";
 import { AppHeader } from "@/shared/ui/app-header";
+import { AppLink } from "@/shared/ui/app-link";
 import { showAppToast } from "@/shared/ui/app-toast";
 import { Button } from "@/shared/ui/button";
 import { PageActionLayout } from "@/shared/ui/page-action-layout";
 
-import { useSignupDraftStore } from "../model/use-signup-draft-store";
+import {
+  hasRequiredSignupTerms,
+  useSignupDraftStore,
+} from "../model/use-signup-draft-store";
 
 export function SignupNotificationPage() {
   const router = useRouter();
@@ -31,6 +35,13 @@ export function SignupNotificationPage() {
   const isStartingRef = useRef(false);
   const [isStarting, setIsStarting] = useState(false);
   const nickname = useSignupDraftStore((state) => state.nickname);
+  const nicknameError = useSignupDraftStore((state) => state.nicknameError);
+  const agreed = useSignupDraftStore((state) => state.agreed);
+  const fallbackHref = !hasRequiredSignupTerms(agreed)
+    ? routes.signup
+    : !isValidNickname(nickname) || nicknameError !== null
+      ? routes.signupProfile
+      : null;
   const notificationEnabled = useSignupDraftStore(
     (state) => state.notificationEnabled,
   );
@@ -48,13 +59,30 @@ export function SignupNotificationPage() {
     mutationFn: resubscribePushNotificationsIfEnabled,
   });
 
+  useEffect(() => {
+    if (fallbackHref === null || isStarting) return;
+    markAppNavigationIntent("replace", fallbackHref);
+    router.replace(fallbackHref);
+  }, [fallbackHref, isStarting, router]);
+
   async function startService() {
-    if (isStartingRef.current) return;
+    if (isStartingRef.current || fallbackHref !== null) return;
     isStartingRef.current = true;
     setIsStarting(true);
 
     if (notificationEnabled && getPushNotificationSupport() === "supported") {
       await requestPushPermission().catch(() => null);
+    }
+
+    const draft = useSignupDraftStore.getState();
+    if (
+      !hasRequiredSignupTerms(draft.agreed) ||
+      draft.nickname !== nickname ||
+      draft.nicknameError !== null
+    ) {
+      isStartingRef.current = false;
+      setIsStarting(false);
+      return;
     }
 
     try {
@@ -67,10 +95,14 @@ export function SignupNotificationPage() {
 
       if (signupError.kind === "nickname") {
         setNicknameError(signupError.message);
-        router.replace(routes.signupProfile);
       } else if (signupError.kind === "restart") {
         reset();
+        markAppNavigationIntent(
+          "replace",
+          routes.loginWithReason(signupError.reason),
+        );
         router.replace(routes.loginWithReason(signupError.reason));
+        return;
       } else {
         showAppToast({ message: signupError.message, variant: "error" });
       }
@@ -89,6 +121,8 @@ export function SignupNotificationPage() {
     });
   }
 
+  if (fallbackHref !== null && !isStarting) return null;
+
   return (
     <PageActionLayout
       action={
@@ -106,7 +140,7 @@ export function SignupNotificationPage() {
       <AppHeader
         title="알림 설정"
         leading={
-          <Link
+          <AppLink
             href={routes.signupProfile}
             aria-label="정보 입력으로 돌아가기"
             className="grid size-[var(--tap-min)] place-items-center text-app-text hover:text-app-primary"
@@ -118,7 +152,7 @@ export function SignupNotificationPage() {
               aria-hidden="true"
               focusable="false"
             />
-          </Link>
+          </AppLink>
         }
       />
 
