@@ -5,10 +5,10 @@ import { UserAvatar } from "@/entities/user";
 import { PROFILE_IMAGE_ACCEPT } from "../lib/prepare-profile-image";
 import type { ProfileImagePickerError } from "../model/use-profile-image-picker";
 
-const HELPER_TEXT = "형식: JPG · PNG · WebP, HEIC";
+const HELPER_TEXT = "형식: JPG · PNG · WebP";
 
 const ERROR_TEXT: Record<ProfileImagePickerError, string> = {
-  type: "JPG나 PNG 사진만 올릴 수 있어요",
+  type: "JPG · PNG · WebP 사진만 올릴 수 있어요",
   size: "사진이 너무 커요. 10MB 이하로 골라 주세요",
   read: "사진을 불러오지 못했어요. 다른 사진을 골라 주세요",
   upload: "사진을 올리지 못했어요. 잠시 후 다시 시도해 주세요",
@@ -50,7 +50,7 @@ export function ProfileImageField({
             }}
           />
         </label>
-        {src ? (
+        {src && !/(?:^|\/)profiles\/default\.png(?:[?#]|$)/.test(src) ? (
           <button
             type="button"
             aria-label="프로필 사진 지우기"
