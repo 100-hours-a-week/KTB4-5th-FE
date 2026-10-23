@@ -26,7 +26,7 @@ export function IngredientExpiryStamp({
       <span className="font-app-heading text-[14px] font-black leading-none">
         {INGREDIENT_STATUS_LABELS[status]}
       </span>
-      <span className="mt-0.5 whitespace-nowrap font-app-mono text-[9px] font-bold leading-none">
+      <span className="mt-0.5 whitespace-nowrap font-app-mono text-[8px] font-bold leading-none">
         {formatDaysUntilExpiration(daysUntilExpiration)}
       </span>
     </span>
