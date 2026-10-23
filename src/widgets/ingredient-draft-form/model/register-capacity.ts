@@ -22,6 +22,7 @@ export function getRegisterCapacity(
         ingredient.name,
         ingredient.storageType,
         addDaysToIsoDate(page.baseDate, ingredient.daysUntilExpiration),
+        ingredient.weightUnit,
       ),
     ),
   };
