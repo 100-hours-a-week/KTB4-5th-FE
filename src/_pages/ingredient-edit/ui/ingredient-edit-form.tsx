@@ -70,7 +70,10 @@ export function IngredientEditForm({
     IngredientEditFormValues
   >({
     resolver: zodResolver(
-      createIngredientEditFormSchema(initialValues.expirationDate),
+      createIngredientEditFormSchema(
+        initialValues.expirationDate,
+        initialValues.name,
+      ),
     ),
     mode: "onChange",
     defaultValues: initialValues,
