@@ -31,13 +31,3 @@ fetch("/api/v1/mock/health")
 ```
 
 Chrome 개발자 도구의 **애플리케이션 → Service workers → 네트워크 우회**는 꺼둔다. 켜면 요청이 MSW를 건너뛴다. `GLOBAL-500-001`처럼 실제 백엔드 응답이 나오면 Mock 핸들러가 응답한 것이 아니다.
-
-## 확인 화면
-
-아래 화면은 MSW가 켜진 상태에서 핸들러가 없는 재고 상세 API가 실제 백엔드로 전달된 결과다.
-
-![MSW 활성화 로그와 실제 재고 상세 API 응답](./images/msw-api-passthrough.png)
-
-서비스 워커가 활성화되어 있고 **네트워크 우회**가 꺼진 상태다.
-
-![Chrome 개발자 도구의 MSW 서비스 워커 상태](./images/msw-service-worker.png)
