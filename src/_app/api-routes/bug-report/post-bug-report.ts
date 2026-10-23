@@ -21,8 +21,14 @@ export async function postBugReport(request: NextRequest): Promise<Response> {
     return problem(503, "REPORT-503-001", "버그 리포트가 설정되지 않았습니다.");
   }
 
-  const { hasSession, userId } = readSessionUser(request);
-  if (!hasSession) {
+  let userId: string | null;
+  try {
+    userId = await readSessionUser(request);
+  } catch (error) {
+    Sentry.captureException(error);
+    return problem(503, "REPORT-503-002", "로그인 상태를 확인하지 못했습니다.");
+  }
+  if (userId === null) {
     return problem(401, "REPORT-401-001", "로그인이 필요합니다.");
   }
 
@@ -38,9 +44,7 @@ export async function postBugReport(request: NextRequest): Promise<Response> {
     return problem(400, "REPORT-400-002", "입력값이 올바르지 않습니다.");
   }
 
-  const quotaKey =
-    userId ?? request.headers.get("x-forwarded-for") ?? "anonymous";
-  if (!consumeBugReportQuota(quotaKey)) {
+  if (!consumeBugReportQuota(userId)) {
     return problem(429, "REPORT-429-001", "잠시 후 다시 시도해 주세요.");
   }
 

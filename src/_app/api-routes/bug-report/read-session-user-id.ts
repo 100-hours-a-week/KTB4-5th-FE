@@ -1,53 +1,45 @@
 import type { NextRequest } from "next/server";
+import { z } from "zod";
 
 import {
   ACCESS_TOKEN_COOKIE_NAME,
-  REFRESH_TOKEN_COOKIE_NAME,
+  API_BASE_PATH,
+  ApiError,
+  readProblem,
 } from "@/shared/api";
 
-function readJwtSubject(token: string): string | null {
-  const payload = token.split(".")[1];
-  if (!payload) {
-    return null;
+const sessionUserResponseSchema = z.object({
+  code: z.string(),
+  message: z.string(),
+  data: z.object({
+    userId: z.union([z.string().trim().min(1), z.number().int().positive()]),
+  }),
+});
+
+export async function readSessionUser(
+  request: NextRequest,
+): Promise<string | null> {
+  if (!request.cookies.get(ACCESS_TOKEN_COOKIE_NAME)?.value) return null;
+
+  const backendOrigin = process.env.BACKEND_ORIGIN ?? "http://localhost:8080";
+  const response = await fetch(
+    new URL(`${API_BASE_PATH}/users/me`, backendOrigin),
+    {
+      headers: {
+        Accept: "application/json, application/problem+json",
+        Cookie: request.headers.get("cookie") ?? "",
+      },
+      cache: "no-store",
+      redirect: "error",
+      signal: AbortSignal.any([request.signal, AbortSignal.timeout(5_000)]),
+    },
+  );
+
+  if (response.status === 401 || response.status === 403) return null;
+  if (!response.ok) {
+    throw new ApiError(response.status, await readProblem(response));
   }
 
-  try {
-    const claims: unknown = JSON.parse(
-      Buffer.from(payload, "base64url").toString("utf8"),
-    );
-    if (typeof claims !== "object" || claims === null) {
-      return null;
-    }
-
-    const subject =
-      (claims as Record<string, unknown>).sub ??
-      (claims as Record<string, unknown>).userId;
-    return typeof subject === "string" || typeof subject === "number"
-      ? String(subject)
-      : null;
-  } catch {
-    return null;
-  }
-}
-
-export type SessionUser = {
-  hasSession: boolean;
-  userId: string | null;
-};
-
-// Next.js는 세션 서명 키를 갖지 않으므로 서명을 검증하지 않고 식별용으로만 읽는다.
-// 만료된 accessToken이어도 sub는 같으므로 refreshToken까지 순서대로 확인한다.
-export function readSessionUser(request: NextRequest): SessionUser {
-  const tokens = [ACCESS_TOKEN_COOKIE_NAME, REFRESH_TOKEN_COOKIE_NAME]
-    .map((name) => request.cookies.get(name)?.value)
-    .filter((value): value is string => Boolean(value));
-
-  for (const token of tokens) {
-    const userId = readJwtSubject(token);
-    if (userId) {
-      return { hasSession: true, userId };
-    }
-  }
-
-  return { hasSession: tokens.length > 0, userId: null };
+  const { data } = sessionUserResponseSchema.parse(await response.json());
+  return String(data.userId);
 }
