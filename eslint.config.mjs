@@ -21,6 +21,8 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // MSW가 생성하는 파일이므로 직접 검사하지 않는다.
+    "public/mockServiceWorker.js",
   ]),
   prettierConfig,
 ]);
