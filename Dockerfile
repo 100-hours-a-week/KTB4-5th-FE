@@ -1,5 +1,6 @@
 # syntax=docker/dockerfile:1
-FROM node:24-bookworm-slim AS base
+FROM node:24.22.1-bookworm-slim AS base
+RUN node --version
 WORKDIR /app
 ENV HUSKY=0 NEXT_TELEMETRY_DISABLED=1
 RUN npm install --global pnpm@12.4.1
@@ -31,7 +32,8 @@ COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
 # 실행 이미지에는 개발 의존성을 포함하지 않는다.
 RUN pnpm install --prod --frozen-lockfile --ignore-scripts
 
-FROM node:24-bookworm-slim AS runtime
+FROM node:24.22.1-bookworm-slim AS runtime
+RUN node --version
 WORKDIR /app
 ARG NEXT_PUBLIC_SENTRY_DSN
 ARG NEXT_PUBLIC_SENTRY_ENVIRONMENT
