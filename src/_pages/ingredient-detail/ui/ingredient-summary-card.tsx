@@ -89,7 +89,7 @@ export function IngredientSummaryCard({
           <div className="flex flex-wrap items-center gap-[9px]">
             <h2
               id="ingredient-detail-name"
-              className="m-0 min-w-0 break-keep font-app-heading text-[24px] font-black leading-none text-app-ink"
+              className="m-0 min-w-0 wrap-anywhere font-app-heading text-[24px] font-black leading-tight text-app-ink"
             >
               {ingredient.name}
             </h2>
