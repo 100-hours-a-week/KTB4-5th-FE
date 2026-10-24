@@ -50,6 +50,8 @@ export function RegisterIngredientReceiptResultPage({
   const analysis = useQuery({
     ...imageAnalysisQueries.detail(analysisId ?? ""),
     enabled: Boolean(analysisId),
+    refetchOnWindowFocus: false,
+    refetchOnReconnect: false,
   });
   const result = useMemo(
     () =>
