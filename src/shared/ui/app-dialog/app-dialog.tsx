@@ -161,7 +161,7 @@ export function AppDialog({
           ref={titleRef}
           id={titleId}
           tabIndex={-1}
-          className="m-[5px_0_0] font-app-heading text-[16px] font-black leading-[1.35] tracking-normal focus-visible:outline-none"
+          className="m-[5px_0_0] wrap-anywhere font-app-heading text-[16px] font-black leading-[1.35] tracking-normal focus-visible:outline-none"
         >
           {title}
         </h2>

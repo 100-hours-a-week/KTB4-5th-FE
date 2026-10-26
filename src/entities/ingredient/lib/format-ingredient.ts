@@ -7,14 +7,14 @@ import {
 
 export function formatDaysUntilExpiration(daysUntilExpiration: number): string {
   if (daysUntilExpiration < 0) {
-    return `${Math.abs(daysUntilExpiration)}일 지남`;
+    return `${daysUntilExpiration < -99 ? "99+" : Math.abs(daysUntilExpiration)}일 지남`;
   }
 
   if (daysUntilExpiration === 0) {
     return "오늘까지";
   }
 
-  return `D-${daysUntilExpiration}`;
+  return `D-${daysUntilExpiration > 999 ? "999+" : daysUntilExpiration}`;
 }
 
 export function formatIngredientQuantity(quantity: number): string {
@@ -33,9 +33,7 @@ export function formatIngredientWeight(
 }
 
 export function formatIngredientAmount(ingredient: Ingredient): string {
-  const parts = [
-    INGREDIENT_STORAGE_TYPE_LABELS[ingredient.storageType],
-  ];
+  const parts = [INGREDIENT_STORAGE_TYPE_LABELS[ingredient.storageType]];
   if (ingredient.quantity !== null) {
     parts.push(formatIngredientQuantity(ingredient.quantity));
   }

@@ -50,6 +50,8 @@ export function RegisterIngredientReceiptResultPage({
   const analysis = useQuery({
     ...imageAnalysisQueries.detail(analysisId ?? ""),
     enabled: Boolean(analysisId),
+    refetchOnWindowFocus: false,
+    refetchOnReconnect: false,
   });
   const result = useMemo(
     () =>
@@ -231,7 +233,7 @@ function ReceiptResultForm({
                 영수증 {photoCount}장에서 인식했어요.{" "}
                 {hasUnsetExpiration
                   ? "유통기한은 직접 지정해 주세요."
-                  : "유통기한은 AI가 예상한 날짜예요. 확인 후 등록해 주세요."}
+                  : "AI 인식 결과를 확인한 후 등록해 주세요."}
               </p>
             ) : null}
           </div>

@@ -62,10 +62,13 @@ export function RefrigeratorSharePage() {
   const leaveMutation = useMutation({
     mutationFn: leaveRefrigerator,
     onSuccess: async (nextRefrigeratorId) => {
+      queryClient.removeQueries({
+        queryKey: [...refrigeratorQueries.all(), refrigeratorId],
+      });
+      setCurrentRefrigeratorId(nextRefrigeratorId);
       await queryClient.invalidateQueries({
         queryKey: refrigeratorQueries.all(),
       });
-      setCurrentRefrigeratorId(nextRefrigeratorId);
       markAppNavigationIntent("replace", routes.home);
       router.replace(routes.home);
     },

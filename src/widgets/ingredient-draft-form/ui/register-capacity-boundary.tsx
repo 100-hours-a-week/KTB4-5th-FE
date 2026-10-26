@@ -42,6 +42,8 @@ export function RegisterCapacityBoundary({
   } = useQuery({
     ...ingredientQueries.firstPage(refrigeratorId ?? "", CAPACITY_LIST_QUERY),
     enabled: Boolean(refrigeratorId),
+    refetchOnWindowFocus: false,
+    refetchOnReconnect: false,
   });
   if (page) {
     return children(getRegisterCapacity(page));

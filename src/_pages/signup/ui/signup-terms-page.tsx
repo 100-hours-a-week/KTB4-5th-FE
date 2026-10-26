@@ -4,13 +4,18 @@ import { ArrowLeftOutlined } from "@lineiconshq/free-icons";
 import { Lineicons } from "@lineiconshq/react-lineicons";
 import { useRouter } from "next/navigation";
 
+import { markAppNavigationIntent } from "@/shared/lib/navigation-history";
 import { routes } from "@/shared/routes";
 import { AppHeader } from "@/shared/ui/app-header";
 import { Button } from "@/shared/ui/button";
 import { CheckMark } from "@/shared/ui/check-mark";
 import { PageActionLayout } from "@/shared/ui/page-action-layout";
 
-import { TERMS, useSignupDraftStore } from "../model/use-signup-draft-store";
+import {
+  hasRequiredSignupTerms,
+  TERMS,
+  useSignupDraftStore,
+} from "../model/use-signup-draft-store";
 
 export function SignupTermsPage() {
   const router = useRouter();
@@ -19,10 +24,11 @@ export function SignupTermsPage() {
   const reset = useSignupDraftStore((state) => state.reset);
 
   const isAllAgreed = TERMS.every((term) => agreed[term.id]);
-  const canProceed = TERMS.every((term) => !term.required || agreed[term.id]);
+  const canProceed = hasRequiredSignupTerms(agreed);
 
   function leaveSignup() {
     reset();
+    markAppNavigationIntent("replace", routes.login);
     router.replace(routes.login);
   }
 
@@ -38,7 +44,10 @@ export function SignupTermsPage() {
           shape="note"
           className="w-full shadow-app-md"
           disabled={!canProceed}
-          onClick={() => router.push(routes.signupProfile)}
+          onClick={() => {
+            markAppNavigationIntent("push", routes.signupProfile);
+            router.push(routes.signupProfile);
+          }}
         >
           다음
         </Button>

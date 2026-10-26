@@ -3,28 +3,34 @@
 import { ArrowLeftOutlined } from "@lineiconshq/free-icons";
 import { Lineicons } from "@lineiconshq/react-lineicons";
 import { useMutation } from "@tanstack/react-query";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { useEffect } from "react";
 
 import {
+  getNicknameFormatError,
   isValidNickname,
-  NICKNAME_DISALLOWED_CHARS,
+  sanitizeNicknameInput,
   NICKNAME_HINT,
-  NICKNAME_LENGTH_ERROR,
-  NICKNAME_MAX_LENGTH,
   getOAuthSignupError,
   validateNickname,
 } from "@/features/oauth-signup";
+import { markAppNavigationIntent } from "@/shared/lib/navigation-history";
 import { routes } from "@/shared/routes";
+import { AppLink } from "@/shared/ui/app-link";
 import { AppHeader } from "@/shared/ui/app-header";
 import { showAppToast } from "@/shared/ui/app-toast";
 import { Button } from "@/shared/ui/button";
 import { PageActionLayout } from "@/shared/ui/page-action-layout";
 
-import { useSignupDraftStore } from "../model/use-signup-draft-store";
+import {
+  hasRequiredSignupTerms,
+  useSignupDraftStore,
+} from "../model/use-signup-draft-store";
 
 export function SignupProfilePage() {
   const router = useRouter();
+  const agreed = useSignupDraftStore((state) => state.agreed);
+  const hasRequiredTerms = hasRequiredSignupTerms(agreed);
   const nickname = useSignupDraftStore((state) => state.nickname);
   const serverError = useSignupDraftStore((state) => state.nicknameError);
   const setNickname = useSignupDraftStore((state) => state.setNickname);
@@ -33,12 +39,35 @@ export function SignupProfilePage() {
   );
   const validation = useMutation({ mutationFn: validateNickname });
 
+  useEffect(() => {
+    if (hasRequiredTerms) return;
+    markAppNavigationIntent("replace", routes.signup);
+    router.replace(routes.signup);
+  }, [hasRequiredTerms, router]);
+
   async function goToNotification() {
+    if (!hasRequiredTerms) return;
     try {
-      await validation.mutateAsync(nickname);
-      if (useSignupDraftStore.getState().nickname === nickname) {
-        router.push(routes.signupNotification);
+      const result = await validation.mutateAsync(nickname);
+      const draft = useSignupDraftStore.getState();
+      if (
+        draft.nickname !== nickname ||
+        !hasRequiredSignupTerms(draft.agreed)
+      ) {
+        return;
       }
+      if (!result.valid) {
+        setNicknameError(
+          result.reason === "닉네임 중복"
+            ? "이미 사용 중이에요"
+            : result.reason === "금칙어"
+              ? "사용할 수 없는 단어가 포함돼 있어요"
+              : "닉네임을 다시 확인해 주세요",
+        );
+        return;
+      }
+      markAppNavigationIntent("push", routes.signupNotification);
+      router.push(routes.signupNotification);
     } catch (error) {
       if (useSignupDraftStore.getState().nickname !== nickname) return;
       const signupError = getOAuthSignupError(error);
@@ -57,7 +86,9 @@ export function SignupProfilePage() {
   }
 
   const nicknameError =
-    serverError ?? (nickname.length === 1 ? NICKNAME_LENGTH_ERROR : null);
+    serverError ?? (nickname ? getNicknameFormatError(nickname) : null);
+
+  if (!hasRequiredTerms) return null;
 
   return (
     <PageActionLayout
@@ -81,7 +112,7 @@ export function SignupProfilePage() {
       <AppHeader
         title="정보 입력"
         leading={
-          <Link
+          <AppLink
             href={routes.signup}
             aria-label="약관 동의로 돌아가기"
             className="grid size-[var(--tap-min)] place-items-center text-app-text hover:text-app-primary"
@@ -93,7 +124,7 @@ export function SignupProfilePage() {
               aria-hidden="true"
               focusable="false"
             />
-          </Link>
+          </AppLink>
         }
       />
 
@@ -114,11 +145,8 @@ export function SignupProfilePage() {
             type="text"
             value={nickname}
             onChange={(event) =>
-              setNickname(
-                event.target.value.replace(NICKNAME_DISALLOWED_CHARS, ""),
-              )
+              setNickname(sanitizeNicknameInput(event.target.value))
             }
-            maxLength={NICKNAME_MAX_LENGTH}
             autoComplete="nickname"
             aria-describedby="nickname-help"
             aria-invalid={nicknameError ? true : undefined}

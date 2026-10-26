@@ -1,14 +1,21 @@
+import { execFileSync } from "node:child_process";
 import fs from "node:fs";
 import http from "node:http";
+import http2 from "node:http2";
 import path from "node:path";
 import { chromium } from "playwright-core";
 
 const option = (name, fallback) => process.argv.find((x) => x.startsWith(`--${name}=`))?.slice(name.length + 3) ?? fallback;
-const bases = { a: option("a", "http://localhost:3013"), b: option("b", "http://localhost:3014") };
+const bases = { a: option("a", "http://localhost:3013"), b: option("b", "http://localhost:3014"), c: option("c", "http://localhost:3015") };
+const h2 = process.argv.includes("--h2");
+const realApi = h2 || process.argv.includes("--real-api");
+const record = process.argv.includes("--record");
+const tapMode = record || process.argv.includes("--tap");
 const runs = Number(option("n", "10"));
 const fixture = Number(option("fixture", "1000"));
 const backendPort = Number(option("backend-port", "3020"));
 const only = option("only", "");
+const variants = option("variants", "a,b").split(",");
 const out = path.resolve(option("out", "scripts/perf/out/refrigerator-entry"));
 fs.mkdirSync(path.join(out, "traces"), { recursive: true });
 
@@ -24,15 +31,19 @@ const conditions = [
   { name: "entry-backend500", scenario: "entry", network: "slow4g", backendDelay: 500 },
   { name: "entry-backend3000", scenario: "entry", network: "slow4g", backendDelay: 3000 },
   { name: "entry-nocookie", scenario: "entry", network: "slow4g", backendDelay: 20, noState: true },
-].filter((c) => !only || only.split(",").includes(c.name));
+  { name: "dispose-slow4g-100", scenario: "dispose", network: "slow4g", backendDelay: 20, fixture: 400, optIn: true },
+  { name: "dispose-slow4g-450", scenario: "dispose", network: "slow4g", backendDelay: 20, fixture: 1800, optIn: true },
+  { name: "dispose-fast4g-450", scenario: "dispose", network: "fast4g", backendDelay: 20, fixture: 1800, optIn: true },
+].filter((c) => (only ? only.split(",").includes(c.name) : !c.optIn));
 
 const card = 'section[aria-label="재고 목록"] a[href^="/refrigerator/ingredients/"]';
 const statuses = ["NORMAL", "NORMAL", "EXPIRING_SOON", "EXPIRED"];
 const categories = ["VEGETABLE", "FRUIT", "MEAT"];
-const items = Array.from({ length: fixture }, (_, i) => {
+const makeItems = (count) => Array.from({ length: count }, (_, i) => {
   const status = statuses[i % 4];
   return { ingredientId: String(i + 1), name: `재료 ${String(i + 1).padStart(4, "0")}`, category: categories[i % 3], quantity: 1, weightValue: null, weightUnit: "NONE", storageType: i % 3 === 2 ? "FROZEN" : "REFRIGERATED", status, daysUntilExpiration: status === "EXPIRED" ? -1 : status === "EXPIRING_SOON" ? 2 : 10 };
 });
+let items = makeItems(fixture);
 const envelope = (data) => JSON.stringify({ code: "PERF-200-001", message: "OK", data });
 function respond(url) {
   if (/\/refrigerators\/[^/]+\/ingredients$/.test(url.pathname)) {
@@ -41,7 +52,7 @@ function respond(url) {
     const matched = items.filter((x) => (!category || x.category === category) && (!filter || (filter === "REFRIGERATED" || filter === "FROZEN" ? x.storageType === filter : x.status === filter)));
     const cursor = Number(url.searchParams.get("cursor") ?? 0);
     const size = Number(url.searchParams.get("size") ?? 10);
-    return envelope({ ingredientsNum: fixture, filteredCount: matched.length, refrigeratorCapacity: Math.max(100, fixture), ingredients: matched.slice(cursor, cursor + size), nextCursor: cursor + size < matched.length ? String(cursor + size) : null });
+    return envelope({ ingredientsNum: items.length, filteredCount: matched.length, refrigeratorCapacity: Math.max(100, items.length), ingredients: matched.slice(cursor, cursor + size), nextCursor: cursor + size < matched.length ? String(cursor + size) : null });
   }
   if (url.pathname.endsWith("/refrigerators/current")) return envelope([{ refrigeratorId: 1, name: "성능 측정", capacity: Math.max(100, fixture), expiredCount: 0 }]);
   if (url.pathname.endsWith("/notifications/stream")) return envelope({ notificationId: null });
@@ -61,6 +72,32 @@ const backend = http.createServer((req, res) => {
   }, backendDelay);
 });
 await new Promise((resolve) => backend.listen(backendPort, resolve));
+
+const proxies = [];
+if (h2) {
+  const key = path.join(out, "localhost.key");
+  const cert = path.join(out, "localhost.crt");
+  if (!fs.existsSync(cert)) execFileSync("openssl", ["req", "-x509", "-newkey", "rsa:2048", "-nodes", "-keyout", key, "-out", cert, "-days", "7", "-subj", "/CN=localhost"], { stdio: "ignore" });
+  const tls = { key: fs.readFileSync(key), cert: fs.readFileSync(cert), allowHTTP1: true };
+  const hopHeaders = ["connection", "keep-alive", "transfer-encoding", "proxy-connection", "upgrade"];
+  for (const [i, variant] of variants.entries()) {
+    const target = new URL(bases[variant]);
+    const server = http2.createSecureServer(tls, (req, res) => {
+      const headers = Object.fromEntries(Object.entries(req.headers).filter(([k]) => !k.startsWith(":") && !hopHeaders.includes(k)));
+      headers.host = target.host;
+      const upstream = http.request({ host: target.hostname, port: target.port, path: req.url, method: req.method, headers }, (r) => {
+        res.writeHead(r.statusCode, Object.fromEntries(Object.entries(r.headers).filter(([k]) => !hopHeaders.includes(k))));
+        r.pipe(res);
+      });
+      upstream.on("error", () => { if (!res.headersSent) res.writeHead(502); res.end(); });
+      req.pipe(upstream);
+    });
+    const port = 3443 + i;
+    await new Promise((resolve) => server.listen(port, resolve));
+    proxies.push(server);
+    bases[variant] = `https://localhost:${port}`;
+  }
+}
 
 const q = (values, p) => {
   const v = [...values].sort((x, y) => x - y);
@@ -89,19 +126,42 @@ async function sample(browser, condition, variant, trace) {
   const base = bases[variant];
   const network = networks[condition.network];
   backendDelay = condition.backendDelay;
-  const context = await browser.newContext({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 2, serviceWorkers: "block" });
+  if (items.length !== (condition.fixture ?? fixture)) items = makeItems(condition.fixture ?? fixture);
+  const recordDir = trace && record && condition.scenario === "entry" ? path.join(out, `record-${variant}`) : null;
+  if (recordDir) fs.mkdirSync(recordDir, { recursive: true });
+  const context = await browser.newContext({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 2, serviceWorkers: "block", ignoreHTTPSErrors: true, ...(recordDir ? { recordVideo: { dir: recordDir, size: { width: 390, height: 844 } }, recordHar: { path: path.join(recordDir, "network.har") } } : {}) });
   const cookies = [{ name: "accessToken", value: "local-perf-fixture", url: base }];
   if (!condition.noState) cookies.push({ name: "currentRefrigeratorId", value: "1", url: base });
   await context.addCookies(cookies);
-  await context.route("**/api/v1/**", async (route) => {
+  if (!realApi) await context.route("**/api/v1/**", async (route) => {
     const body = respond(new URL(route.request().url()));
     await sleep(network.latency + body.length / network.bytesPerMs);
     await route.fulfill({ status: 200, contentType: "application/json", body });
   });
   await context.addInitScript(({ card, noState }) => {
     if (!noState) localStorage.setItem("dameokja.currentRefrigeratorId", "1");
-    const m = { tap: null, cardDom: null, cardPaint: null, fcp: null, lcp: null, cls: 0 };
+    const m = { tap: null, cardDom: null, cardPaint: null, fcp: null, lcp: null, cls: 0, sheetDom: null, sheetPaint: null, sheetFull: null, events: [], longTasks: [] };
     window.__entry = m;
+    m.skeleton = [];
+    let skeletonOn = null;
+    new MutationObserver(() => {
+      const sk = document.querySelector('[role="status"][aria-label="재고를 불러오는 중입니다"]');
+      if (sk && skeletonOn === null) skeletonOn = performance.now();
+      if (!sk && skeletonOn !== null) { m.skeleton.push([skeletonOn, performance.now()]); skeletonOn = null; }
+    }).observe(document, { childList: true, subtree: true });
+    new MutationObserver(() => {
+      const open = [...document.querySelectorAll('[role="dialog"]')].some((e) => e.textContent.includes("정리할 재료를 확인해 주세요"));
+      if (!open) { m.sheetDom = null; m.sheetPaint = null; m.sheetFull = null; return; }
+      if (m.sheetDom === null) {
+        m.sheetDom = performance.now();
+        requestAnimationFrame(() => setTimeout(() => { m.sheetPaint = performance.now(); }, 0));
+      }
+      if (m.sheetFull !== null) return;
+      const ready = [...document.querySelectorAll('[role="dialog"] button')].some((e) => /^\d+종 폐기하기$/.test(e.textContent.trim()) && !e.disabled);
+      if (ready) { m.sheetFull = -1; requestAnimationFrame(() => setTimeout(() => { m.sheetFull = performance.now(); }, 0)); }
+    }).observe(document, { childList: true, subtree: true, characterData: true, attributes: true, attributeFilter: ["disabled"] });
+    new PerformanceObserver((list) => { for (const e of list.getEntries()) if (e.interactionId) m.events.push({ start: e.startTime, duration: e.duration }); }).observe({ type: "event", durationThreshold: 16, buffered: true });
+    new PerformanceObserver((list) => { for (const e of list.getEntries()) m.longTasks.push({ start: e.startTime, duration: e.duration }); }).observe({ type: "longtask", buffered: true });
     const check = () => {
       if (m.cardDom !== null || !document.querySelector(card)) return;
       m.cardDom = performance.now();
@@ -125,10 +185,39 @@ async function sample(browser, condition, variant, trace) {
       await page.waitForTimeout(2500);
     }
     if (trace) await browser.startTracing(page, { path: trace, screenshots: true, categories: ["devtools.timeline", "disabled-by-default-devtools.timeline", "disabled-by-default-devtools.timeline.frame", "disabled-by-default-devtools.screenshot", "blink.user_timing", "loading", "latencyInfo", "v8.execute", "disabled-by-default-v8.cpu_profiler"] });
+    if (condition.scenario === "dispose") {
+      const r = await dispose(page, base);
+      if (trace) await browser.stopTracing();
+      return { ...r, serverFetches: backendHits - hitsBefore };
+    }
     if (condition.scenario === "tab") await page.locator('a[href="/refrigerator"]').first().click();
     else await page.goto(`${base}/refrigerator`, { waitUntil: "commit", timeout: 60000 });
     await page.waitForFunction(() => window.__entry?.cardPaint !== null, null, { timeout: 30000 });
-    await page.waitForTimeout(1500);
+    await page.waitForLoadState("load", { timeout: 60000 });
+    let tap = null;
+    if (tapMode && condition.scenario === "entry") {
+      await page.evaluate(() => new Promise((resolve) => {
+        const tick = () => {
+          const chip = [...document.querySelectorAll('[role="group"][aria-label="재고 필터"] button')].find((e) => e.textContent.trim() === "냉동");
+          if (!chip || !Object.keys(chip).some((k) => k.startsWith("__reactProps"))) return requestAnimationFrame(tick);
+          chip.dispatchEvent(new PointerEvent("pointerdown", { bubbles: true }));
+          chip.click();
+          resolve();
+        };
+        tick();
+      }));
+      await page.waitForTimeout(3000);
+      tap = await page.evaluate(() => {
+        const m = window.__entry;
+        const frozen = performance.getEntriesByType("resource").find((e) => e.name.includes("filter=FROZEN") && !e.name.includes("cursor"));
+        return { tapMs: m.tap, frozenReadyMs: frozen?.responseEnd ?? null, readyBeforeTap: frozen ? frozen.responseEnd < m.tap : null, skeletonAfterTapMs: m.skeleton.filter(([on]) => on >= m.tap).reduce((a, [on, off]) => a + off - on, 0) };
+      });
+      if (recordDir) {
+        console.log("record", variant, JSON.stringify(tap));
+        fs.writeFileSync(path.join(recordDir, "tap.json"), JSON.stringify(tap, null, 2));
+      }
+    }
+    await page.waitForTimeout(2500);
     if (trace) await browser.stopTracing();
     return await page.evaluate(({ scenario }) => {
       const m = window.__entry;
@@ -136,7 +225,12 @@ async function sample(browser, condition, variant, trace) {
       const from = scenario === "tab" ? m.tap : 0;
       const api = performance.getEntriesByType("resource").filter((e) => /\/ingredients\?/.test(e.name) && e.startTime >= from && e.startTime < m.cardDom);
       const rsc = performance.getEntriesByType("resource").filter((e) => /_rsc=/.test(e.name) && e.startTime >= from && e.startTime < m.cardDom);
+      const filtered = performance.getEntriesByType("resource").filter((e) => /\/ingredients\?/.test(e.name) && /[?&]filter=/.test(e.name) && !/[?&]cursor=/.test(e.name));
       return {
+        filterApiCount: filtered.length,
+        lastJsMs: Math.max(...performance.getEntriesByType("resource").filter((e) => /\.js(\?|$)/.test(e.name)).map((e) => e.responseEnd)),
+        protocol: nav.nextHopProtocol,
+        filterReadyMs: filtered.length ? Math.max(...filtered.map((e) => e.responseEnd)) : nav.responseEnd,
         ttfbMs: scenario === "tab" ? rsc[0]?.responseStart - rsc[0]?.startTime : nav.responseStart,
         htmlMs: scenario === "tab" ? rsc[0]?.responseEnd - rsc[0]?.startTime : nav.responseEnd,
         fcpMs: m.fcp,
@@ -145,46 +239,104 @@ async function sample(browser, condition, variant, trace) {
         apiBeforeCard: api.length,
         cls: m.cls,
       };
-    }, { scenario: condition.scenario }).then((r) => ({ ...r, serverFetches: backendHits - hitsBefore }));
+    }, { scenario: condition.scenario }).then((r) => ({ ...r, serverFetches: backendHits - hitsBefore, ...(tap ? { tapSkeletonMs: tap.skeletonAfterTapMs, tapReadyBefore: tap.readyBeforeTap ? 1 : 0 } : {}) }));
   } finally {
+    const video = recordDir ? page.video() : null;
     await context.close();
+    if (video) {
+      const webm = path.join(recordDir, "screen.webm");
+      fs.renameSync(await video.path(), webm);
+      execFileSync("ffmpeg", ["-y", "-loglevel", "error", "-i", webm, "-c:v", "libx264", "-pix_fmt", "yuv420p", "-movflags", "+faststart", path.join(recordDir, "screen.mp4")]);
+      execFileSync("ffmpeg", ["-y", "-loglevel", "error", "-i", webm, "-vf", "fps=12,scale=390:-1:flags=lanczos,split[s0][s1];[s0]palettegen[p];[s1][p]paletteuse", path.join(recordDir, "screen.gif")]);
+    }
   }
 }
 
-const metrics = ["firstCardMs", "ttfbMs", "htmlMs", "fcpMs", "lcpMs", "apiBeforeCard", "serverFetches", "cls"];
+async function dispose(page, base) {
+  await page.goto(`${base}/refrigerator`, { waitUntil: "commit", timeout: 60000 });
+  await page.waitForFunction(() => window.__entry?.cardPaint !== null, null, { timeout: 30000 });
+  await page.waitForLoadState("load", { timeout: 60000 });
+  await page.waitForTimeout(1000);
+  await page.locator('[role="group"][aria-label="재고 필터"] button').filter({ hasText: /^만료$/ }).click();
+  const banner = page.locator("button", { hasText: "한 번에 정리하기" });
+  await banner.waitFor({ timeout: 30000 }).catch(async (error) => {
+    await page.screenshot({ path: path.join(out, "dispose-fail.png") });
+    throw error;
+  });
+  await page.waitForTimeout(3000);
+  const open = async () => {
+    const from = await page.evaluate(() => performance.now());
+    await banner.click();
+    await page.waitForFunction(() => window.__entry.sheetPaint !== null && window.__entry.sheetFull > 0, null, { timeout: 300000 });
+    await page.waitForTimeout(1000);
+    return from;
+  };
+  const firstFrom = await open();
+  const first = await page.evaluate((from) => {
+    const m = window.__entry;
+    const inWindow = (e, a, b) => e.start >= a && e.start < b;
+    return {
+      tapToSheetMs: m.sheetPaint - m.tap,
+      tapToFullMs: m.sheetFull - m.tap,
+      apiAfterTap: performance.getEntriesByType("resource").filter((e) => /ingredients\?/.test(e.name) && e.startTime >= m.tap && e.startTime < m.sheetFull).length,
+      longTaskMs: m.longTasks.filter((e) => inWindow(e, m.tap, m.sheetFull)).reduce((a, e) => a + e.duration, 0),
+      bannerInpMs: Math.max(0, ...m.events.filter((e) => inWindow(e, from, m.sheetDom)).map((e) => e.duration)),
+    };
+  }, firstFrom);
+  const closeFrom = await page.evaluate(() => performance.now());
+  await page.locator('[role="dialog"] button', { hasText: "취소" }).click();
+  await page.waitForFunction(() => window.__entry.sheetDom === null, null, { timeout: 10000 });
+  await page.waitForTimeout(1000);
+  const reopenFrom = await open();
+  const second = await page.evaluate(({ closeFrom, reopenFrom }) => {
+    const m = window.__entry;
+    const max = (a, b) => Math.max(0, ...m.events.filter((e) => e.start >= a && e.start < b).map((e) => e.duration));
+    return { closeInpMs: max(closeFrom, reopenFrom), reopenInpMs: max(reopenFrom, Infinity), reopenToSheetMs: m.sheetPaint - m.tap, reopenToFullMs: m.sheetFull - m.tap, inpMs: Math.max(0, ...m.events.map((e) => e.duration)) };
+  }, { closeFrom, reopenFrom });
+  return { ...first, ...second };
+}
+
+const entryMetrics = [...(tapMode ? ["tapSkeletonMs", "tapReadyBefore"] : []), "filterReadyMs", "filterApiCount", "lastJsMs", "firstCardMs", "ttfbMs", "htmlMs", "fcpMs", "lcpMs", "apiBeforeCard", "serverFetches", "cls"];
+const disposeMetrics = ["tapToSheetMs", "tapToFullMs", "apiAfterTap", "serverFetches", "longTaskMs", "bannerInpMs", "closeInpMs", "reopenInpMs", "reopenToSheetMs", "reopenToFullMs", "inpMs"];
+const metricsFor = (condition) => (condition.scenario === "dispose" ? disposeMetrics : entryMetrics);
 const browser = await chromium.launch({ channel: "chrome", headless: true });
 const rows = [];
 try {
   for (const condition of conditions) {
-    for (const variant of ["a", "b"]) await sample(browser, condition, variant).catch(() => null);
+    const metrics = metricsFor(condition);
+    for (const variant of variants) await sample(browser, condition, variant).catch(() => null);
     for (let run = 1; run <= runs; run++) {
-      for (const variant of run % 2 ? ["a", "b"] : ["b", "a"]) {
+      for (const variant of run % 2 ? variants : [...variants].reverse()) {
         const row = await sample(browser, condition, variant).catch((error) => ({ error: error.message }));
         rows.push({ condition: condition.name, variant, run, ...row });
         console.log(condition.name, variant, run, row.error ?? metrics.map((k) => `${k}=${Number(row[k]).toFixed(k === "cls" ? 3 : 0)}`).join(" "));
       }
     }
-    for (const variant of ["a", "b"]) await sample(browser, condition, variant, path.join(out, "traces", `${condition.name}-${variant}.json`)).catch((error) => console.log("trace 실패", condition.name, variant, error.message));
+    for (const variant of variants) await sample(browser, condition, variant, path.join(out, "traces", `${condition.name}-${variant}.json`)).catch((error) => console.log("trace 실패", condition.name, variant, error.message));
   }
 } finally {
   await browser.close();
   backend.close();
+  for (const proxy of proxies) proxy.close();
 }
 
 const summary = {};
 for (const condition of conditions) {
   summary[condition.name] = {};
-  for (const k of metrics) {
+  for (const k of metricsFor(condition)) {
     const pick = (v) => rows.filter((r) => r.condition === condition.name && r.variant === v && Number.isFinite(r[k])).map((r) => r[k]);
-    const a = pick("a"), b = pick("b");
-    if (!a.length || !b.length) continue;
-    const s = (v) => ({ n: v.length, p50: q(v, 0.5), min: Math.min(...v), max: Math.max(...v) });
-    summary[condition.name][k] = { a: s(a), b: s(b), p: mannWhitney(a, b) };
+    const s = (v) => (v.length ? { n: v.length, p50: q(v, 0.5), p95: q(v, 0.95), p99: q(v, 0.99), min: Math.min(...v), max: Math.max(...v) } : null);
+    const base = pick(variants[0]);
+    summary[condition.name][k] = Object.fromEntries(variants.map((v) => {
+      const x = pick(v);
+      return [v, { ...s(x), p: v !== variants[0] && base.length && x.length ? mannWhitney(base, x) : null }];
+    }));
   }
 }
 fs.writeFileSync(path.join(out, "raw.json"), JSON.stringify(rows, null, 2));
 fs.writeFileSync(path.join(out, "summary.json"), JSON.stringify(summary, null, 2));
 for (const [name, m] of Object.entries(summary)) {
   console.log(`\n${name}`);
-  for (const [k, v] of Object.entries(m)) console.log(`  ${k.padEnd(14)} a ${v.a.p50.toFixed(0)} [${v.a.min.toFixed(0)}-${v.a.max.toFixed(0)}]  b ${v.b.p50.toFixed(0)} [${v.b.min.toFixed(0)}-${v.b.max.toFixed(0)}]  p=${v.p.toFixed(4)}`);
+  const f = (v) => (v ? `${v.p50.toFixed(0)} p95 ${v.p95.toFixed(0)} p99 ${v.p99.toFixed(0)} [${v.min.toFixed(0)}-${v.max.toFixed(0)}]` : "-");
+  for (const [k, v] of Object.entries(m)) console.log(`  ${k.padEnd(16)} ${variants.map((x) => `${x} ${f(v[x]?.n ? v[x] : null)}${v[x]?.p != null ? ` (p=${v[x].p.toFixed(4)})` : ""}`).join("  ")}`);
 }

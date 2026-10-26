@@ -56,7 +56,11 @@ function RegisterServiceWorker() {
 
 export function SerwistProvider({ children }: SerwistProviderProps) {
   return (
-    <SerwistRuntimeProvider swUrl={swUrl} register={false}>
+    <SerwistRuntimeProvider
+      swUrl={swUrl}
+      register={false}
+      reloadOnOnline={false}
+    >
       <RegisterServiceWorker />
       {children}
     </SerwistRuntimeProvider>

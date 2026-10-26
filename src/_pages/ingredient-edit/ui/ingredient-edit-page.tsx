@@ -11,7 +11,12 @@ import {
 } from "@/entities/ingredient";
 import { useCurrentRefrigeratorId } from "@/entities/refrigerator";
 import { useRetryControl } from "@/shared/lib/use-retry-control";
-import { AsyncViewState } from "@/shared/ui/async-view-state";
+import { routes } from "@/shared/routes";
+import { AppLink } from "@/shared/ui/app-link";
+import {
+  AsyncViewState,
+  asyncViewActionClassName,
+} from "@/shared/ui/async-view-state";
 
 import { toIngredientEditTarget } from "../model/ingredient-edit-target";
 import { IngredientEditForm } from "./ingredient-edit-form";
@@ -73,6 +78,26 @@ export function IngredientEditPage({ ingredientId }: IngredientEditPageProps) {
     return (
       <EditStateLayout>
         <AsyncViewState status="loading" title="재고를 불러오는 중입니다" />
+      </EditStateLayout>
+    );
+  }
+
+  if (detailQuery.data.ingredient.status === "EXPIRED") {
+    return (
+      <EditStateLayout>
+        <AsyncViewState
+          status="empty"
+          title="만료된 재고는 수정할 수 없어요"
+          description="상세 화면에서 폐기 처리해 주세요"
+          action={
+            <AppLink
+              href={routes.ingredientDetail(ingredientId)}
+              className={asyncViewActionClassName}
+            >
+              상세로 돌아가기
+            </AppLink>
+          }
+        />
       </EditStateLayout>
     );
   }

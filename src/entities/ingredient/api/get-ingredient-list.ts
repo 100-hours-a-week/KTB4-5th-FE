@@ -1,9 +1,13 @@
-import { requestJson } from "@/shared/api";
+import { API_BASE_PATH, isApiResponse, requestJson } from "@/shared/api";
 
 import type { Ingredient } from "../model/ingredient";
 import type { IngredientListQuery } from "../model/ingredient-list-query";
 
 export const INGREDIENT_LIST_PAGE_SIZE = 10;
+
+const EARLY_FETCH_KEY = "__ingredientListEarlyFetch";
+
+type EarlyFetchStore = Record<string, Promise<unknown> | undefined>;
 
 type IngredientListItemDto = Omit<Ingredient, "measureType" | "weightValue"> & {
   weightValue: string | null;
@@ -51,6 +55,32 @@ export function toIngredientListSearchParams(
   return params;
 }
 
+export function toIngredientListPath(
+  refrigeratorId: string,
+  query: IngredientListQuery,
+  cursor?: string | null,
+): string {
+  return `/refrigerators/${encodeURIComponent(refrigeratorId)}/ingredients?${toIngredientListSearchParams(query, cursor)}`;
+}
+
+export function toIngredientListEarlyFetchScript(paths: string[]): string {
+  const urls = JSON.stringify(
+    paths.map((path) => `${API_BASE_PATH}${path}`),
+  ).replace(/</g, "\\u003c");
+  return `(()=>{const s=window.${EARLY_FETCH_KEY}={};for(const u of ${urls})s[u]=fetch(u,{credentials:"include",priority:"low"}).then(r=>r.ok?r.json():null,()=>null)})()`;
+}
+
+function takeEarlyFetch(path: string): Promise<unknown> | undefined {
+  if (typeof window === "undefined") return undefined;
+  const store = (window as unknown as Record<string, EarlyFetchStore>)[
+    EARLY_FETCH_KEY
+  ];
+  const url = `${API_BASE_PATH}${path}`;
+  const early = store?.[url];
+  if (early) delete store[url];
+  return early;
+}
+
 export function toIngredientListPage(
   data: IngredientListResponseDto,
 ): IngredientListPage {
@@ -71,33 +101,28 @@ export async function getIngredientList({
   cursor,
   signal,
 }: GetIngredientListParams): Promise<IngredientListPage> {
-  const response = await requestJson<IngredientListResponseDto>(
-    `/refrigerators/${encodeURIComponent(refrigeratorId)}/ingredients?${toIngredientListSearchParams(query, cursor)}`,
-    { signal },
-  );
+  const path = toIngredientListPath(refrigeratorId, query, cursor);
+  const early = await takeEarlyFetch(path);
+  if (isApiResponse(early)) {
+    return toIngredientListPage(early.data as IngredientListResponseDto);
+  }
+
+  const response = await requestJson<IngredientListResponseDto>(path, {
+    signal,
+  });
 
   return toIngredientListPage(response.data);
 }
 
-export async function getAllIngredients(
-  params: Omit<GetIngredientListParams, "cursor">,
-): Promise<Ingredient[]> {
-  const ingredients: Ingredient[] = [];
-  const seenCursors = new Set<string>();
-  let cursor: string | null = null;
+export async function getExpiredIngredients({
+  refrigeratorId,
+  query,
+  signal,
+}: Omit<GetIngredientListParams, "cursor">): Promise<IngredientListPage> {
+  const response = await requestJson<IngredientListResponseDto>(
+    `/refrigerators/${encodeURIComponent(refrigeratorId)}/expired-ingredients?${toIngredientListSearchParams(query)}`,
+    { basePath: "", signal },
+  );
 
-  do {
-    const page = await getIngredientList({ ...params, cursor });
-    ingredients.push(...page.ingredients);
-    cursor = page.nextCursor;
-
-    if (cursor !== null) {
-      if (seenCursors.has(cursor)) {
-        throw new TypeError("재고 목록의 페이지 커서가 반복되었습니다.");
-      }
-      seenCursors.add(cursor);
-    }
-  } while (cursor !== null);
-
-  return ingredients;
+  return toIngredientListPage(response.data);
 }

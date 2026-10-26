@@ -1,6 +1,11 @@
 // @vitest-environment jsdom
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { cleanup, render, screen, waitFor } from "@testing-library/react";
+import {
+  focusManager,
+  onlineManager,
+  QueryClient,
+  QueryClientProvider,
+} from "@tanstack/react-query";
+import { act, cleanup, render, screen, waitFor } from "@testing-library/react";
 import type { ReactNode } from "react";
 import { afterEach, beforeEach, expect, it, vi } from "vitest";
 import type { ImageAnalysis } from "@/entities/image";
@@ -24,6 +29,11 @@ vi.mock("@/entities/image", () => ({
       retry: false,
     }),
   },
+}));
+vi.mock("@/features/ingredient-form", async () => ({
+  sanitizeIngredientNameInput: (
+    await import("@/features/ingredient-form/lib/ingredient-name")
+  ).sanitizeIngredientNameInput,
 }));
 vi.mock("@/entities/ingredient", () => ({
   INGREDIENT_CATEGORIES: ["DAIRY", "OTHER"],
@@ -128,6 +138,8 @@ beforeEach(() => {
 afterEach(() => {
   cleanup();
   client.clear();
+  focusManager.setFocused(undefined);
+  onlineManager.setOnline(true);
 });
 function openResult() {
   return render(
@@ -175,3 +187,24 @@ it("keeps the result URL on read failure and offers a retry", async () => {
   expect(mocks.form).not.toHaveBeenCalled();
   expect(mocks.replace).not.toHaveBeenCalled();
 });
+
+it.each(["focus", "reconnect"])(
+  "does not refetch the editable result on %s",
+  async (event) => {
+    mocks.get.mockResolvedValue(completed);
+    openResult();
+    const card = await screen.findByText("수정 가능한 재료");
+    await act(async () => {
+      if (event === "focus") {
+        focusManager.setFocused(false);
+        focusManager.setFocused(true);
+      } else {
+        onlineManager.setOnline(false);
+        onlineManager.setOnline(true);
+      }
+      await new Promise((resolve) => setTimeout(resolve, 0));
+    });
+    expect(mocks.get).toHaveBeenCalledTimes(1);
+    expect(screen.getByText("수정 가능한 재료")).toBe(card);
+  },
+);

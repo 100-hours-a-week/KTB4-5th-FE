@@ -5,7 +5,10 @@ export function formatInviteCode(code: string): string {
 }
 
 export function normalizeInviteCodeInput(value: string): string {
-  return value.toUpperCase().replace(/[\s-]/g, "").slice(0, INVITE_CODE_LENGTH);
+  return value
+    .toUpperCase()
+    .replace(/[^A-Z0-9]/g, "")
+    .slice(0, INVITE_CODE_LENGTH);
 }
 
 export function formatRemainingTime(remainingMs: number): string {

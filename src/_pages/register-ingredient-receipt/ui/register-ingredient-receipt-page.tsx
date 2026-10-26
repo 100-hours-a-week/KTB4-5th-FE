@@ -59,6 +59,14 @@ export function RegisterIngredientReceiptPage() {
 
     if (!file) return;
 
+    if (file.size === 0) {
+      showAppToast({
+        message: "내용이 없는 사진은 올릴 수 없어요",
+        variant: "error",
+      });
+      return;
+    }
+
     if (!RECEIPT_PHOTO_TYPES.includes(file.type)) {
       showAppToast({
         message: "JPG·PNG 사진만 올릴 수 있어요",

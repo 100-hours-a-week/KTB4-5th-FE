@@ -17,6 +17,7 @@ type RegisterPushSubscriptionResponse = {
 };
 
 export const PUSH_ENDPOINT_IN_USE_ERROR_CODE = "PUSH-409-001";
+export const PUSH_SUBSCRIPTION_EXPIRED_ERROR_CODE = "PUSH-409-002";
 
 export async function getVapidPublicKey(): Promise<string> {
   const { data } = await requestJson<VapidPublicKeyResponse>(

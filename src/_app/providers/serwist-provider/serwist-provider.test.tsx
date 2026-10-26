@@ -6,16 +6,22 @@ import { afterEach, beforeEach, expect, it, vi } from "vitest";
 
 import { SerwistProvider } from "./serwist-provider";
 
-const { register, captureException, setContext } = vi.hoisted(() => ({
-  register: vi.fn(),
-  captureException: vi.fn(),
-  setContext: vi.fn(),
-}));
+const { register, captureException, setContext, runtimeProvider } = vi.hoisted(
+  () => ({
+    register: vi.fn(),
+    runtimeProvider: vi.fn(),
+    captureException: vi.fn(),
+    setContext: vi.fn(),
+  }),
+);
 
 const getRegistration = vi.fn();
 
 vi.mock("@serwist/turbopack/react", () => ({
-  SerwistProvider: ({ children }: { children: ReactNode }) => children,
+  SerwistProvider: (props: { children: ReactNode }) => {
+    runtimeProvider(props);
+    return props.children;
+  },
   useSerwist: () => ({ serwist: { register } }),
 }));
 vi.mock("@sentry/nextjs", () => ({
@@ -126,4 +132,12 @@ it("handles registration rejection and records its cause", async () => {
     userAgent: navigator.userAgent,
   });
   expect(register).toHaveBeenCalledTimes(1);
+});
+
+it("disables automatic page reload when the network reconnects", () => {
+  render(<SerwistProvider>register form</SerwistProvider>);
+
+  expect(runtimeProvider).toHaveBeenCalledWith(
+    expect.objectContaining({ reloadOnOnline: false }),
+  );
 });

@@ -8,10 +8,9 @@ import { refrigeratorQueries } from "@/entities/refrigerator";
 import { userQueries, type Me } from "@/entities/user";
 import { useFormLeaveGuard } from "@/features/ingredient-form";
 import {
-  isValidNickname,
-  NICKNAME_DISALLOWED_CHARS,
+  getNicknameFormatError,
+  sanitizeNicknameInput,
   NICKNAME_HINT,
-  NICKNAME_LENGTH_ERROR,
   NICKNAME_MAX_LENGTH,
 } from "@/features/oauth-signup";
 import { ApiError } from "@/shared/api";
@@ -100,9 +99,7 @@ function MyProfileForm({ me }: { me: Me }) {
   const nicknameError =
     trimmedNickname.length === 0
       ? "닉네임을 입력해주세요"
-      : !isValidNickname(trimmedNickname)
-        ? NICKNAME_LENGTH_ERROR
-        : nicknameServerError;
+      : (getNicknameFormatError(trimmedNickname) ?? nicknameServerError);
 
   const leaveDialog = useFormLeaveGuard({
     formId: FORM_ID,
@@ -196,12 +193,9 @@ function MyProfileForm({ me }: { me: Me }) {
                 type="text"
                 value={nickname}
                 onChange={(event) => {
-                  setNickname(
-                    event.target.value.replace(NICKNAME_DISALLOWED_CHARS, ""),
-                  );
+                  setNickname(sanitizeNicknameInput(event.target.value));
                   setNicknameServerError(null);
                 }}
-                maxLength={NICKNAME_MAX_LENGTH}
                 autoComplete="nickname"
                 aria-describedby="nickname-help"
                 aria-invalid={nicknameError ? true : undefined}

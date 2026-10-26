@@ -161,7 +161,10 @@ afterEach(() => {
 });
 
 describe("내가 방장일 때", () => {
-  beforeEach(() => givenMe(OWNER.userId));
+  beforeEach(() => {
+    givenMe(OWNER.userId);
+    givenMembers([OWNER, MEMBER]);
+  });
 
   it("참여자를 내보낼 수 있고 초대 코드를 만들 수 있지만 나갈 수는 없다", async () => {
     givenMembers([OWNER, MEMBER]);
@@ -328,6 +331,18 @@ describe("내가 방장일 때", () => {
 describe("내가 참여자일 때", () => {
   beforeEach(() => givenMe(MEMBER.userId));
 
+  it("일반 구성원의 초대 직접 진입은 초대 API 없이 공유 화면으로 돌아간다", async () => {
+    givenMembers([OWNER, MEMBER]);
+    renderPage(<RefrigeratorInvitePage />);
+    await waitFor(() =>
+      expect(router.replace).toHaveBeenCalledWith("/refrigerator/share"),
+    );
+    expect(
+      callsTo("GET", `/refrigerators/${REFRIGERATOR_ID}/invitations`),
+    ).toHaveLength(0);
+    expect(cookieValue("currentRefrigeratorId")).toBe(REFRIGERATOR_ID);
+  });
+
   it("내보내기·초대 없이 나가기만 할 수 있고, 다른 냉장고 참여는 막힌다", async () => {
     givenMembers([OWNER, MEMBER]);
     renderPage(<RefrigeratorSharePage />);
@@ -365,6 +380,9 @@ describe("내가 참여자일 때", () => {
 
     await waitFor(() => expect(router.replace).toHaveBeenCalledWith("/"));
     expect(cookieValue("currentRefrigeratorId")).toBe("1");
+    expect(
+      callsTo("GET", `/refrigerators/${REFRIGERATOR_ID}/members`),
+    ).toHaveLength(1);
     expect(
       new Headers(callsTo("DELETE", path)[0]?.init.headers).get("X-XSRF-TOKEN"),
     ).toBe("csrf-token");

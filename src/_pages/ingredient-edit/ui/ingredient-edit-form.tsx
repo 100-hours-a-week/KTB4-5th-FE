@@ -70,7 +70,11 @@ export function IngredientEditForm({
     IngredientEditFormValues
   >({
     resolver: zodResolver(
-      createIngredientEditFormSchema(initialValues.expirationDate),
+      createIngredientEditFormSchema(
+        initialValues.expirationDate,
+        initialValues.name,
+        initialValues.weightValue,
+      ),
     ),
     mode: "onChange",
     defaultValues: initialValues,
@@ -159,6 +163,9 @@ export function IngredientEditForm({
       }
       if (error instanceof ApiError && error.status === 404) {
         void invalidateIngredients(queryClient, refrigeratorId, ingredientId);
+        setIsLeaving(true);
+        markAppNavigationIntent("replace", routes.refrigerator);
+        router.replace(routes.refrigerator);
       }
     }
   }

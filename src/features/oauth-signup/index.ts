@@ -1,8 +1,9 @@
 export {
+  getNicknameFormatError,
+  sanitizeNicknameInput,
   isValidNickname,
   NICKNAME_DISALLOWED_CHARS,
   NICKNAME_HINT,
-  NICKNAME_LENGTH_ERROR,
   NICKNAME_MAX_LENGTH,
 } from "./model/nickname";
 export { getOAuthSignupError } from "./model/oauth-signup-error";

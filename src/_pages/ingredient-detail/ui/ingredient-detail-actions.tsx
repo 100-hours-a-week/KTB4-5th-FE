@@ -159,12 +159,14 @@ export function IngredientDetailActions({
   return (
     <>
       <div className="flex gap-2.5">
-        <AppLink
-          href={routes.ingredientEdit(ingredient.ingredientId)}
-          className="inline-flex w-28 flex-none items-center justify-center rounded-[4px] border-[1.5px] border-app-ink bg-app-canvas py-[15px] font-app-heading text-[14px] font-bold leading-[1.2] text-app-ink no-underline hover:bg-app-neutral-100 hover:text-app-ink active:bg-app-neutral-200"
-        >
-          수정
-        </AppLink>
+        {ingredient.status !== "EXPIRED" ? (
+          <AppLink
+            href={routes.ingredientEdit(ingredient.ingredientId)}
+            className="inline-flex w-28 flex-none items-center justify-center rounded-[4px] border-[1.5px] border-app-ink bg-app-canvas py-[15px] font-app-heading text-[14px] font-bold leading-[1.2] text-app-ink no-underline hover:bg-app-neutral-100 hover:text-app-ink active:bg-app-neutral-200"
+          >
+            수정
+          </AppLink>
+        ) : null}
         <button
           type="button"
           onClick={handleExpireClick}

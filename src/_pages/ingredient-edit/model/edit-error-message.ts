@@ -23,6 +23,10 @@ export function getEditErrorMessage(error: unknown): string | null {
       case "COMMON-403-CSRF-001":
         return "보안 인증에 실패했어요. 다시 시도해 주세요";
       case "INGREDIENT-404-001":
+        return "재고를 찾을 수 없어요";
+      case "INGREDIENT-409-004":
+        return "합산 후 수량이나 무게가 한도를 넘어요";
+      case "REFRIGERATOR-404-001":
         return "존재하지 않는 냉장고예요";
       case "GLOBAL-500-001":
         return "잠시 후 다시 시도해 주세요";
