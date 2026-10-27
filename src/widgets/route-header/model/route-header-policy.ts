@@ -8,6 +8,7 @@ export type RouteHeaderPolicy =
       title: string;
       showNotifications: boolean;
       showRefrigeratorName: boolean;
+      showRecommendationHelp: boolean;
     }
   | {
       kind: "flow";
@@ -20,6 +21,7 @@ const tabHeaderTitles: Record<string, string> = {
   [routes.home]: "홈",
   [routes.refrigerator]: "냉장고",
   [routes.me]: "MY",
+  [routes.recommendations]: "추천 요리",
 };
 
 function getTabHeaderPolicy(pathname: string): RouteHeaderPolicy {
@@ -28,6 +30,7 @@ function getTabHeaderPolicy(pathname: string): RouteHeaderPolicy {
     title: tabHeaderTitles[pathname] ?? "다먹자",
     showNotifications: true,
     showRefrigeratorName: pathname === routes.home,
+    showRecommendationHelp: pathname === routes.recommendations,
   };
 }
 
@@ -140,6 +143,14 @@ function getFlowHeaderPolicy(pathname: string): RouteHeaderPolicy {
       kind: "flow",
       title: "재고 상세",
       backFallbackHref: routes.refrigerator,
+    };
+  }
+
+  if (/^\/recommendations\/[^/]+$/.test(pathname)) {
+    return {
+      kind: "flow",
+      title: "요리 상세",
+      backFallbackHref: routes.recommendations,
     };
   }
 

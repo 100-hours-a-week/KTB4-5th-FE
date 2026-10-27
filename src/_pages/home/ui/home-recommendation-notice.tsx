@@ -1,37 +1,34 @@
-import Image from "next/image";
-
-import loadingIllustration from "@/shared/assets/illustrations/illustration-loading.webp";
+"use client";
+import { useCurrentRefrigeratorId } from "@/entities/refrigerator";
+import { useRecommendations } from "@/features/prepare-recommendations";
+import { routes } from "@/shared/routes";
+import { AppLink } from "@/shared/ui/app-link";
 
 export function HomeRecommendationNotice() {
+  const refrigeratorId = useCurrentRefrigeratorId();
+  const { data, job } = useRecommendations(refrigeratorId);
   return (
     <section
       className="px-5 pt-6"
       aria-labelledby="home-recommendation-heading"
     >
-      <div className="flex items-center gap-3 rounded-[4px] border border-dashed border-app-neutral-300 bg-white/70 px-4 py-3">
-        <span className="grid size-12 flex-none place-items-center rounded-full bg-app-warning/15">
-          <Image
-            src={loadingIllustration}
-            alt=""
-            sizes="44px"
-            className="size-11 object-contain opacity-90"
-          />
-        </span>
-
-        <div className="min-w-0 flex-1">
-          <div className="flex flex-wrap items-center gap-2">
-            <h2
-              id="home-recommendation-heading"
-              className="mb-0 font-app-heading text-[14px] font-black leading-tight text-app-ink/70"
-            >
-              오늘의 추천 요리
-            </h2>
-          </div>
-          <p className="mb-0 mt-1 break-keep text-[12.5px] leading-[1.4] text-app-ink/60">
-            보유 재료로 만들 수 있는 요리 추천은 다음 버전에서 제공해요
-          </p>
-        </div>
-      </div>
+      <AppLink
+        href={routes.recommendations}
+        className="block rounded-[4px] bg-white px-4 py-3 text-app-ink no-underline shadow-app-sm"
+      >
+        <h2
+          id="home-recommendation-heading"
+          className="m-0 font-app-heading text-[14px] font-black"
+        >
+          오늘의 추천 요리
+        </h2>
+        <p className="mb-0 mt-1 text-[12.5px] text-app-ink/60">
+          {data?.recipes[0]?.name ??
+            (job.isError
+              ? "추천 요리 확인하기"
+              : "보유 재료로 추천을 준비하고 있어요")}
+        </p>
+      </AppLink>
     </section>
   );
 }
