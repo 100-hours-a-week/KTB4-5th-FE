@@ -31,3 +31,61 @@ fetch("/api/v1/mock/health")
 ```
 
 Chrome 개발자 도구의 **애플리케이션 → Service workers → 네트워크 우회**는 꺼둔다. 켜면 요청이 MSW를 건너뛴다. `GLOBAL-500-001`처럼 실제 백엔드 응답이 나오면 Mock 핸들러가 응답한 것이 아니다.
+
+## 추천 API와 화면 확인
+
+`src/_app/mocks/recommendation`에서 다음 API를 모의한다. 화면은 공통 API
+client와 TanStack Query로 실제 요청을 보내고, MSW가 켜졌을 때만 응답을 대신한다.
+
+| API                                                  | 기본 동작                                                         |
+| ---------------------------------------------------- | ----------------------------------------------------------------- |
+| `GET /api/v1/refrigerators/:id/recommendations`      | 조회만 수행, 서버 순서의 추천 10건 반환                           |
+| `POST /api/v1/refrigerators/:id/recommendation-jobs` | 최신이면 200, 생성·동일 작업이면 202, 한도 소진이면 429           |
+| `GET /api/v1/refrigerators/:id/recipes/:recipeId`    | 레시피와 현재 모의 재고 반환                                      |
+| `POST /api/v1/refrigerators/:id/cooking-records`     | CSRF·멱등 키 검증, 차감 후 200, 동일 요청 재시도 204, 키 충돌 409 |
+
+추천 목록은 `/recommendations`, 상세는
+`/recommendations/51?recommendationId=rec_001`에서 확인한다. 목록에서 상세로
+이동하면 추천 ID를 자동 전달한다. ID 없이 상세에 진입하면 목록 조회로 해당
+레시피가 포함된 추천 ID를 확인한다.
+
+테스트 전용 브라우저에서 `http://localhost:3000/login?msw=on`을 열고 다음
+쿠키를 설정한 뒤 추천 화면으로 이동한다. 아래 accessToken은 실제 인증 정보가
+아닌 MSW 전용 값이다.
+
+```js
+document.cookie = "accessToken=local-msw-only; Path=/; SameSite=Lax";
+document.cookie = "currentRefrigeratorId=1; Path=/; SameSite=Lax";
+document.cookie = "recommendationMock=STALE; Path=/; SameSite=Lax";
+location.href = "/recommendations?msw=on";
+```
+
+| 쿠키                 | 값과 확인할 상태                                                                                                         |
+| -------------------- | ------------------------------------------------------------------------------------------------------------------------ |
+| `recommendationMock` | `READY`, `STALE`, `GENERATING`, `EMPTY`, `LIMIT_REACHED`                                                                 |
+| `recommendationMock` | `GENERATING_EMPTY` 최초 생성 중, `LIMIT_EMPTY` 이력 없는 한도 소진, `NO_RESULTS` 결과 없음, `NO_STOCKS` 차감할 재고 없음 |
+| `recommendationMock` | `400`, `401`, `403`, `404`, `500` 목록 실패                                                                              |
+| `jobMock`            | `400`, `401`, `403`, `404`, `429`, `500` 생성 요청 실패                                                                  |
+| `detailMock`         | `400`, `401`, `403`, `404`, `500` 상세 실패                                                                              |
+| `cookingMock`        | `400`, `401`, `403`, `404`, `409`, `500` 적용 실패, `LOST_RESPONSE` 서버 처리 후 응답 유실                               |
+
+쿠키를 변경한 뒤 새로고침한다. 실패 쿠키는 `document.cookie =
+"cookingMock=; Path=/; Max-Age=0"`처럼 지운다. `recommendationMock` 쿠키가
+있을 때만 화면 진입에 필요한 냉장고·재고·알림·분석 배너·CSRF도 함께 모의한다.
+API 오류는 서비스 코드가 포함된 RFC 9457 Problem Details로 응답한다.
+목록의 `403`은 공통 접근 권한 복구 정책에 따라 2번 냉장고를 선택하고 홈으로
+이동한다. 이 경우 단독 오류 화면 대신 복구된 홈을 확인한다.
+
+홈과 추천 진입 시 GET 결과가 `STALE` 또는 `EMPTY`일 때만 생성 요청을 보낸다.
+현재 목록은 유지하며 생성 직후 재조회·폴링하지 않는다. 생성 결과는 다음
+화면 진입의 GET에서 반영한다. `GENERATING`·`LIMIT_REACHED`에서 중복 생성하지
+않는다. 요리 적용 직후에는 재고·상세·MY 캐시만 갱신하며 추천 생성은 하지 않는다.
+응답을 받지 못한 적용 재시도는 열린 상세 화면에서 같은 멱등 키를 유지한다.
+
+모의 데이터는 페이지 런타임 메모리에 저장되므로 새로고침하면 초기화된다.
+작업 상태 조회 API가 명세에 없어 작업 완료는 다음 목록 GET에서 모의한다.
+실제 AI 호출·공유 냉장고 동시성·서버 멱등 보존 기간을 검증하는 모의 구현은 아니다.
+차감 순서와 전량 소진 처리는 미확정이므로 모의 구현은 비만료 재고를 만료일순으로
+차감하고 0 수량 재고를 제거한다. `EXCLUDE_EXPIRED` 요청은 핸들러에서 지원하지만
+수동 생성·모드 변경 버튼은 추가하지 않았다. 향후 모드 변경 UI를 추가할 때는
+명세대로 확인 모달을 먼저 거쳐야 한다.
