@@ -114,6 +114,57 @@ describe("CSRF API integration", () => {
     expect(fetchMock).toHaveBeenCalledTimes(2);
   });
 
+  it.each(["network", "503", "timeout"])(
+    "keeps a temporary %s renewal failure separate from session expiry",
+    async (failure) => {
+      cookie("member-token");
+      const fetchMock = vi.fn(async (input: string) => {
+        if (input.endsWith("/auth/token-renewals")) {
+          if (failure === "network") throw new TypeError("Failed to fetch");
+          if (failure === "timeout")
+            throw new DOMException("Timed out", "TimeoutError");
+          return new Response(null, { status: 503 });
+        }
+        return new Response(null, { status: 401 });
+      });
+      vi.stubGlobal("fetch", fetchMock);
+
+      await expect(request("/items")).rejects.toMatchObject({
+        name: "Error",
+        message: "로그인 상태를 확인하지 못했어요. 잠시 후 다시 시도해 주세요.",
+      });
+      expect(fetchMock).toHaveBeenCalledTimes(2);
+    },
+  );
+
+  it.each([200, 401])(
+    "retries the original request only once after renewal: %s",
+    async (status) => {
+      cookie("member-token");
+      const fetchMock = vi
+        .fn()
+        .mockResolvedValueOnce(new Response(null, { status: 401 }))
+        .mockResolvedValueOnce(new Response(null, { status: 204 }))
+        .mockResolvedValueOnce(
+          status === 200 ? ok() : new Response(null, { status: 401 }),
+        );
+      vi.stubGlobal("fetch", fetchMock);
+
+      if (status === 200) {
+        await expect(request("/items")).resolves.toMatchObject({ data: null });
+      } else {
+        await expect(request("/items")).rejects.toMatchObject({
+          name: "SessionExpiredError",
+        });
+      }
+      expect(fetchMock.mock.calls.map(([input]) => input)).toEqual([
+        "/api/v1/items",
+        "/api/v1/auth/token-renewals",
+        "/api/v1/items",
+      ]);
+    },
+  );
+
   it("keeps GET requests free of CSRF headers", async () => {
     const fetchMock = vi.fn(async (_input: string, init: RequestInit) => {
       expect(new Headers(init.headers).has("X-XSRF-TOKEN")).toBe(false);

@@ -110,6 +110,11 @@ async function sendRequest(
     if (refreshed === "renewed") {
       return sendRequest(path, options, { ...retryState, authRetried: true });
     }
+    if (refreshed === "failed") {
+      throw new Error(
+        "로그인 상태를 확인하지 못했어요. 잠시 후 다시 시도해 주세요.",
+      );
+    }
     throw new SessionExpiredError();
   }
 
