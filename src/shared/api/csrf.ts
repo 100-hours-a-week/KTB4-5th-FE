@@ -35,6 +35,7 @@ function issueCsrfToken(force = false): Promise<void> {
     const response = await fetch(`${API_BASE_PATH}/auth/csrf`, {
       method: "GET",
       credentials: "include",
+      signal: AbortSignal.timeout(5_000),
     });
 
     if (!response.ok) {

@@ -28,7 +28,9 @@ export function useWithdrawAccount() {
       queryClient.clear();
       clearCurrentRefrigeratorId();
       rotateNotificationSessionScope();
-      void refreshCsrfToken();
+      void refreshCsrfToken().catch(() => {
+        // 로그인 화면 진입 후 CSRF 발급을 다시 시도한다.
+      });
       window.location.replace(routes.login);
     },
     onError: () => {
