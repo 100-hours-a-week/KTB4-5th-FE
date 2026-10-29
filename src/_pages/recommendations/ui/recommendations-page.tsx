@@ -11,6 +11,12 @@ import {
   AsyncViewState,
   asyncViewActionClassName,
 } from "@/shared/ui/async-view-state";
+import {
+  RECIPE_SORT_LABELS,
+  sortRecipes,
+  type RecipeSort,
+} from "../model/recipe-sort";
+import { RecipeSortSheet } from "./recipe-sort-sheet";
 import { RecommendedRecipeCard } from "./recommended-recipe-card";
 
 const PREPARING_HINT_DELAY_MS = 3_000;
@@ -62,15 +68,14 @@ function PreparingState() {
 
 export function RecommendationsPage() {
   const refrigeratorId = useCurrentRefrigeratorId();
-  const { data, error, isFetching, refetch, job } =
+  const { data, error, isFetching, refetch, job, regenerate } =
     useRecommendations(refrigeratorId);
+  const [sort, setSort] = useState<RecipeSort>("EXPIRING");
+  const [isSortSheetOpen, setIsSortSheetOpen] = useState(false);
   const limitReached =
     data?.status === "LIMIT_REACHED" ||
     (job.error instanceof ApiError && job.error.status === 429);
-  const generating =
-    data?.status === "GENERATING" ||
-    job.isPending ||
-    Boolean(job.data && job.data.status !== "ALREADY_UP_TO_DATE");
+  const generating = data?.status === "GENERATING" || job.isPending;
 
   if (refrigeratorId === null)
     return (
@@ -86,7 +91,8 @@ export function RecommendationsPage() {
           title={
             error instanceof ApiError && error.status === 403
               ? "이 냉장고에 접근할 권한이 없어요"
-              : error instanceof ApiError && error.status === 404
+              : error instanceof ApiError &&
+                  error.code === "REFRIGERATOR-404-001"
                 ? "냉장고를 찾을 수 없어요"
                 : "추천을 불러오지 못했어요"
           }
@@ -137,8 +143,22 @@ export function RecommendationsPage() {
             role="status"
             className="m-0 rounded-[4px] bg-app-warning/15 px-4 py-2.5 text-[12.5px] font-bold"
           >
-            새 추천을 준비하고 있어요. 다음 진입 때 반영돼요.
+            새 추천을 준비하고 있어요. 준비되면 바로 바뀌어요.
           </p>
+        ) : data.status === "STALE" && data.recipes.length > 0 ? (
+          <section className="flex items-center justify-between gap-3 rounded-[4px] bg-app-warning/15 px-4 py-2.5">
+            <p className="m-0 break-keep text-[12.5px] font-bold">
+              재고가 바뀌어 추천이 오래됐어요. 오늘{" "}
+              {data.dailyGeneration.remaining}번 더 받을 수 있어요.
+            </p>
+            <button
+              type="button"
+              className="flex-none text-[12.5px] font-black text-app-ink underline"
+              onClick={regenerate}
+            >
+              다시 추천
+            </button>
+          </section>
         ) : null}
         {job.isError && !limitReached ? (
           <p role="alert" className="m-0 text-[13px] text-app-primary">
@@ -149,11 +169,27 @@ export function RecommendationsPage() {
         ) : null}
         {data.recipes.length > 0 ? (
           <section aria-label="추천 요리 목록">
-            <p className="text-[12.5px] text-app-ink/55">
-              추천 요리 {data.recipes.length}개
-            </p>
+            <div className="mb-3 flex items-center justify-between gap-3">
+              <p className="m-0 text-[12.5px] text-app-ink/55">
+                추천 요리 {data.recipes.length}개
+              </p>
+              <button
+                type="button"
+                aria-haspopup="dialog"
+                className="text-[12.5px] font-bold text-app-ink hover:text-app-primary"
+                onClick={() => setIsSortSheetOpen(true)}
+              >
+                {RECIPE_SORT_LABELS[sort]}{" "}
+                <span
+                  aria-hidden="true"
+                  className="text-[10px] text-app-ink/45"
+                >
+                  ▾
+                </span>
+              </button>
+            </div>
             <ul className="flex flex-col gap-2">
-              {data.recipes.map((recipe) => (
+              {sortRecipes(data.recipes, sort).map((recipe) => (
                 <li key={recipe.recipeId}>
                   <RecommendedRecipeCard
                     recipe={recipe}
@@ -172,17 +208,31 @@ export function RecommendationsPage() {
               <button
                 type="button"
                 className={asyncViewActionClassName}
-                disabled={isFetching}
-                onClick={() => void refetch()}
+                disabled={job.isPending}
+                onClick={regenerate}
               >
                 다시 시도
               </button>
             }
           />
-        ) : generating ||
-          ((data.status === "EMPTY" || data.status === "STALE") &&
-            !job.isError) ? (
+        ) : generating ? (
           <PreparingState />
+        ) : (data.status === "EMPTY" || data.status === "STALE") &&
+          !limitReached ? (
+          <AsyncViewState
+            status="empty"
+            title="아직 추천이 없어요"
+            description="보유 재료로 만들 수 있는 요리를 추천받아 보세요"
+            action={
+              <button
+                type="button"
+                className={asyncViewActionClassName}
+                onClick={regenerate}
+              >
+                추천 받기
+              </button>
+            }
+          />
         ) : (
           <AsyncViewState
             status="empty"
@@ -207,6 +257,15 @@ export function RecommendationsPage() {
           />
         )}
       </div>
+      <RecipeSortSheet
+        open={isSortSheetOpen}
+        sort={sort}
+        onSortChange={(next) => {
+          setSort(next);
+          setIsSortSheetOpen(false);
+        }}
+        onDismiss={() => setIsSortSheetOpen(false)}
+      />
     </PageLayout>
   );
 }

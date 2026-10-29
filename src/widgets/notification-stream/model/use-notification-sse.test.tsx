@@ -49,6 +49,13 @@ vi.mock("@/entities/image", () => ({
   },
 }));
 
+vi.mock("@/entities/recommendation", () => ({
+  recommendationQueries: {
+    list: (id: string) => ({
+      queryKey: ["refrigerators", id, "recommendations"],
+    }),
+  },
+}));
 class FakeEventSource {
   static CLOSED = 2;
   static instances: FakeEventSource[] = [];
