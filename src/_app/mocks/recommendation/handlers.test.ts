@@ -36,7 +36,7 @@ it.each(["READY", "STALE", "GENERATING", "EMPTY", "LIMIT_REACHED"])(
   },
 );
 
-it("generates once, shares the running job, and publishes on the next GET", async () => {
+it("generates once, shares the running job, and publishes after the job finishes", async () => {
   const first = await call("recommendation-jobs", "STALE", {
     mode: "INCLUDE_EXPIRED",
   });
@@ -47,6 +47,9 @@ it("generates once, shares the running job, and publishes on the next GET", asyn
   ).json();
   expect(duplicate.data.jobId).toBe(started.data.jobId);
   expect(duplicate.data.dailyGeneration.remaining).toBe(2);
+  const generating = await (await call("recommendations", "STALE")).json();
+  expect(generating.data.status).toBe("GENERATING");
+  await new Promise((resolve) => setTimeout(resolve, 2_100));
   const ready = await (await call("recommendations", "STALE")).json();
   expect(ready.data.status).toBe("READY");
   expect(ready.data.recommendationId).toBe("rec_002");
@@ -65,8 +68,20 @@ it("returns 429 without losing existing recommendations", async () => {
   ).toHaveLength(10);
 });
 
+it("returns recommendations without requiring JavaScript access to HttpOnly cookies", async () => {
+  const response = await fetch(`${root}/recommendations`);
+  expect(response.status).toBe(200);
+  expect((await response.json()).data.recipes).toHaveLength(10);
+});
+
 it("validates auth, CSRF, and mode", async () => {
-  expect((await fetch(`${root}/recommendations`)).status).toBe(401);
+  expect(
+    (
+      await fetch(`${root}/recommendations`, {
+        headers: { Cookie: "recommendationMock=READY" },
+      })
+    ).status,
+  ).toBe(401);
   expect(
     (
       await call(

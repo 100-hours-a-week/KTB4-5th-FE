@@ -9,6 +9,7 @@ MSW는 브라우저의 API 요청을 가로챈다. `src/_app/mocks/handlers.ts`�
 | 로컬 `pnpm dev`         | 꺼짐. `.env.local`에 `NEXT_PUBLIC_MSW=true`가 있으면 켜짐                                                                      |
 | 로컬 `pnpm dev:msw`     | 켜짐. `?msw=off`로 접속하면 해당 브라우저에서 끄고 Serwist를 등록                                                              |
 | 로컬 `pnpm build:start` | 켜지지 않음. 운영과 같은 Serwist 캐싱으로 동작하고, `/api/v1`은 `BACKEND_ORIGIN`(기본 `http://localhost:8080`)으로 전달        |
+| 로컬 `pnpm build:start:msw` | MSW를 포함해 빌드. `/recommendations?msw=on`으로 접속하면 추천 API를 모의하고, 등록하지 않은 요청(로그인·토큰 갱신 포함)은 실제 백엔드로 전달 |
 | `dev` 브랜치 배포       | 기본 꺼짐(Serwist 등록). `?msw=on`으로 접속하면 해당 브라우저에서 켜지고 `?msw=off`로 되돌림                                   |
 | `main`/production 배포  | 켜지지 않음. `NEXT_PUBLIC_MSW=true`여도 production 환경에서는 시작하지 않고, Docker 이미지에서 `mockServiceWorker.js`도 제외됨 |
 
@@ -33,6 +34,12 @@ fetch("/api/v1/mock/health")
 Chrome 개발자 도구의 **애플리케이션 → Service workers → 네트워크 우회**는 꺼둔다. 켜면 요청이 MSW를 건너뛴다. `GLOBAL-500-001`처럼 실제 백엔드 응답이 나오면 Mock 핸들러가 응답한 것이 아니다.
 
 ## 추천 API와 화면 확인
+
+실제 계정으로 로그인한 상태에서 `pnpm build:start:msw`를 실행하고
+`http://localhost:3000/recommendations?msw=on`을 열면 추천 API만 기본 모의
+데이터로 대체한다. 로그인·토큰 갱신은 실제 백엔드를 사용하므로 가짜 인증
+쿠키를 설정하지 않는다. 아래 `recommendationMock` 시나리오 쿠키는 독립적인
+화면 테스트에만 사용한다.
 
 `src/_app/mocks/recommendation`에서 다음 API를 모의한다. 화면은 공통 API
 client와 TanStack Query로 실제 요청을 보내고, MSW가 켜졌을 때만 응답을 대신한다.
@@ -76,14 +83,16 @@ API 오류는 서비스 코드가 포함된 RFC 9457 Problem Details로 응답�
 목록의 `403`은 공통 접근 권한 복구 정책에 따라 2번 냉장고를 선택하고 홈으로
 이동한다. 이 경우 단독 오류 화면 대신 복구된 홈을 확인한다.
 
-홈과 추천 진입 시 GET 결과가 `STALE` 또는 `EMPTY`일 때만 생성 요청을 보낸다.
-현재 목록은 유지하며 생성 직후 재조회·폴링하지 않는다. 생성 결과는 다음
-화면 진입의 GET에서 반영한다. `GENERATING`·`LIMIT_REACHED`에서 중복 생성하지
-않는다. 요리 적용 직후에는 재고·상세·MY 캐시만 갱신하며 추천 생성은 하지 않는다.
+홈과 추천 진입만으로는 생성 요청을 보내지 않는다. `STALE`이면 기존 목록과
+[다시 추천], `EMPTY`이면 [추천 받기]를 보여주고 사용자가 누를 때만 생성한다.
+생성 요청 후 목록을 다시 조회하고(`GENERATING`), 알림 SSE 스트림의
+`recommendation.finished` 이벤트를 받으면 목록을 다시 조회해 반영한다. SSE
+재연결과 앱 복귀 때도 목록을 다시 조회해 놓친 이벤트를 메운다. 요리 적용 직후에는 재고·상세·MY 캐시만 갱신하며 추천 생성은 하지 않는다.
 응답을 받지 못한 적용 재시도는 열린 상세 화면에서 같은 멱등 키를 유지한다.
 
 모의 데이터는 페이지 런타임 메모리에 저장되므로 새로고침하면 초기화된다.
-작업 상태 조회 API가 명세에 없어 작업 완료는 다음 목록 GET에서 모의한다.
+생성 작업은 요청 2초 뒤 완료되고, 모의 알림 SSE 스트림으로
+`recommendation.finished` 이벤트(`{ refrigeratorId, recommendationId }`)를 보낸다.
 실제 AI 호출·공유 냉장고 동시성·서버 멱등 보존 기간을 검증하는 모의 구현은 아니다.
 차감 순서와 전량 소진 처리는 미확정이므로 모의 구현은 비만료 재고를 만료일순으로
 차감하고 0 수량 재고를 제거한다. `EXCLUDE_EXPIRED` 요청은 핸들러에서 지원하지만

@@ -16,12 +16,24 @@ export const mockSuccess = <T>(code: string, data: T, status = 200) =>
 type State = {
   recommendation: Recommendation;
   recipe: ReturnType<typeof createMockRecipe>;
-  pending: boolean;
 };
 
 export function createRecommendationHandlers() {
   const states = new Map<string, State>();
   const records = new Map<string, { signature: string }>();
+  const streams = new Set<ReadableStreamDefaultController<Uint8Array>>();
+  function emit(event: string, data: unknown) {
+    const chunk = new TextEncoder().encode(
+      `event: ${event}\ndata: ${JSON.stringify(data)}\n\n`,
+    );
+    streams.forEach((controller) => {
+      try {
+        controller.enqueue(chunk);
+      } catch {
+        streams.delete(controller);
+      }
+    });
+  }
   function state(id: string, scenario = "READY") {
     const key = `${id}:${scenario}`;
     let value = states.get(key);
@@ -56,7 +68,6 @@ export function createRecommendationHandlers() {
             noHistory || scenario === "NO_RESULTS" ? [] : createMockRecipes(),
         },
         recipe: createMockRecipe("51"),
-        pending: false,
       };
       if (scenario === "NO_STOCKS") {
         value.recipe.ingredients = value.recipe.ingredients.map(
@@ -68,8 +79,11 @@ export function createRecommendationHandlers() {
     return value;
   }
   const root = "*/api/v1/refrigerators/:refrigeratorId";
+  // 실제 로그인 쿠키는 HttpOnly라 읽을 수 없어 명시적 모의 시나리오에서만 검사한다.
   const auth = (cookies: Record<string, string>) =>
-    !cookies.accessToken ? mockProblem(401, "GLOBAL-401-001") : null;
+    cookies.recommendationMock && !cookies.accessToken
+      ? mockProblem(401, "GLOBAL-401-001")
+      : null;
   const csrf = (request: Request, cookies: Record<string, string>) =>
     !cookies["XSRF-TOKEN"] ||
     request.headers.get("X-XSRF-TOKEN") !== cookies["XSRF-TOKEN"]
@@ -152,6 +166,7 @@ export function createRecommendationHandlers() {
           ? new HttpResponse(
               new ReadableStream({
                 start(controller) {
+                  streams.add(controller);
                   controller.enqueue(new TextEncoder().encode(": mock\n\n"));
                 },
               }),
@@ -214,17 +229,6 @@ export function createRecommendationHandlers() {
         String(params.refrigeratorId),
         cookies.recommendationMock,
       );
-      if (value.pending) {
-        value.pending = false;
-        value.recommendation = {
-          ...value.recommendation,
-          status: "READY",
-          recommendationId: "rec_002",
-          generatedAt: new Date().toISOString(),
-          activeJobId: null,
-          recipes: createMockRecipes(),
-        };
-      }
       return mockSuccess("RECOMMEND-200-001", value.recommendation);
     }),
     http.post(
@@ -262,8 +266,22 @@ export function createRecommendationHandlers() {
         if (!alreadyGenerating) data.dailyGeneration.remaining -= 1;
         data.status = "GENERATING";
         data.activeJobId = "rjob_88";
-        // shortcut: 작업 완료 조회 API가 없어 다음 목록 조회에서 완료를 모의한다, 작업 조회 계약 확정 시 교체.
-        value.pending = true;
+        const refrigeratorId = String(params.refrigeratorId);
+        if (!alreadyGenerating)
+          setTimeout(() => {
+            value.recommendation = {
+              ...value.recommendation,
+              status: "READY",
+              recommendationId: "rec_002",
+              generatedAt: new Date().toISOString(),
+              activeJobId: null,
+              recipes: createMockRecipes(),
+            };
+            emit("recommendation.finished", {
+              refrigeratorId,
+              recommendationId: "rec_002",
+            });
+          }, 2_000);
         return mockSuccess(
           "RECOMMEND-202-001",
           {
