@@ -11,12 +11,8 @@ import {
   AsyncViewState,
   asyncViewActionClassName,
 } from "@/shared/ui/async-view-state";
-import {
-  RECIPE_SORT_LABELS,
-  sortRecipes,
-  type RecipeSort,
-} from "../model/recipe-sort";
-import { RecipeSortSheet } from "./recipe-sort-sheet";
+import { sortRecipes, type RecipeSort } from "../model/recipe-sort";
+import { RecipeSortFilter } from "./recipe-sort-filter";
 import { RecommendedRecipeCard } from "./recommended-recipe-card";
 
 const PREPARING_HINT_DELAY_MS = 3_000;
@@ -71,7 +67,6 @@ export function RecommendationsPage() {
   const { data, error, isFetching, refetch, job, regenerate } =
     useRecommendations(refrigeratorId);
   const [sort, setSort] = useState<RecipeSort>("EXPIRING");
-  const [isSortSheetOpen, setIsSortSheetOpen] = useState(false);
   const limitReached =
     data?.status === "LIMIT_REACHED" ||
     (job.error instanceof ApiError && job.error.status === 429);
@@ -173,20 +168,7 @@ export function RecommendationsPage() {
               <p className="m-0 text-[12.5px] text-app-ink/55">
                 추천 요리 {data.recipes.length}개
               </p>
-              <button
-                type="button"
-                aria-haspopup="dialog"
-                className="text-[12.5px] font-bold text-app-ink hover:text-app-primary"
-                onClick={() => setIsSortSheetOpen(true)}
-              >
-                {RECIPE_SORT_LABELS[sort]}{" "}
-                <span
-                  aria-hidden="true"
-                  className="text-[10px] text-app-ink/45"
-                >
-                  ▾
-                </span>
-              </button>
+              <RecipeSortFilter sort={sort} onSortChange={setSort} />
             </div>
             <ul className="flex flex-col gap-2">
               {sortRecipes(data.recipes, sort).map((recipe) => (
@@ -257,15 +239,6 @@ export function RecommendationsPage() {
           />
         )}
       </div>
-      <RecipeSortSheet
-        open={isSortSheetOpen}
-        sort={sort}
-        onSortChange={(next) => {
-          setSort(next);
-          setIsSortSheetOpen(false);
-        }}
-        onDismiss={() => setIsSortSheetOpen(false)}
-      />
     </PageLayout>
   );
 }
