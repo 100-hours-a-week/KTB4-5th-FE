@@ -36,21 +36,29 @@ it.each(["READY", "STALE", "GENERATING", "EMPTY", "LIMIT_REACHED"])(
   },
 );
 
-it("generates once, shares the running job, and publishes on the next GET", async () => {
+it("generates once, rejects a duplicate, and switches only on request", async () => {
   const first = await call("recommendation-jobs", "STALE", {
     mode: "INCLUDE_EXPIRED",
   });
   expect(first.status).toBe(202);
-  const started = await first.json();
-  const duplicate = await (
-    await call("recommendation-jobs", "STALE", {})
-  ).json();
-  expect(duplicate.data.jobId).toBe(started.data.jobId);
-  expect(duplicate.data.dailyGeneration.remaining).toBe(2);
+  const duplicate = await call("recommendation-jobs", "STALE", {});
+  expect(duplicate.status).toBe(409);
+  expect((await duplicate.json()).code).toBe("RECOMMEND-409-003");
+  const generating = await (await call("recommendations", "STALE")).json();
+  expect(generating.data.status).toBe("GENERATING");
+  expect(generating.data.dailyGeneration.remaining).toBe(2);
+  await new Promise((resolve) => setTimeout(resolve, 2_100));
+  const finished = await (await call("recommendations", "STALE")).json();
+  expect(finished.data.recommendationId).toBe("rec_001");
+  expect(finished.data.hasNewRecommendation).toBe(true);
+  expect((await call("recommendations/current", "STALE", {})).status).toBe(204);
   const ready = await (await call("recommendations", "STALE")).json();
   expect(ready.data.status).toBe("READY");
-  expect(ready.data.recommendationId).toBe("rec_002");
-  const latest = await call("recommendation-jobs", "STALE", {});
+  expect(ready.data.recommendationId).not.toBe("rec_001");
+  expect(ready.data.hasNewRecommendation).toBe(false);
+  const latest = await call("recommendation-jobs", "STALE", {
+    mode: "INCLUDE_EXPIRED",
+  });
   expect(latest.status).toBe(200);
   expect((await latest.json()).data.dailyGeneration.remaining).toBe(2);
 });
@@ -65,8 +73,20 @@ it("returns 429 without losing existing recommendations", async () => {
   ).toHaveLength(10);
 });
 
+it("returns recommendations without requiring JavaScript access to HttpOnly cookies", async () => {
+  const response = await fetch(`${root}/recommendations`);
+  expect(response.status).toBe(200);
+  expect((await response.json()).data.recipes).toHaveLength(10);
+});
+
 it("validates auth, CSRF, and mode", async () => {
-  expect((await fetch(`${root}/recommendations`)).status).toBe(401);
+  expect(
+    (
+      await fetch(`${root}/recommendations`, {
+        headers: { Cookie: "recommendationMock=READY" },
+      })
+    ).status,
+  ).toBe(401);
   expect(
     (
       await call(

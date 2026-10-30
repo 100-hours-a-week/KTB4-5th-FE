@@ -21,6 +21,7 @@ vi.mock("@/entities/recommendation", () => ({
     }),
   },
   createRecommendationJob: (...args: unknown[]) => mocks.create(...args),
+  switchToNewRecommendation: vi.fn(),
 }));
 let client: QueryClient;
 beforeEach(() => {
@@ -42,14 +43,12 @@ function wrapper({ children }: { children: ReactNode }) {
   );
 }
 it.each(["READY", "STALE", "GENERATING", "EMPTY", "LIMIT_REACHED"])(
-  "%s only starts a job when required and keeps the displayed response",
+  "%s never starts a job on entry and keeps the displayed response",
   async (status) => {
     const data = { status, recipes: [{ recipeId: "51" }] };
     mocks.get.mockResolvedValue(data);
     const hook = renderHook(() => useRecommendations("1"), { wrapper });
     await waitFor(() => expect(hook.result.current.isSuccess).toBe(true));
-    if (status === "STALE" || status === "EMPTY")
-      await waitFor(() => expect(hook.result.current.job.isSuccess).toBe(true));
     await act(async () => {
       focusManager.setFocused(false);
       focusManager.setFocused(true);
@@ -57,10 +56,8 @@ it.each(["READY", "STALE", "GENERATING", "EMPTY", "LIMIT_REACHED"])(
       onlineManager.setOnline(true);
       await new Promise((resolve) => setTimeout(resolve, 0));
     });
-    expect(mocks.create).toHaveBeenCalledTimes(
-      status === "STALE" || status === "EMPTY" ? 1 : 0,
-    );
-    expect(mocks.get).toHaveBeenCalledTimes(1);
+    expect(mocks.create).not.toHaveBeenCalled();
+    if (status !== "GENERATING") expect(mocks.get).toHaveBeenCalledTimes(1);
     expect(hook.result.current.data).toEqual(data);
   },
 );
@@ -73,12 +70,15 @@ it("GETs again on entry, and isolates generation state by refrigerator", async (
     wrapper,
     initialProps: { id: "1" },
   });
+  await waitFor(() => expect(hook.result.current.isSuccess).toBe(true));
+  act(() => hook.result.current.regenerate());
   await waitFor(() => expect(hook.result.current.job.isSuccess).toBe(true));
+  expect(mocks.get).toHaveBeenCalledTimes(2);
   hook.rerender({ id: "2" });
   await waitFor(() => expect(hook.result.current.data?.status).toBe("READY"));
   expect(hook.result.current.job.isIdle).toBe(true);
   hook.unmount();
   renderHook(() => useRecommendations("2"), { wrapper });
-  await waitFor(() => expect(mocks.get).toHaveBeenCalledTimes(3));
+  await waitFor(() => expect(mocks.get).toHaveBeenCalledTimes(4));
   expect(mocks.create).toHaveBeenCalledTimes(1);
 });

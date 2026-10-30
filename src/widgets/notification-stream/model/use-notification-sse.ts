@@ -4,6 +4,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { useEffect } from "react";
 
 import { imageAnalysisQueries } from "@/entities/image";
+import { recommendationQueries } from "@/entities/recommendation";
 import { useRecoverRefrigeratorAccess } from "@/features/recover-refrigerator-access";
 
 import {
@@ -40,6 +41,12 @@ export function useNotificationSse(userScope: string, refrigeratorId: string) {
     function refreshAnalyses() {
       void queryClient.invalidateQueries({
         queryKey: imageAnalysisQueries.list(userScope).queryKey,
+      });
+    }
+
+    function refreshRecommendations() {
+      void queryClient.invalidateQueries({
+        queryKey: recommendationQueries.list(refrigeratorId).queryKey,
       });
     }
 
@@ -96,7 +103,18 @@ export function useNotificationSse(userScope: string, refrigeratorId: string) {
         void queryClient.invalidateQueries({
           queryKey: imageAnalysisQueries.all(),
         });
+        refreshRecommendations();
         refresh();
+      });
+      stream.addEventListener("recommendation.finished", (event) => {
+        if (!active || stream !== source) return;
+        try {
+          if (JSON.parse(event.data)?.refrigeratorId === refrigeratorId) {
+            refreshRecommendations();
+          }
+        } catch {
+          return;
+        }
       });
       stream.addEventListener("notifications-changed", (event) => {
         if (!active || stream !== source) return;
@@ -179,6 +197,7 @@ export function useNotificationSse(userScope: string, refrigeratorId: string) {
       void queryClient.invalidateQueries({
         queryKey: imageAnalysisQueries.all(),
       });
+      refreshRecommendations();
       refresh();
     }
 

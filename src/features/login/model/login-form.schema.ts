@@ -32,10 +32,7 @@ const passwordSchema = z.string().superRefine((value, ctx) => {
     return;
   }
 
-  if (
-    value.length < PASSWORD_MIN_LENGTH ||
-    !PASSWORD_PATTERN.test(value)
-  ) {
+  if (value.length < PASSWORD_MIN_LENGTH || !PASSWORD_PATTERN.test(value)) {
     ctx.addIssue({ code: "custom", message: PASSWORD_HINT });
   }
 });
