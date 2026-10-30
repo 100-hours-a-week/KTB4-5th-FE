@@ -200,7 +200,7 @@ export function RecommendationsPage() {
             role="status"
             className="m-0 rounded-[4px] bg-app-warning/15 px-4 py-2.5 text-[12.5px] font-bold"
           >
-            새 추천을 준비하고 있어요. 준비되면 바로 바뀌어요.
+            새 추천을 준비하고 있어요. 준비되면 알려 드릴게요.
           </p>
         ) : data.status === "STALE" &&
           data.recipes.length > 0 &&
