@@ -146,6 +146,14 @@ function getFlowHeaderPolicy(pathname: string): RouteHeaderPolicy {
     };
   }
 
+  if (pathname === routes.recommendationTaste) {
+    return {
+      kind: "flow",
+      title: "오늘의 취향",
+      backFallbackHref: routes.recommendations,
+    };
+  }
+
   if (/^\/recommendations\/[^/]+$/.test(pathname)) {
     return {
       kind: "flow",

@@ -181,7 +181,7 @@ function RecipeDetailContent({
     recipe.cookingTimeMinutes !== null
       ? `조리 ${recipe.cookingTimeMinutes}분`
       : null,
-    recipe.baseServings !== null ? `${recipe.baseServings}인분` : null,
+    recipe.targetServings !== null ? `${recipe.targetServings}인분` : null,
     recipe.expiringIngredientCount > 0
       ? `임박 재료 ${recipe.expiringIngredientCount}개`
       : null,

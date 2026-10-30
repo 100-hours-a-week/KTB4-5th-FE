@@ -3,6 +3,7 @@
 import { useEffect, useState, type ReactNode } from "react";
 import { useCurrentRefrigeratorId } from "@/entities/refrigerator";
 import { IngredientRefrigeratorRequiredState } from "@/entities/ingredient";
+import { toTasteLabels, useTodayTaste } from "@/features/answer-taste-survey";
 import { useRecommendations } from "@/features/prepare-recommendations";
 import { ApiError } from "@/shared/api";
 import { routes } from "@/shared/routes";
@@ -64,13 +65,16 @@ function PreparingState() {
 
 export function RecommendationsPage() {
   const refrigeratorId = useCurrentRefrigeratorId();
-  const { data, error, isFetching, refetch, job, regenerate } =
+  const { data, error, isFetching, refetch, job, switchJob, switchToNew } =
     useRecommendations(refrigeratorId);
   const [sort, setSort] = useState<RecipeSort>("EXPIRING");
+  const tasteIds = useTodayTaste();
   const limitReached =
     data?.status === "LIMIT_REACHED" ||
     (job.error instanceof ApiError && job.error.status === 429);
-  const generating = data?.status === "GENERATING" || job.isPending;
+  const generating =
+    (data?.status === "GENERATING" && data.generationTrigger !== "SCHEDULED") ||
+    job.isPending;
 
   if (refrigeratorId === null)
     return (
@@ -125,7 +129,65 @@ export function RecommendationsPage() {
             보유 재료를 AI가 분석해 추천해요. 임박 재료가 많고 부족한 재료가
             적은 요리부터 보여드려요.
           </p>
+          {tasteIds ? (
+            <div className="mt-3 flex items-center justify-between gap-3 border-t border-app-ink/10 pt-3">
+              <p className="m-0 min-w-0 truncate text-[12.5px] text-app-ink/60">
+                오늘의 취향 ·{" "}
+                <span className="font-bold text-app-ink">
+                  {tasteIds.length > 0
+                    ? toTasteLabels(tasteIds).join(", ")
+                    : "상관없어요"}
+                </span>
+              </p>
+              {generating || limitReached ? null : (
+                <AppLink
+                  href={routes.recommendationTaste}
+                  className="flex-none text-[12.5px] font-black text-app-ink underline"
+                >
+                  취향 바꿔 다시 추천
+                </AppLink>
+              )}
+            </div>
+          ) : null}
         </section>
+        {tasteIds === null && !generating && !limitReached ? (
+          <AppLink
+            href={routes.recommendationTaste}
+            className="flex items-center justify-between gap-3 rounded-[4px] bg-app-ink px-4 py-3.5 text-white no-underline shadow-app-sm"
+          >
+            <span className="min-w-0">
+              <span className="block font-app-heading text-[15px] font-black leading-tight">
+                오늘의 취향을 알려주세요
+              </span>
+              <span className="mt-1 block break-keep text-[12.5px] leading-[1.45] text-white/70">
+                인분 수, 난이도, 끌리는 맛을 고르면 맞춰 다시 추천해요
+              </span>
+            </span>
+            <span
+              aria-hidden="true"
+              className="flex-none text-[18px] font-black"
+            >
+              ›
+            </span>
+          </AppLink>
+        ) : null}
+        {data.hasNewRecommendation ? (
+          <section className="flex items-center justify-between gap-3 rounded-[4px] bg-app-ink px-4 py-2.5 text-white">
+            <p role="status" className="m-0 break-keep text-[12.5px] font-bold">
+              {switchJob.isError
+                ? "새 추천으로 바꾸지 못했어요. 다시 시도해 주세요."
+                : "새 추천이 준비됐어요."}
+            </p>
+            <button
+              type="button"
+              className="flex-none text-[12.5px] font-black text-white underline disabled:opacity-40"
+              disabled={switchJob.isPending}
+              onClick={switchToNew}
+            >
+              새 추천 보기
+            </button>
+          </section>
+        ) : null}
         {limitReached ? (
           <p
             role="status"
@@ -140,19 +202,20 @@ export function RecommendationsPage() {
           >
             새 추천을 준비하고 있어요. 준비되면 바로 바뀌어요.
           </p>
-        ) : data.status === "STALE" && data.recipes.length > 0 ? (
+        ) : data.status === "STALE" &&
+          data.recipes.length > 0 &&
+          !data.hasNewRecommendation ? (
           <section className="flex items-center justify-between gap-3 rounded-[4px] bg-app-warning/15 px-4 py-2.5">
             <p className="m-0 break-keep text-[12.5px] font-bold">
               재고가 바뀌어 추천이 오래됐어요. 오늘{" "}
               {data.dailyGeneration.remaining}번 더 받을 수 있어요.
             </p>
-            <button
-              type="button"
+            <AppLink
+              href={routes.recommendationTaste}
               className="flex-none text-[12.5px] font-black text-app-ink underline"
-              onClick={regenerate}
             >
               다시 추천
-            </button>
+            </AppLink>
           </section>
         ) : null}
         {job.isError && !limitReached ? (
@@ -187,14 +250,12 @@ export function RecommendationsPage() {
             title="추천을 준비하지 못했어요"
             description="잠시 후 다시 시도해 주세요"
             action={
-              <button
-                type="button"
+              <AppLink
+                href={routes.recommendationTaste}
                 className={asyncViewActionClassName}
-                disabled={job.isPending}
-                onClick={regenerate}
               >
                 다시 시도
-              </button>
+              </AppLink>
             }
           />
         ) : generating ? (
@@ -206,13 +267,12 @@ export function RecommendationsPage() {
             title="아직 추천이 없어요"
             description="보유 재료로 만들 수 있는 요리를 추천받아 보세요"
             action={
-              <button
-                type="button"
+              <AppLink
+                href={routes.recommendationTaste}
                 className={asyncViewActionClassName}
-                onClick={regenerate}
               >
                 추천 받기
-              </button>
+              </AppLink>
             }
           />
         ) : (

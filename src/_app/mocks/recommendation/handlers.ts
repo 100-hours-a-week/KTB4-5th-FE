@@ -17,6 +17,10 @@ export const mockSuccess = <T>(code: string, data: T, status = 200) =>
 type State = {
   recommendation: Recommendation;
   recipe: ReturnType<typeof createMockRecipe>;
+  pending?: Pick<
+    Recommendation,
+    "recommendationId" | "generatedAt" | "recipes"
+  >;
 };
 
 export function createRecommendationHandlers() {
@@ -54,6 +58,9 @@ export function createRecommendationHandlers() {
           },
           recipes:
             noHistory || scenario === "NO_RESULTS" ? [] : createMockRecipes(),
+          generationTrigger: status === "GENERATING" ? "USER" : null,
+          generationStatus: status === "GENERATING" ? "PROCESSING" : null,
+          hasNewRecommendation: false,
         },
         recipe: createMockRecipe("51"),
       };
@@ -216,45 +223,62 @@ export function createRecommendationHandlers() {
           .object({
             mode: z
               .enum(["INCLUDE_EXPIRED", "EXCLUDE_EXPIRED"])
-              .default("INCLUDE_EXPIRED"),
+              .default("EXCLUDE_EXPIRED"),
+            preferenceTags: z
+              .array(z.string().min(1).max(40))
+              .max(12)
+              .optional(),
+            targetServings: z.number().int().min(1).max(12).optional(),
           })
           .safeParse(await request.json().catch(() => null));
         if (!body.success) return mockProblem(400, "GLOBAL-400-001");
-        const { mode } = body.data;
+        const { mode, preferenceTags, targetServings } = body.data;
         const value = state(
           String(params.refrigeratorId),
           cookies.recommendationMock,
         );
         const data = value.recommendation;
-        if (data.status === "READY" && mode === "INCLUDE_EXPIRED")
+        if (
+          data.status === "READY" &&
+          mode === "INCLUDE_EXPIRED" &&
+          !preferenceTags?.length &&
+          targetServings === undefined
+        )
           return mockSuccess("RECOMMEND-200-003", {
             jobId: null,
             status: "ALREADY_UP_TO_DATE",
             recommendationId: data.recommendationId,
             dailyGeneration: data.dailyGeneration,
           });
-        const alreadyGenerating = data.status === "GENERATING";
-        if (!alreadyGenerating && data.dailyGeneration.remaining === 0)
+        if (data.status === "GENERATING")
+          return mockProblem(409, "RECOMMEND-409-003");
+        if (data.dailyGeneration.remaining === 0)
           return mockProblem(429, "RECOMMEND-429-001");
-        if (!alreadyGenerating) data.dailyGeneration.remaining -= 1;
+        data.dailyGeneration.remaining -= 1;
+        const previousStatus = data.status;
         data.status = "GENERATING";
         data.activeJobId = "rjob_88";
+        data.generationTrigger = "USER";
+        data.generationStatus = "QUEUED";
         const refrigeratorId = String(params.refrigeratorId);
-        if (!alreadyGenerating)
-          setTimeout(() => {
-            value.recommendation = {
-              ...value.recommendation,
-              status: "READY",
-              recommendationId: "rec_002",
-              generatedAt: new Date().toISOString(),
-              activeJobId: null,
-              recipes: createMockRecipes(),
-            };
-            emitMockEvent("recommendation.finished", {
-              refrigeratorId,
-              recommendationId: "rec_002",
-            });
-          }, 2_000);
+        setTimeout(() => {
+          value.pending = {
+            recommendationId: `rec_${Date.now()}`,
+            generatedAt: new Date().toISOString(),
+            recipes: createMockRecipes().reverse(),
+          };
+          value.recommendation = {
+            ...value.recommendation,
+            status: previousStatus,
+            activeJobId: null,
+            generationStatus: "COMPLETED",
+            hasNewRecommendation: true,
+          };
+          emitMockEvent("recommendation.finished", {
+            refrigeratorId,
+            recommendationId: value.pending.recommendationId,
+          });
+        }, 2_000);
         return mockSuccess(
           "RECOMMEND-202-001",
           {
@@ -266,6 +290,26 @@ export function createRecommendationHandlers() {
           },
           202,
         );
+      },
+    ),
+    http.post(
+      `${root}/recommendations/current`,
+      async ({ request, params, cookies }) => {
+        const error = auth(cookies) ?? csrf(request, cookies);
+        if (error) return error;
+        const value = state(
+          String(params.refrigeratorId),
+          cookies.recommendationMock,
+        );
+        if (!value.pending) return mockProblem(404, "RECOMMEND-404-001");
+        value.recommendation = {
+          ...value.recommendation,
+          ...value.pending,
+          status: "READY",
+          hasNewRecommendation: false,
+        };
+        value.pending = undefined;
+        return new HttpResponse(null, { status: 204 });
       },
     ),
     http.get(`${root}/recipes/:recipeId`, async ({ params, cookies }) => {

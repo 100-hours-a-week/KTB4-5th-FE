@@ -54,10 +54,12 @@ export function RecommendedRecipeCard({
         </span>
         <span className="mt-1 flex gap-3 text-[12.5px] leading-[1.4] text-app-ink/60">
           <span>
-            보유 {recipe.ingredientCounts.owned} / 전체{" "}
-            {recipe.ingredientCounts.total}
+            {recipe.ingredientCounts.owned !== null
+              ? `보유 ${recipe.ingredientCounts.owned} / `
+              : null}
+            전체 {recipe.ingredientCounts.total}
           </span>
-          {recipe.ingredientCounts.expiring > 0 ? (
+          {(recipe.ingredientCounts.expiring ?? 0) > 0 ? (
             <span className="font-bold text-app-ink">
               임박 {recipe.ingredientCounts.expiring}
             </span>
