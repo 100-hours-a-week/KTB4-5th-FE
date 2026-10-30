@@ -39,7 +39,7 @@ export function AnalysisBanner({
       />
       <p className="m-0 min-w-0 flex-1 text-[13px] font-bold leading-normal">
         {props.status === "processing"
-          ? `영수증 인식 중 · ${props.processedCount}/${props.totalCount}장`
+          ? `사진 인식 중 · ${props.processedCount}/${props.totalCount}장`
           : props.status === "expiring"
             ? `${props.minutesLeft}분 뒤에 인식 결과가 사라져요`
             : props.status === "failed"

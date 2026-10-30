@@ -44,7 +44,7 @@ export function RegisterIngredientReceiptPage() {
     formId: PAGE_ID,
     isGuarded: photos.length > 0 && !isAnalyzing,
     title: "촬영한 사진이 사라져요",
-    description: "지금 나가면 찍은 영수증이 저장되지 않아요.",
+    description: "지금 나가면 찍은 사진이 저장되지 않아요.",
     continueLabel: "계속 촬영",
   });
 
@@ -99,12 +99,12 @@ export function RegisterIngredientReceiptPage() {
       >
         <AsyncViewState
           status="loading"
-          title="영수증을 인식하고 있어요"
+          title="사진을 인식하고 있어요"
           description="다른 화면으로 이동해도 인식은 계속돼요. 완료되면 알려 드릴게요."
           action={
             <div className="flex w-[200px] items-center gap-2 text-[12px] font-bold text-app-ink/60">
               <progress
-                aria-label="영수증 인식 진행률"
+                aria-label="사진 인식 진행률"
                 value={progress.processed}
                 max={progress.total || 1}
                 className="h-1.5 flex-1 appearance-none overflow-hidden rounded-full [&::-moz-progress-bar]:bg-app-ink [&::-webkit-progress-bar]:bg-app-ink/10 [&::-webkit-progress-value]:bg-app-ink"
@@ -172,6 +172,9 @@ export function RegisterIngredientReceiptPage() {
             <li>· 하루 최대 100장까지 분석할 수 있어요</li>
             <li>· 구겨진 부분을 펴고 밝은 곳에서 찍어 주세요</li>
             <li>· 영수증 전체가 화면에 들어오게 해주세요 (최대 5장)</li>
+            <li>
+              · 재료 실물은 한 장에 한 가지씩, 포장 앞면이 보이게 찍어 주세요
+            </li>
             <li>· 흐리게 찍혀도 다음 화면에서 직접 고칠 수 있어요</li>
           </ul>
         </section>

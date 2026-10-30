@@ -2,6 +2,7 @@ import { delay, http, HttpResponse, passthrough } from "msw";
 import { z } from "zod";
 import type { Recommendation } from "@/entities/recommendation";
 import { getTodayInSeoul } from "@/shared/lib/seoul-date";
+import { emitMockEvent } from "../event-stream";
 import { createMockRecipe, createMockRecipes } from "./fixtures";
 
 export function mockProblem(status: number, code: string) {
@@ -21,19 +22,6 @@ type State = {
 export function createRecommendationHandlers() {
   const states = new Map<string, State>();
   const records = new Map<string, { signature: string }>();
-  const streams = new Set<ReadableStreamDefaultController<Uint8Array>>();
-  function emit(event: string, data: unknown) {
-    const chunk = new TextEncoder().encode(
-      `event: ${event}\ndata: ${JSON.stringify(data)}\n\n`,
-    );
-    streams.forEach((controller) => {
-      try {
-        controller.enqueue(chunk);
-      } catch {
-        streams.delete(controller);
-      }
-    });
-  }
   function state(id: string, scenario = "READY") {
     const key = `${id}:${scenario}`;
     let value = states.get(key);
@@ -159,21 +147,6 @@ export function createRecommendationHandlers() {
           })
         : passthrough(),
     ),
-    http.get(
-      "*/api/v2/refrigerators/:refrigeratorId/notifications/stream",
-      ({ cookies }) =>
-        cookies.recommendationMock
-          ? new HttpResponse(
-              new ReadableStream({
-                start(controller) {
-                  streams.add(controller);
-                  controller.enqueue(new TextEncoder().encode(": mock\n\n"));
-                },
-              }),
-              { headers: { "Content-Type": "text/event-stream" } },
-            )
-          : passthrough(),
-    ),
     http.get(`${root}/ingredients`, ({ params, cookies }) => {
       if (!cookies.recommendationMock) return passthrough();
       const value = state(
@@ -277,7 +250,7 @@ export function createRecommendationHandlers() {
               activeJobId: null,
               recipes: createMockRecipes(),
             };
-            emit("recommendation.finished", {
+            emitMockEvent("recommendation.finished", {
               refrigeratorId,
               recommendationId: "rec_002",
             });
