@@ -10,14 +10,16 @@ export const RECIPE_SORT_LABELS: Record<RecipeSort, string> = {
 };
 
 const shortage = (recipe: RecommendedRecipe) =>
-  recipe.ingredientCounts.total - recipe.ingredientCounts.owned;
+  recipe.ingredientCounts.total - (recipe.ingredientCounts.owned ?? 0);
 
 const compare: Record<
   RecipeSort,
   (a: RecommendedRecipe, b: RecommendedRecipe) => number
 > = {
-  EXPIRING: (a, b) => b.ingredientCounts.expiring - a.ingredientCounts.expiring,
-  OWNED: (a, b) => b.ingredientCounts.owned - a.ingredientCounts.owned,
+  EXPIRING: (a, b) =>
+    (b.ingredientCounts.expiring ?? 0) - (a.ingredientCounts.expiring ?? 0),
+  OWNED: (a, b) =>
+    (b.ingredientCounts.owned ?? 0) - (a.ingredientCounts.owned ?? 0),
   SHORTAGE: (a, b) => shortage(a) - shortage(b),
 };
 

@@ -5,16 +5,29 @@ import { useEffect } from "react";
 import {
   createRecommendationJob,
   recommendationQueries,
+  switchToNewRecommendation,
+  type RecommendationJobRequest,
 } from "@/entities/recommendation";
 
 export function useRecommendations(refrigeratorId: string | null | undefined) {
   const queryClient = useQueryClient();
+  const invalidate = (id: string) =>
+    queryClient.invalidateQueries({
+      queryKey: recommendationQueries.list(id).queryKey,
+    });
   const job = useMutation({
-    mutationFn: (id: string) => createRecommendationJob(id),
-    onSuccess: (_, id) =>
-      queryClient.invalidateQueries({
-        queryKey: recommendationQueries.list(id).queryKey,
-      }),
+    mutationFn: ({
+      id,
+      body,
+    }: {
+      id: string;
+      body?: RecommendationJobRequest;
+    }) => createRecommendationJob(id, body),
+    onSuccess: (_, { id }) => invalidate(id),
+  });
+  const switchJob = useMutation({
+    mutationFn: switchToNewRecommendation,
+    onSuccess: (_, id) => invalidate(id),
   });
   const query = useQuery({
     ...recommendationQueries.list(refrigeratorId ?? ""),
@@ -25,9 +38,15 @@ export function useRecommendations(refrigeratorId: string | null | undefined) {
 
   useEffect(() => reset(), [refrigeratorId, reset]);
 
-  const regenerate = () => {
-    if (refrigeratorId) mutate(refrigeratorId);
+  const regenerate = (
+    body?: RecommendationJobRequest,
+    options?: Parameters<typeof mutate>[1],
+  ) => {
+    if (refrigeratorId) mutate({ id: refrigeratorId, body }, options);
+  };
+  const switchToNew = () => {
+    if (refrigeratorId) switchJob.mutate(refrigeratorId);
   };
 
-  return { ...query, job, regenerate };
+  return { ...query, job, regenerate, switchJob, switchToNew };
 }

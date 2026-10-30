@@ -21,6 +21,7 @@ vi.mock("@/entities/recommendation", () => ({
     }),
   },
   createRecommendationJob: (...args: unknown[]) => mocks.create(...args),
+  switchToNewRecommendation: vi.fn(),
 }));
 let client: QueryClient;
 beforeEach(() => {
