@@ -98,3 +98,21 @@ API 오류는 서비스 코드가 포함된 RFC 9457 Problem Details로 응답�
 차감하고 0 수량 재고를 제거한다. `EXCLUDE_EXPIRED` 요청은 핸들러에서 지원하지만
 수동 생성·모드 변경 버튼은 추가하지 않았다. 향후 모드 변경 UI를 추가할 때는
 명세대로 확인 모달을 먼저 거쳐야 한다.
+
+## 실물 사진 인식
+
+`imageAnalysisMock` 쿠키가 있으면 `src/_app/mocks/image-analysis`가 사진 업로드
+(`POST /api/v1/image/presigned-url`, 업로드 PUT)와 이미지 분석
+(`POST·GET /api/v1/image-analyses`, `GET·DELETE /api/v1/image-analyses/:id`)을
+모의한다. 사진 한 장당 1.5초 뒤 실물 인식 결과(두부·애호박, `documentType:
+PRODUCT`)로 끝나고, 알림 SSE 스트림으로 `image-analysis.image-finished`·
+`image-analysis.finished` 이벤트를 보낸다. 값은 끝날 상태를 고른다.
+
+| 쿠키                | 값                                                                  |
+| ------------------- | ------------------------------------------------------------------- |
+| `imageAnalysisMock` | `COMPLETED` 전체 인식, `PARTIALLY_COMPLETED` 첫 장만 인식, `FAILED` |
+
+```js
+document.cookie = "imageAnalysisMock=COMPLETED; Path=/; SameSite=Lax";
+location.href = "/refrigerator/register/receipt?msw=on";
+```

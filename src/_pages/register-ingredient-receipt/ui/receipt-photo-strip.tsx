@@ -43,7 +43,7 @@ export function ReceiptPhotoStrip({
                   <button
                     type="button"
                     onClick={() => onShow(index)}
-                    aria-label={`영수증 ${index + 1} 크게 보기`}
+                    aria-label={`사진 ${index + 1} 크게 보기`}
                     aria-current={index === shownIndex}
                     className="absolute inset-0 border-0 bg-transparent p-0"
                   >
@@ -58,7 +58,7 @@ export function ReceiptPhotoStrip({
                   <button
                     type="button"
                     onClick={() => onRemove(index)}
-                    aria-label={`영수증 ${index + 1} 삭제`}
+                    aria-label={`사진 ${index + 1} 삭제`}
                     className="absolute top-0.5 right-0.5 grid size-5 place-items-center rounded-full border-0 bg-app-ink/70 p-0 text-white"
                   >
                     <Lineicons
@@ -74,7 +74,7 @@ export function ReceiptPhotoStrip({
                 <button
                   type="button"
                   onClick={onCapture}
-                  aria-label="영수증 촬영"
+                  aria-label="사진 촬영"
                   className="absolute inset-0 cursor-pointer border-0 bg-transparent p-0"
                 />
               )}

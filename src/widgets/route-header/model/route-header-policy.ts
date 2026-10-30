@@ -103,7 +103,7 @@ function getFlowHeaderPolicy(pathname: string): RouteHeaderPolicy {
   if (pathname === routes.registerIngredientReceipt) {
     return {
       kind: "flow",
-      title: "영수증 촬영",
+      title: "영수증 / 실물 촬영",
       backFallbackHref: routes.registerIngredient,
     };
   }
