@@ -4,6 +4,7 @@ import {
   recommendationSchema,
   recommendationJobSchema,
   recipeDetailSchema,
+  type RecommendationJobRequest,
 } from "../model/recommendation";
 
 const base = (refrigeratorId: string) =>
@@ -22,13 +23,20 @@ export async function getRecommendations(
 
 export async function createRecommendationJob(
   refrigeratorId: string,
-  mode: "INCLUDE_EXPIRED" | "EXCLUDE_EXPIRED" = "INCLUDE_EXPIRED",
+  body: RecommendationJobRequest = {},
 ) {
   const { data } = await requestJson<unknown>(
     `${base(refrigeratorId)}/recommendation-jobs`,
-    { method: "POST", json: { mode } },
+    { method: "POST", json: { mode: "INCLUDE_EXPIRED", ...body } },
   );
   return recommendationJobSchema.parse(data);
+}
+
+export async function switchToNewRecommendation(refrigeratorId: string) {
+  await requestJsonOrNoContent<unknown>(
+    `${base(refrigeratorId)}/recommendations/current`,
+    { method: "POST" },
+  );
 }
 
 export async function getRecipeDetail(

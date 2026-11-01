@@ -1,50 +1,52 @@
 "use client";
 
-import { useMutation, useQuery } from "@tanstack/react-query";
-import { useEffect, useRef } from "react";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useEffect } from "react";
 import {
   createRecommendationJob,
   recommendationQueries,
+  switchToNewRecommendation,
+  type RecommendationJobRequest,
 } from "@/entities/recommendation";
 
 export function useRecommendations(refrigeratorId: string | null | undefined) {
+  const queryClient = useQueryClient();
+  const invalidate = (id: string) =>
+    queryClient.invalidateQueries({
+      queryKey: recommendationQueries.list(id).queryKey,
+    });
+  const job = useMutation({
+    mutationFn: ({
+      id,
+      body,
+    }: {
+      id: string;
+      body?: RecommendationJobRequest;
+    }) => createRecommendationJob(id, body),
+    onSuccess: (_, { id }) => invalidate(id),
+  });
+  const switchJob = useMutation({
+    mutationFn: switchToNewRecommendation,
+    onSuccess: (_, id) => invalidate(id),
+  });
   const query = useQuery({
     ...recommendationQueries.list(refrigeratorId ?? ""),
     enabled: Boolean(refrigeratorId),
     refetchOnMount: "always",
   });
-  const job = useMutation({
-    mutationFn: (id: string) => createRecommendationJob(id),
-  });
-  const attempted = useRef<string | null>(null);
   const { mutate, reset } = job;
 
   useEffect(() => reset(), [refrigeratorId, reset]);
 
-  useEffect(() => {
-    if (
-      !refrigeratorId ||
-      !query.isFetchedAfterMount ||
-      query.isError ||
-      query.isFetching ||
-      !query.data
-    )
-      return;
-    const attempt = `${refrigeratorId}:${query.dataUpdatedAt}`;
-    if (attempted.current === attempt) return;
-    attempted.current = attempt;
-    if (query.data.status === "STALE" || query.data.status === "EMPTY") {
-      mutate(refrigeratorId);
-    }
-  }, [
-    refrigeratorId,
-    query.isFetchedAfterMount,
-    query.isError,
-    query.isFetching,
-    query.data,
-    query.dataUpdatedAt,
-    mutate,
-  ]);
+  const regenerate = (
+    body?: RecommendationJobRequest,
+    options?: Parameters<typeof mutate>[1],
+  ) => {
+    if (refrigeratorId) mutate({ id: refrigeratorId, body }, options);
+  };
+  const switchToNew = () => {
+    if (refrigeratorId) switchJob.mutate(refrigeratorId);
+  };
 
-  return { ...query, job };
+  return { ...query, job, regenerate, switchJob, switchToNew };
 }

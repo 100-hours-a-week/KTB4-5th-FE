@@ -33,6 +33,7 @@ export const routes = {
   ingredientEdit: (ingredientId: string) =>
     `/refrigerator/ingredients/${encodeURIComponent(ingredientId)}/edit`,
   recommendations: "/recommendations",
+  recommendationTaste: "/recommendations/taste",
   recipeDetail: (recipeId: string, recommendationId?: string | null) =>
     `/recommendations/${encodeURIComponent(recipeId)}${recommendationId ? `?recommendationId=${encodeURIComponent(recommendationId)}` : ""}`,
 } as const;

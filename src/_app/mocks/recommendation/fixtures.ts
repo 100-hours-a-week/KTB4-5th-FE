@@ -37,7 +37,7 @@ export function createMockRecipe(recipeId: string): RecipeDetail {
       "두부김치",
     imageUrl: null,
     cookingTimeMinutes: 15,
-    baseServings: 2,
+    targetServings: 2,
     expiringIngredientCount: 1,
     ingredients: [
       {
@@ -50,12 +50,16 @@ export function createMockRecipe(recipeId: string): RecipeDetail {
           {
             ingredientId: "101",
             ownedAmount: 1,
+            usedAmount: null,
+            allocationStatus: "UNRESOLVED",
             unit: "EA",
             expirationDate: date(-1),
           },
           {
             ingredientId: "102",
             ownedAmount: 2,
+            usedAmount: null,
+            allocationStatus: "UNRESOLVED",
             unit: "EA",
             expirationDate: date(2),
           },
@@ -71,6 +75,8 @@ export function createMockRecipe(recipeId: string): RecipeDetail {
           {
             ingredientId: "103",
             ownedAmount: 100,
+            usedAmount: null,
+            allocationStatus: "UNRESOLVED",
             unit: "G",
             expirationDate: date(6),
           },
@@ -86,6 +92,8 @@ export function createMockRecipe(recipeId: string): RecipeDetail {
           {
             ingredientId: "104",
             ownedAmount: 3,
+            usedAmount: null,
+            allocationStatus: "UNRESOLVED",
             unit: "EA",
             expirationDate: date(9),
           },

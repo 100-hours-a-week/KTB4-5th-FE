@@ -3,11 +3,13 @@ export {
   getRecommendations,
   getRecipeDetail,
   createRecommendationJob,
+  switchToNewRecommendation,
   applyRecipe,
   recommendationQueries,
 } from "./api/recommendation";
 export type {
   Recommendation,
+  RecommendationJobRequest,
   RecommendedRecipe,
   RecipeDetail,
   RecipeIngredient,
