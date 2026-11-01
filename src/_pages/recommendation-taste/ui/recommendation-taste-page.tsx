@@ -5,6 +5,7 @@ import { useState } from "react";
 
 import { useCurrentRefrigeratorId } from "@/entities/refrigerator";
 import {
+  MAX_TASTE_TAGS,
   setTodayTaste,
   TasteOptionGroups,
   toRecommendationJobRequest,
@@ -13,6 +14,7 @@ import {
 import { useRecommendations } from "@/features/prepare-recommendations";
 import { ApiError } from "@/shared/api";
 import { markAppNavigationIntent } from "@/shared/lib/navigation-history";
+import { AppLink } from "@/shared/ui/app-link";
 import { routes } from "@/shared/routes";
 import { FooterButton } from "@/shared/ui/footer-button";
 import { PageActionLayout } from "@/shared/ui/page-action-layout";
@@ -31,13 +33,14 @@ export function RecommendationTastePage() {
     !refrigeratorId ||
     job.isPending ||
     data?.status === "GENERATING" ||
-    limitReached;
+    limitReached ||
+    Boolean(data?.hasNewRecommendation);
 
   function request(optionIds: string[]) {
     if (!refrigeratorId) return;
-    setTodayTaste(optionIds);
     regenerate(toRecommendationJobRequest(optionIds), {
       onSuccess: () => {
+        setTodayTaste(optionIds);
         markAppNavigationIntent("replace", routes.recommendations);
         router.replace(routes.recommendations);
       },
@@ -71,12 +74,18 @@ export function RecommendationTastePage() {
           </h2>
           <p className="mb-0 mt-1.5 break-keep text-[13px] leading-[1.5] text-app-ink/60">
             고른 취향과 지금 재고로 새 추천을 만들어요. 취향은 내일 오전 8시까지
-            유지돼요.
+            유지돼요. 취향은 인분 수를 제외하고 최대 {MAX_TASTE_TAGS}개까지
+            선택할 수 있어요.
             {data && !limitReached
               ? ` 오늘 ${data.dailyGeneration.remaining}번 더 받을 수 있어요.`
               : null}
           </p>
         </section>
+        {data?.hasNewRecommendation ? (
+          <AppLink href={routes.recommendations}>
+            새 추천이 준비됐어요. 추천 목록에서 먼저 확인해 주세요.
+          </AppLink>
+        ) : null}
         {limitReached ? (
           <p
             role="status"

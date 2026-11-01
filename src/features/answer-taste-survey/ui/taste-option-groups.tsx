@@ -2,7 +2,12 @@
 
 import { FilterChip } from "@/shared/ui/filter-chip";
 
-import { TASTE_GROUPS, type TasteGroup } from "../model/taste-groups";
+import {
+  MAX_TASTE_TAGS,
+  TASTE_GROUPS,
+  toTasteLabels,
+  type TasteGroup,
+} from "../model/taste-groups";
 
 type TasteOptionGroupsProps = {
   value: string[];
@@ -10,6 +15,10 @@ type TasteOptionGroupsProps = {
 };
 
 export function TasteOptionGroups({ value, onChange }: TasteOptionGroupsProps) {
+  const tagLimitReached =
+    toTasteLabels(value.filter((id) => !id.startsWith("servings-"))).length >=
+    MAX_TASTE_TAGS;
+
   function toggle(group: TasteGroup, optionId: string) {
     if (value.includes(optionId))
       return onChange(value.filter((id) => id !== optionId));
@@ -31,6 +40,13 @@ export function TasteOptionGroups({ value, onChange }: TasteOptionGroupsProps) {
           <FilterChip
             key={option.id}
             selected={value.includes(option.id)}
+            disabled={
+              tagLimitReached &&
+              !value.includes(option.id) &&
+              group.id !== "servings" &&
+              (group.multiple ||
+                !group.options.some(({ id }) => value.includes(id)))
+            }
             onClick={() => toggle(group, option.id)}
           >
             {option.label}

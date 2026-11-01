@@ -5,6 +5,8 @@ export type TasteGroup = {
   options: { id: string; label: string }[];
 };
 
+export const MAX_TASTE_TAGS = 12;
+
 export const TASTE_GROUPS: TasteGroup[] = [
   {
     id: "flavor",
@@ -52,7 +54,7 @@ export const TASTE_GROUPS: TasteGroup[] = [
   {
     id: "purpose",
     label: "식사 목적",
-    multiple: false,
+    multiple: true,
     options: [
       { id: "snack", label: "간식" },
       { id: "dessert", label: "디저트" },
@@ -84,6 +86,6 @@ export function toRecommendationJobRequest(optionIds: string[]) {
     targetServings: servings ? Number(servings.slice(9)) : undefined,
     preferenceTags: toTasteLabels(
       optionIds.filter((id) => id !== servings),
-    ).slice(0, 12),
+    ).slice(0, MAX_TASTE_TAGS),
   };
 }
