@@ -41,7 +41,7 @@ export type ImageAnalysisImageResult = {
   imageObjectKey: string;
   status: ImageAnalysisStatus;
   recognitionStatus: ImageAnalysisDisplayStatus | null;
-  documentType: "RECEIPT" | null;
+  documentType: "RECEIPT" | "PRODUCT" | null;
   items: ImageAnalysisItem[];
   error: ImageAnalysisError | null;
 };

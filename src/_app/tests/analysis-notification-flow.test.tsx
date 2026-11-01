@@ -142,7 +142,7 @@ function App() {
 
 it("홈에서 이미지별 성공·실패와 전체 완료를 SSE → 목록 재조회 → 배너 순서로 반영한다", async () => {
   render(<App />);
-  await screen.findByText("영수증 인식 중 · 0/3장");
+  await screen.findByText("사진 인식 중 · 0/3장");
   const source = Stream.instances[0];
   for (const counts of [
     { completedImageCount: 1, failedImageCount: 0 },
@@ -160,7 +160,7 @@ it("홈에서 이미지별 성공·실패와 전체 완료를 SSE → 목록 재
       }),
     );
     await screen.findByText(
-      `영수증 인식 중 · ${counts.completedImageCount + counts.failedImageCount}/3장`,
+      `사진 인식 중 · ${counts.completedImageCount + counts.failedImageCount}/3장`,
     );
   }
   job = { ...job, status: "PARTIALLY_COMPLETED", completedImageCount: 2 };
@@ -201,7 +201,7 @@ it("배너는 결과 링크를 제공하고 결과 확인 뒤 홈으로 돌아�
 
 it("일반 알림은 목록·미읽음 수를 갱신하고 분석 이벤트는 두 캐시와 알림 API를 건드리지 않는다", async () => {
   render(<App />);
-  await screen.findByText("영수증 인식 중 · 0/3장");
+  await screen.findByText("사진 인식 중 · 0/3장");
   fetchMock.mockClear();
   unreadCount = 2;
   const source = Stream.instances[0];
@@ -230,7 +230,7 @@ it("일반 알림은 목록·미읽음 수를 갱신하고 분석 이벤트는 �
   act(() =>
     source.emit("image-analysis.image-finished", { analysisId: "job-1" }),
   );
-  await screen.findByText("영수증 인식 중 · 1/3장");
+  await screen.findByText("사진 인식 중 · 1/3장");
   expect(queryClient.getQueryData(countKey)).toEqual({
     refrigeratorId: "17",
     unreadCount: 2,
@@ -249,7 +249,7 @@ it.each([
   "전체 종료 $status 이벤트 뒤 서버 상태를 배너에 표시한다",
   async ({ status, text }) => {
     render(<App />);
-    await screen.findByText("영수증 인식 중 · 0/3장");
+    await screen.findByText("사진 인식 중 · 0/3장");
     job = { ...job, status };
     act(() =>
       Stream.instances[0].emit("image-analysis.finished", {
@@ -263,7 +263,7 @@ it.each([
 
 it("서버 목록이 등록 완료 작업을 제외하면 새로고침으로 메모리 상태를 비워도 배너가 다시 나오지 않는다", async () => {
   const view = render(<App />);
-  await screen.findByText("영수증 인식 중 · 0/3장");
+  await screen.findByText("사진 인식 중 · 0/3장");
   act(() =>
     useRegisteredAnalyses.getState().markRegistered("session", "job-1"),
   );
@@ -283,10 +283,10 @@ it("서버 목록이 등록 완료 작업을 제외하면 새로고침으로 메
 it("놓친 분석 이벤트가 있어도 재접속·화면 복귀 때 서버 최신 결과로 배너를 복구한다", async () => {
   vi.spyOn(document, "visibilityState", "get").mockReturnValue("visible");
   render(<App />);
-  await screen.findByText("영수증 인식 중 · 0/3장");
+  await screen.findByText("사진 인식 중 · 0/3장");
   job = { ...job, completedImageCount: 2 };
   act(() => Stream.instances[0].emit("connected"));
-  await screen.findByText("영수증 인식 중 · 2/3장");
+  await screen.findByText("사진 인식 중 · 2/3장");
   await waitFor(() => expect(queryClient.isFetching()).toBe(0));
   job = { ...job, status: "COMPLETED", completedImageCount: 3 };
   act(() => document.dispatchEvent(new Event("visibilitychange")));

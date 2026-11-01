@@ -26,14 +26,14 @@ export function ReceiptPreview({
       {shownPhoto ? (
         <Image
           src={shownPhoto.url}
-          alt={`영수증 ${shownIndex + 1} / ${photos.length}`}
+          alt={`사진 ${shownIndex + 1} / ${photos.length}`}
           fill
           unoptimized
           className="object-contain"
         />
       ) : (
         <p className="m-0 px-6 text-center text-[13.5px] text-app-ink/60">
-          촬영한 영수증이 여기에 보여요
+          영수증 또는 재료 실물을 찍어 주세요
         </p>
       )}
       {photos.length > 1 ? (

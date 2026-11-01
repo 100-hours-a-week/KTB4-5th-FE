@@ -34,7 +34,7 @@ export function ReceiptUncheckedResultDialog({
     0,
   );
   const summary = [
-    `영수증 ${analysis.totalImageCount}장 · 품목 ${itemCount}개`,
+    `사진 ${analysis.totalImageCount}장 · 품목 ${itemCount}개`,
     getDeletionLabel(analysis.expiresAt),
   ]
     .filter(Boolean)

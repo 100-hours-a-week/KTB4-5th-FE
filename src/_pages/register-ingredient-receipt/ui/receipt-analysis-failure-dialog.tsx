@@ -24,10 +24,10 @@ export function ReceiptAnalysisFailureDialog({
     <AppDialog
       open={failure === "FAILED"}
       dismissBehavior="none"
-      title="영수증을 읽지 못했어요"
+      title="재료를 찾지 못했어요"
       description={
         failureMessage ??
-        "밝은 곳에서 영수증 전체가 보이게 다시 찍거나, 직접 입력해 주세요."
+        "밝은 곳에서 영수증 전체나 재료가 잘 보이게 다시 찍거나, 직접 입력해 주세요."
       }
       secondaryAction={{
         label: "직접 입력",

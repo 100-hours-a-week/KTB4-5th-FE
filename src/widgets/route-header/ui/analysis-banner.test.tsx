@@ -15,7 +15,7 @@ it("shows the supplied image progress and replaces it with the completion messag
   const processing = renderToStaticMarkup(
     <AnalysisBanner status="processing" processedCount={2} totalCount={3} />,
   );
-  expect(processing).toContain("영수증 인식 중 · 2/3장");
+  expect(processing).toContain("사진 인식 중 · 2/3장");
   expect(processing).not.toContain("결과 확인");
 
   const completed = renderToStaticMarkup(<AnalysisBanner status="completed" />);
