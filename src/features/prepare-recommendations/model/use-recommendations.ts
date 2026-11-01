@@ -27,7 +27,14 @@ export function useRecommendations(refrigeratorId: string | null | undefined) {
   });
   const switchJob = useMutation({
     mutationFn: switchToNewRecommendation,
-    onSuccess: (_, id) => invalidate(id),
+    onSuccess: async (_, id) => {
+      await Promise.all([
+        invalidate(id),
+        queryClient.invalidateQueries({
+          queryKey: ["refrigerators", id, "recipes"],
+        }),
+      ]);
+    },
   });
   const query = useQuery({
     ...recommendationQueries.list(refrigeratorId ?? ""),

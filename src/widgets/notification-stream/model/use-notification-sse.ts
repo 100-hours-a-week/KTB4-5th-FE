@@ -106,10 +106,17 @@ export function useNotificationSse(userScope: string, refrigeratorId: string) {
         refreshRecommendations();
         refresh();
       });
-      stream.addEventListener("recommendation.finished", (event) => {
+      stream.addEventListener("recommendation", (event) => {
         if (!active || stream !== source) return;
         try {
-          if (JSON.parse(event.data)?.refrigeratorId === refrigeratorId) {
+          const payload: unknown = JSON.parse(event.data);
+          if (
+            typeof payload === "object" &&
+            payload !== null &&
+            "generationStatus" in payload &&
+            (payload.generationStatus === "COMPLETED" ||
+              payload.generationStatus === "FAILED")
+          ) {
             refreshRecommendations();
           }
         } catch {

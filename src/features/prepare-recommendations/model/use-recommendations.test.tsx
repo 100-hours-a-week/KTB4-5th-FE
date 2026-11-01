@@ -42,7 +42,7 @@ function wrapper({ children }: { children: ReactNode }) {
     </StrictMode>
   );
 }
-it.each(["READY", "STALE", "GENERATING", "EMPTY", "LIMIT_REACHED"])(
+it.each(["READY", "STALE", "GENERATING", "EMPTY"])(
   "%s never starts a job on entry and keeps the displayed response",
   async (status) => {
     const data = { status, recipes: [{ recipeId: "51" }] };

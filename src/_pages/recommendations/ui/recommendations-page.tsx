@@ -69,12 +69,11 @@ export function RecommendationsPage() {
     useRecommendations(refrigeratorId);
   const [sort, setSort] = useState<RecipeSort>("EXPIRING");
   const tasteIds = useTodayTaste();
+  const generating = data?.status === "GENERATING" || job.isPending;
   const limitReached =
-    data?.status === "LIMIT_REACHED" ||
-    (job.error instanceof ApiError && job.error.status === 429);
-  const generating =
-    (data?.status === "GENERATING" && data.generationTrigger !== "SCHEDULED") ||
-    job.isPending;
+    !generating &&
+    (data?.dailyGeneration.remaining === 0 ||
+      (job.error instanceof ApiError && job.error.status === 429));
 
   if (refrigeratorId === null)
     return (
@@ -202,23 +201,9 @@ export function RecommendationsPage() {
           >
             새 추천을 준비하고 있어요. 준비되면 알려 드릴게요.
           </p>
-        ) : data.status === "STALE" &&
-          data.recipes.length > 0 &&
-          !data.hasNewRecommendation ? (
-          <section className="flex items-center justify-between gap-3 rounded-[4px] bg-app-warning/15 px-4 py-2.5">
-            <p className="m-0 break-keep text-[12.5px] font-bold">
-              재고가 바뀌어 추천이 오래됐어요. 오늘{" "}
-              {data.dailyGeneration.remaining}번 더 받을 수 있어요.
-            </p>
-            <AppLink
-              href={routes.recommendationTaste}
-              className="flex-none text-[12.5px] font-black text-app-ink underline"
-            >
-              다시 추천
-            </AppLink>
-          </section>
         ) : null}
-        {job.isError && !limitReached ? (
+        {(job.isError || data.generationStatus === "FAILED") &&
+        !limitReached ? (
           <p role="alert" className="m-0 text-[13px] text-app-primary">
             {data.recipes.length > 0
               ? "새 추천을 만들지 못했어요. 기존 추천은 계속 볼 수 있어요."
@@ -244,7 +229,8 @@ export function RecommendationsPage() {
               ))}
             </ul>
           </section>
-        ) : job.isError && !limitReached ? (
+        ) : (job.isError || data.generationStatus === "FAILED") &&
+          !limitReached ? (
           <AsyncViewState
             status="error"
             title="추천을 준비하지 못했어요"
@@ -260,8 +246,7 @@ export function RecommendationsPage() {
           />
         ) : generating ? (
           <PreparingState />
-        ) : (data.status === "EMPTY" || data.status === "STALE") &&
-          !limitReached ? (
+        ) : data.status === "EMPTY" && !limitReached ? (
           <AsyncViewState
             status="empty"
             title="아직 추천이 없어요"

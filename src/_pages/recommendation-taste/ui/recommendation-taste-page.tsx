@@ -25,7 +25,7 @@ export function RecommendationTastePage() {
   const [selected, setSelected] = useState<string[] | null>(null);
   const value = selected ?? savedIds ?? [];
   const limitReached =
-    data?.status === "LIMIT_REACHED" ||
+    data?.dailyGeneration.remaining === 0 ||
     (job.error instanceof ApiError && job.error.status === 429);
   const disabled =
     !refrigeratorId ||
