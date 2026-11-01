@@ -1,5 +1,10 @@
+import { z } from "zod";
 import { queryOptions } from "@tanstack/react-query";
-import { requestJson, requestJsonOrNoContent } from "@/shared/api";
+import {
+  requestJson,
+  requestJsonOrNoContent,
+  requestJsonWithHeaders,
+} from "@/shared/api";
 import {
   recommendationSchema,
   recommendationJobSchema,
@@ -27,7 +32,7 @@ export async function createRecommendationJob(
 ) {
   const { data } = await requestJson<unknown>(
     `${base(refrigeratorId)}/recommendation-jobs`,
-    { method: "POST", json: { mode: "INCLUDE_EXPIRED", ...body } },
+    { method: "POST", json: body },
   );
   return recommendationJobSchema.parse(data);
 }
@@ -44,17 +49,24 @@ export async function getRecipeDetail(
   recipeId: string,
   signal?: AbortSignal,
 ) {
-  const { data } = await requestJson<unknown>(
+  const { body, headers } = await requestJsonWithHeaders<unknown>(
     `${base(refrigeratorId)}/recipes/${encodeURIComponent(recipeId)}`,
     { signal },
   );
-  return recipeDetailSchema.parse(data);
+  return {
+    ...recipeDetailSchema.parse(body.data),
+    etag: z
+      .string()
+      .regex(/^"[0-9a-f]{64}"$/)
+      .parse(headers.get("ETag")),
+  };
 }
 
 export async function applyRecipe(
   refrigeratorId: string,
   body: { recommendationId: string; recipeId: string },
   requestKey: string,
+  etag: string,
 ) {
   return requestJsonOrNoContent<{
     recipeId: string;
@@ -62,7 +74,7 @@ export async function applyRecipe(
   }>(`${base(refrigeratorId)}/cooking-records`, {
     method: "POST",
     json: body,
-    headers: { "Idempotency-Key": requestKey },
+    headers: { "Idempotency-Key": requestKey, "If-Match": etag },
   });
 }
 

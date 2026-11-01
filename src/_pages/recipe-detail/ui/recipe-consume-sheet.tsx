@@ -5,6 +5,7 @@ import {
   AppBottomSheetDescription,
   AppBottomSheetTitle,
 } from "@/shared/ui/app-bottom-sheet";
+import { AppDialog } from "@/shared/ui/app-dialog";
 import { Badge } from "@/shared/ui/badge";
 import { FooterButton } from "@/shared/ui/footer-button";
 
@@ -33,6 +34,43 @@ export function RecipeConsumeSheet({
 }: RecipeConsumeSheetProps) {
   const isPending = status === "pending";
   const hasRemovedRow = rows.some((row) => row.after === 0);
+  const failure =
+    status === "error" ? (
+      <p
+        role="alert"
+        className="mt-2 mb-0 rounded-[4px] bg-[var(--color-accent-100)] px-4 py-3 text-[12.5px] font-bold leading-[1.45] text-app-primary"
+      >
+        {errorMessage ??
+          "처리 결과를 확인하지 못했어요. 같은 요청으로 다시 확인해 주세요."}
+      </p>
+    ) : null;
+
+  if (rows.length === 0) {
+    return (
+      <AppDialog
+        open={open}
+        title={`${recipeName} 요리 기록을 저장할까요?`}
+        description="차감할 재료가 없어 요리 기록만 저장돼요. 저장 후 되돌릴 수 없습니다."
+        dismissBehavior={isPending ? "none" : "secondary-action"}
+        secondaryAction={{
+          label: "취소",
+          onClick: onDismiss,
+          disabled: isPending,
+        }}
+        primaryAction={{
+          label: isPending
+            ? "저장 중…"
+            : status === "error"
+              ? "다시 시도"
+              : "기록 저장",
+          onClick: onConfirm,
+          disabled: isPending,
+        }}
+      >
+        {failure}
+      </AppDialog>
+    );
+  }
 
   return (
     <AppBottomSheet
@@ -41,18 +79,16 @@ export function RecipeConsumeSheet({
       dismissBehavior={isPending ? "none" : "dismiss"}
     >
       <AppBottomSheetTitle className="m-0 font-app-heading text-[18px] font-black leading-tight">
-        {rows.length > 0 ? "이 재료를 차감할까요?" : "이 요리를 적용할까요?"}
+        이 재료를 차감할까요?
       </AppBottomSheetTitle>
       <AppBottomSheetDescription className="mt-1.5 mb-0 break-keep text-[12.5px] leading-[1.45] text-app-ink/60">
-        {rows.length > 0
-          ? `'${recipeName}'의 예상 차감 수량이에요. 현재 재고에 따라 실제 차감 수량이 달라질 수 있어요. 적용 후 되돌릴 수 없습니다.`
-          : "차감할 재료가 없어 요리 기록만 저장돼요. 적용 후 되돌릴 수 없습니다."}
+        {`'${recipeName}'의 차감 수량이에요. 재고가 바뀌면 다시 확인해야 해요. 적용 후 되돌릴 수 없습니다.`}
       </AppBottomSheetDescription>
 
       <ul className="mt-2 flex flex-col">
         {rows.map((row) => (
           <li
-            key={row.recipeIngredientId}
+            key={row.ingredientId}
             className="grid grid-cols-2 items-center gap-2.5 border-app-neutral-200 py-3 [&+&]:border-t"
           >
             <span className="min-w-0 wrap-anywhere text-[15px] font-bold text-app-ink">
@@ -66,9 +102,7 @@ export function RecipeConsumeSheet({
                 tone="muted"
                 className="max-w-full wrap-anywhere whitespace-normal!"
               >
-                {row.partial
-                  ? "보유량에서 차감"
-                  : `${row.before} › ${row.after}${row.unitLabel}`}
+                {`${row.before} › ${row.after}${row.unitLabel}`}
               </Badge>
             </span>
           </li>
@@ -77,20 +111,11 @@ export function RecipeConsumeSheet({
 
       {hasRemovedRow ? (
         <p className="mt-2 mb-0 rounded-[4px] bg-app-neutral-100 px-4 py-3 text-[12.5px] leading-[1.45] text-app-ink/60">
-          실제 차감 수량과 소진 재고 처리는 적용 시 현재 재고를 기준으로
-          확정돼요.
+          수량이 0이 되는 재고는 삭제돼요.
         </p>
       ) : null}
 
-      {status === "error" ? (
-        <p
-          role="alert"
-          className="mt-2 mb-0 rounded-[4px] bg-[var(--color-accent-100)] px-4 py-3 text-[12.5px] font-bold leading-[1.45] text-app-primary"
-        >
-          {errorMessage ??
-            "처리 결과를 확인하지 못했어요. 같은 요청으로 다시 확인해 주세요."}
-        </p>
-      ) : null}
+      {failure}
 
       <div className="mt-4 flex gap-2">
         <FooterButton
@@ -111,9 +136,7 @@ export function RecipeConsumeSheet({
             ? "차감 중…"
             : status === "error"
               ? "다시 시도"
-              : rows.length > 0
-                ? "차감하기"
-                : "적용하기"}
+              : "차감하기"}
         </FooterButton>
       </div>
     </AppBottomSheet>

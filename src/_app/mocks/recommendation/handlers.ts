@@ -48,13 +48,12 @@ export function createRecommendationHandlers() {
         scenario === "LIMIT_EMPTY";
       const status: Recommendation["status"] =
         scenario === "LIMIT_EMPTY"
-          ? "LIMIT_REACHED"
+          ? "EMPTY"
           : scenario === "GENERATING_EMPTY"
             ? "GENERATING"
             : scenario === "STALE" ||
                 scenario === "GENERATING" ||
-                scenario === "EMPTY" ||
-                scenario === "LIMIT_REACHED"
+                scenario === "EMPTY"
               ? scenario
               : "READY";
       value = {
@@ -65,7 +64,7 @@ export function createRecommendationHandlers() {
           activeJobId: status === "GENERATING" ? "rjob_88" : null,
           dailyGeneration: {
             limit: 10,
-            remaining: status === "LIMIT_REACHED" ? 0 : 3,
+            remaining: scenario.startsWith("LIMIT") ? 0 : 3,
             resetAt: `${new Date(Date.parse(getTodayInSeoul()) + 86400000).toISOString().slice(0, 10)}T00:00:00+09:00`,
           },
           recipes:

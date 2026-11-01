@@ -49,35 +49,62 @@ const recipe = (ingredients: RecipeIngredient[]): RecipeDetail => ({
   ingredients,
   steps: [],
 });
-it("excludes expired stocks, includes today, and caps insufficient deductions", () => {
+it("shows ownership without calculating shortages, excluding expired stocks and including today", () => {
   expect(getRecipeIngredientState(ingredient, today)).toEqual({
-    kind: "short",
+    kind: "owned",
     ingredientId: "today",
-    shortage: "1개",
+    daysUntilExpiration: 0,
   });
-  expect(getRecipeConsumeRows(recipe([ingredient]), today)).toEqual([
+  expect(
+    getRecipeIngredientState({ ...ingredient, stocks: [] }, today),
+  ).toEqual({ kind: "missing" });
+});
+it("previews only server-calculated deductions and merges shared stock allocations", () => {
+  const calculated: RecipeIngredient = {
+    ...ingredient,
+    stocks: [
+      {
+        ...ingredient.stocks[1],
+        ownedAmount: 5,
+        usedAmount: 1,
+        allocationStatus: "CALCULATED",
+      },
+      ingredient.stocks[2],
+    ],
+  };
+  const second = {
+    ...calculated,
+    recipeIngredientId: "12",
+    stocks: [{ ...calculated.stocks[0], usedAmount: 2 }],
+  };
+  expect(getRecipeConsumeRows(recipe([calculated, second]))).toEqual([
     {
-      recipeIngredientId: "11",
+      ingredientId: "today",
       name: "두부",
       amountText: "3개",
-      before: 2,
-      after: 0,
+      before: 5,
+      after: 2,
       unitLabel: "개",
-      partial: true,
     },
   ]);
 });
-it("skips missing, unquantifiable, and mixed-unit deductions", () => {
-  const missing = { ...ingredient, stocks: [] };
-  expect(getRecipeIngredientState(missing, today)).toEqual({ kind: "missing" });
+it("does not invent deductions for unresolved, empty or zero allocations", () => {
   expect(
     getRecipeConsumeRows(
       recipe([
-        missing,
-        { ...ingredient, requiredAmount: null },
-        { ...ingredient, stocks: [{ ...ingredient.stocks[1], unit: "G" }] },
+        ingredient,
+        { ...ingredient, stocks: [] },
+        {
+          ...ingredient,
+          stocks: [
+            {
+              ...ingredient.stocks[1],
+              usedAmount: 0,
+              allocationStatus: "CALCULATED",
+            },
+          ],
+        },
       ]),
-      today,
     ),
   ).toEqual([]);
 });

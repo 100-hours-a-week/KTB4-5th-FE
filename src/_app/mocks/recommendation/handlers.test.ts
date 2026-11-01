@@ -30,7 +30,9 @@ it.each(["READY", "STALE", "GENERATING", "EMPTY", "LIMIT_REACHED"])(
   async (status) => {
     const first = await (await call("recommendations", status)).json();
     const second = await (await call("recommendations", status)).json();
-    expect(first.data.status).toBe(status);
+    expect(first.data.status).toBe(
+      status === "LIMIT_REACHED" ? "READY" : status,
+    );
     expect(second).toEqual(first);
     expect(first.data.recipes).toHaveLength(status === "EMPTY" ? 0 : 10);
   },

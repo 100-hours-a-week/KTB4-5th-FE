@@ -6,17 +6,15 @@ import type {
 
 export type RecipeIngredientState =
   | { kind: "owned"; ingredientId: string; daysUntilExpiration: number }
-  | { kind: "short"; ingredientId: string; shortage: string }
   | { kind: "missing" };
 
 export type RecipeConsumeRow = {
-  recipeIngredientId: string;
+  ingredientId: string;
   name: string;
   amountText: string;
   before: number;
   after: number;
   unitLabel: string;
-  partial: boolean;
 };
 
 const UNIT_LABELS = {
@@ -37,26 +35,6 @@ function usableStocks(ingredient: RecipeIngredient, today: string) {
     .toSorted((a, b) => a.expirationDate.localeCompare(b.expirationDate));
 }
 
-function comparableAmount(ingredient: RecipeIngredient, today: string) {
-  const stocks = usableStocks(ingredient, today);
-  const { requiredAmount, unit } = ingredient;
-
-  if (
-    stocks.length === 0 ||
-    requiredAmount === null ||
-    unit === null ||
-    stocks.some((stock) => stock.unit !== unit)
-  ) {
-    return null;
-  }
-
-  return {
-    required: requiredAmount,
-    owned: stocks.reduce((sum, stock) => sum + stock.ownedAmount, 0),
-    unitLabel: UNIT_LABELS[unit],
-  };
-}
-
 export function getRecipeIngredientState(
   ingredient: RecipeIngredient,
   today: string,
@@ -67,16 +45,6 @@ export function getRecipeIngredientState(
     return { kind: "missing" };
   }
 
-  const amount = comparableAmount(ingredient, today);
-
-  if (amount && amount.owned < amount.required) {
-    return {
-      kind: "short",
-      ingredientId: nearest.ingredientId,
-      shortage: `${amount.required - amount.owned}${amount.unitLabel}`,
-    };
-  }
-
   return {
     kind: "owned",
     ingredientId: nearest.ingredientId,
@@ -84,25 +52,24 @@ export function getRecipeIngredientState(
   };
 }
 
-export function getRecipeConsumeRows(
-  recipe: RecipeDetail,
-  today: string,
-): RecipeConsumeRow[] {
-  return recipe.ingredients.flatMap((ingredient) => {
-    const amount = comparableAmount(ingredient, today);
-
-    if (!amount) {
-      return [];
+export function getRecipeConsumeRows(recipe: RecipeDetail): RecipeConsumeRow[] {
+  const rows = new Map<string, RecipeConsumeRow>();
+  for (const ingredient of recipe.ingredients) {
+    for (const stock of ingredient.stocks) {
+      if (stock.allocationStatus !== "CALCULATED" || !stock.usedAmount)
+        continue;
+      const row = rows.get(stock.ingredientId) ?? {
+        ingredientId: stock.ingredientId,
+        name: ingredient.name,
+        amountText: "",
+        before: stock.ownedAmount,
+        after: stock.ownedAmount,
+        unitLabel: UNIT_LABELS[stock.unit],
+      };
+      row.after -= stock.usedAmount;
+      row.amountText = `${row.before - row.after}${row.unitLabel}`;
+      rows.set(stock.ingredientId, row);
     }
-
-    return {
-      recipeIngredientId: ingredient.recipeIngredientId,
-      name: ingredient.name,
-      amountText: ingredient.amountText,
-      before: amount.owned,
-      after: Math.max(0, amount.owned - amount.required),
-      unitLabel: amount.unitLabel,
-      partial: amount.owned < amount.required,
-    };
-  });
+  }
+  return [...rows.values()];
 }

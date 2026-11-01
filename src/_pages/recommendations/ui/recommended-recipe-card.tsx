@@ -57,7 +57,9 @@ export function RecommendedRecipeCard({
             {recipe.ingredientCounts.owned !== null
               ? `보유 ${recipe.ingredientCounts.owned} / `
               : null}
-            전체 {recipe.ingredientCounts.total}
+            {recipe.ingredientCounts.total === null
+              ? "재료 수 확인 불가"
+              : `전체 ${recipe.ingredientCounts.total}`}
           </span>
           {(recipe.ingredientCounts.expiring ?? 0) > 0 ? (
             <span className="font-bold text-app-ink">

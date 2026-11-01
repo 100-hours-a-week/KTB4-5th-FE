@@ -52,17 +52,6 @@ function IngredientStateBadge({ state }: { state: RecipeIngredientState }) {
     );
   }
 
-  if (state.kind === "short") {
-    return (
-      <Badge
-        tone="highlight"
-        className="max-w-full wrap-anywhere whitespace-normal!"
-      >
-        부족 · {state.shortage}
-      </Badge>
-    );
-  }
-
   return (
     <Badge tone="muted" className="max-w-full wrap-anywhere whitespace-normal!">
       보유 · {formatDaysUntilExpiration(state.daysUntilExpiration)}
@@ -130,6 +119,7 @@ export function RecipeDetailPage({
       refrigeratorId={refrigeratorId}
       recommendationId={resolvedRecommendationId}
       recipe={detail.data}
+      etag={detail.data.etag}
     />
   );
 }
@@ -138,29 +128,51 @@ function RecipeDetailContent({
   refrigeratorId,
   recommendationId,
   recipe,
+  etag,
 }: {
   refrigeratorId: string;
   recommendationId: string | null;
   recipe: RecipeDetail;
+  etag: string;
 }) {
   const [isConsumeSheetOpen, setIsConsumeSheetOpen] = useState(false);
   // 응답 유실·시트 닫기 후 재시도에도 같은 조리 요청의 키를 유지한다.
-  const requestKey = useRef<string | null>(null);
+  const requestKey = useRef<{ key: string; etag: string } | null>(null);
   const queryClient = useQueryClient();
   const consume = useMutation({
     mutationFn: () => {
       if (!recommendationId)
         throw new Error("추천 목록에서 요리를 다시 선택해 주세요.");
-      requestKey.current ??= crypto.randomUUID();
+      requestKey.current ??= { key: crypto.randomUUID(), etag };
       return applyRecipe(
         refrigeratorId,
         { recommendationId, recipeId: recipe.recipeId },
-        requestKey.current,
+        requestKey.current.key,
+        requestKey.current.etag,
       );
+    },
+    onError: (error) => {
+      if (error instanceof ApiError && error.status === 412) {
+        requestKey.current = null;
+        setIsConsumeSheetOpen(false);
+        void queryClient.invalidateQueries({
+          queryKey: recommendationQueries.detail(
+            refrigeratorId,
+            recipe.recipeId,
+          ).queryKey,
+        });
+        showAppToast({
+          message: "재료 정보가 바뀌었어요. 차감할 재료를 다시 확인해 주세요.",
+          variant: "error",
+        });
+      }
     },
     onSuccess: () => {
       requestKey.current = null;
       setIsConsumeSheetOpen(false);
+      void queryClient.invalidateQueries({
+        queryKey: recommendationQueries.list(refrigeratorId).queryKey,
+      });
       void invalidateIngredients(queryClient, refrigeratorId);
       void queryClient.invalidateQueries({
         queryKey: refrigeratorQueries.mypage(refrigeratorId).queryKey,
@@ -175,14 +187,14 @@ function RecipeDetailContent({
     },
   });
   const today = getTodayInSeoul();
-  const consumeRows = getRecipeConsumeRows(recipe, today);
+  const consumeRows = getRecipeConsumeRows(recipe);
   const stockIngredients = recipe.ingredients;
   const summaryChips = [
     recipe.cookingTimeMinutes !== null
       ? `조리 ${recipe.cookingTimeMinutes}분`
       : null,
     recipe.targetServings !== null ? `${recipe.targetServings}인분` : null,
-    recipe.expiringIngredientCount > 0
+    (recipe.expiringIngredientCount ?? 0) > 0
       ? `임박 재료 ${recipe.expiringIngredientCount}개`
       : null,
   ].filter((chip) => chip !== null);
@@ -248,14 +260,14 @@ function RecipeDetailContent({
             필요한 재료
           </h3>
           <ul className="mt-1 flex flex-col">
-            {stockIngredients.map((ingredient) => {
+            {stockIngredients.map((ingredient, index) => {
               const state = getRecipeIngredientState(ingredient, today);
               const ingredientId =
                 state.kind === "missing" ? null : state.ingredientId;
 
               return (
                 <li
-                  key={ingredient.recipeIngredientId}
+                  key={ingredient.recipeIngredientId ?? index}
                   className="grid grid-cols-2 items-center gap-2.5 border-app-neutral-200 py-3 [&+&]:border-t"
                 >
                   {ingredientId ? (
@@ -306,7 +318,7 @@ function RecipeDetailContent({
 
         <p className="m-0 break-keep text-[12.5px] leading-[1.45] text-app-ink/50">
           {recommendationId
-            ? "적용하면 비교 가능한 보유 재료가 차감돼요. 차감할 재료가 없어도 요리 기록은 저장돼요."
+            ? "적용하면 만료되지 않은 보유 재료 중 계산 가능한 양만 차감돼요. 차감할 재료가 없어도 요리 기록은 저장돼요."
             : "추천 목록에서 요리를 다시 선택해 주세요."}
         </p>
       </div>

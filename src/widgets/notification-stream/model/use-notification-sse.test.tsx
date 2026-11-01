@@ -414,3 +414,30 @@ it("online 이벤트에서 닫힌 연결만 바로 다시 열고 예약된 재�
   await advance(30_000);
   expect(FakeEventSource.instances).toHaveLength(2);
 });
+
+it.each(["COMPLETED", "FAILED"])(
+  "backend recommendation %s signal refreshes the current refrigerator without a refrigeratorId payload",
+  (generationStatus) => {
+    const invalidate = vi.spyOn(queryClient, "invalidateQueries");
+    renderHook(() => useNotificationSse("user", "17"), { wrapper });
+    const source = FakeEventSource.instances[0];
+    for (const payload of [
+      "invalid",
+      "null",
+      "[]",
+      '{"generationStatus":"QUEUED"}',
+    ]) {
+      act(() => source.emit("recommendation", payload));
+    }
+    expect(invalidate).not.toHaveBeenCalled();
+    act(() =>
+      source.emit(
+        "recommendation",
+        JSON.stringify({ generationTrigger: "USER", generationStatus }),
+      ),
+    );
+    expect(invalidate).toHaveBeenCalledWith({
+      queryKey: ["refrigerators", "17", "recommendations"],
+    });
+  },
+);

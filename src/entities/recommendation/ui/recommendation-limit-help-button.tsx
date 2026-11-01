@@ -7,10 +7,10 @@ import { useState } from "react";
 import { AppDialog } from "@/shared/ui/app-dialog";
 
 const LIMIT_HELP_DESCRIPTION = [
-  "① 재고가 바뀐 경우에만 새 추천이 자동으로 생성돼요. 요리를 적용해도 재고가 바뀌어 다음 진입 때 1회를 써요.",
+  "① 취향을 선택해 추천을 요청하면 생성 횟수를 사용해요. 목록을 열거나 요리를 적용하는 것만으로 새 추천을 만들지는 않아요.",
   "② 기존 추천을 다시 보거나 정렬만 바꾸면 횟수가 줄지 않아요.",
   "③ 하루 한도에 도달하면 기존 추천을 계속 보여드려요.",
-  "④ 새 추천은 다음 날 다시 생성돼요.",
+  "④ 생성 횟수는 매일 자정(한국 시간)에 초기화돼요.",
 ].join("\n");
 
 export function RecommendationLimitHelpButton() {
@@ -34,7 +34,7 @@ export function RecommendationLimitHelpButton() {
       </button>
       <AppDialog
         open={open}
-        title="추천은 냉장고당 하루 10회 새로 만들어요"
+        title="추천은 사용자당 하루 10회 새로 만들어요"
         description={LIMIT_HELP_DESCRIPTION}
         primaryAction={{ label: "알겠어요", onClick: () => setOpen(false) }}
       />

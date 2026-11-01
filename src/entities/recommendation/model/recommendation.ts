@@ -12,14 +12,14 @@ export const recommendedRecipeSchema = z.object({
   imageUrl: z.string().nullable(),
   cookingTimeMinutes: z.number().nullable(),
   ingredientCounts: z.object({
-    total: z.number().int().nonnegative(),
+    total: z.number().int().nonnegative().nullable(),
     owned: z.number().int().nonnegative().nullable(),
     expiring: z.number().int().nonnegative().nullable(),
   }),
 });
 export const recommendationSchema = z.object({
   recommendationId: z.string().nullable(),
-  status: z.enum(["READY", "STALE", "GENERATING", "EMPTY", "LIMIT_REACHED"]),
+  status: z.enum(["READY", "STALE", "GENERATING", "EMPTY"]),
   generatedAt: z.string().nullable(),
   activeJobId: z.string().nullable(),
   dailyGeneration,
@@ -57,13 +57,13 @@ export const recipeDetailSchema = z.object({
   imageUrl: z.string().nullable(),
   cookingTimeMinutes: z.number().nullable(),
   targetServings: z.number().nullable(),
-  expiringIngredientCount: z.number().int().nonnegative(),
+  expiringIngredientCount: z.number().int().nonnegative().nullable(),
   ingredients: z.array(
     z.object({
-      recipeIngredientId: z.string(),
+      recipeIngredientId: z.string().nullable(),
       name: z.string(),
       requiredAmount: z.number().nonnegative().nullable(),
-      amountText: z.string(),
+      amountText: z.string().nullable(),
       unit: amountUnit.nullable(),
       stocks: z.array(
         z.object({

@@ -10,7 +10,10 @@ export const RECIPE_SORT_LABELS: Record<RecipeSort, string> = {
 };
 
 const shortage = (recipe: RecommendedRecipe) =>
-  recipe.ingredientCounts.total - (recipe.ingredientCounts.owned ?? 0);
+  recipe.ingredientCounts.total === null ||
+  recipe.ingredientCounts.owned === null
+    ? Infinity
+    : recipe.ingredientCounts.total - recipe.ingredientCounts.owned;
 
 const compare: Record<
   RecipeSort,
