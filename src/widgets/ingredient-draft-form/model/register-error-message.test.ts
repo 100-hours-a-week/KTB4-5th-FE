@@ -50,3 +50,13 @@ it("분석 결과 404는 냉장고 오류로 안내하지 않는다", () => {
     ),
   ).toContain("분석 결과");
 });
+
+it("분석 연결·냉장고 불일치는 일반 입력 오류와 구분한다", () => {
+  expect(
+    getRegisterErrorMessage(
+      new ApiError(400, { code: "IMAGE-400-002", title: "Mismatch" }),
+    ),
+  ).toBe(
+    "사진 분석 결과와 등록 대상이 달라요. 분석 당시 냉장고에서 다시 확인해 주세요",
+  );
+});

@@ -14,6 +14,10 @@ import { analysisFixture } from "@/entities/image/api/image-analysis.test-fixtur
 import { getTodayInSeoul } from "@/shared/lib/seoul-date";
 import { toRecognitionResult } from "./receipt-recognition";
 import { useReceiptResultForm } from "./use-receipt-result-form";
+import { useReceiptResultStore } from "./use-receipt-result-store";
+import { showAppToast } from "@/shared/ui/app-toast";
+
+const currentFridge = vi.hoisted(() => ({ id: "17" }));
 
 vi.mock("@lineiconshq/free-icons", () => ({ CalendarDaysOutlined: {} }));
 vi.mock("@lineiconshq/react-lineicons", () => ({ Lineicons: () => null }));
@@ -21,7 +25,7 @@ vi.mock("@/entities/refrigerator", async () => ({
   refrigeratorQueries: (
     await import("@/entities/refrigerator/api/refrigerator.queries")
   ).refrigeratorQueries,
-  useCurrentRefrigeratorId: () => "17",
+  useCurrentRefrigeratorId: () => currentFridge.id,
 }));
 vi.mock("@/entities/notification", () => ({
   useNotificationSessionScope: () => "session",
@@ -35,6 +39,9 @@ const recognition = toRecognitionResult(analysisFixture);
 recognition.drafts[0].expirationDate = getTodayInSeoul();
 
 beforeEach(() => {
+  currentFridge.id = "17";
+  useReceiptResultStore.setState({ refrigeratorIds: {} });
+  vi.mocked(showAppToast).mockClear();
   queryClient = new QueryClient({
     defaultOptions: { mutations: { retry: false } },
   });
@@ -125,4 +132,53 @@ it("등록 실패 시 배너 대상과 입력값을 유지하고 완료로 표�
     queryClient.getQueryData<ImageAnalysisList>(listKey)?.analyses,
   ).toEqual([analysisFixture]);
   expect(result.current.form.getValues("drafts")).toEqual(recognition.drafts);
+});
+
+it("분석 당시와 다른 냉장고에는 요청하지 않고, 원래 냉장고로 돌아오면 입력을 유지해 등록한다", async () => {
+  useReceiptResultStore
+    .getState()
+    .rememberRefrigerator(recognition.analysisId, "17");
+  currentFridge.id = "18";
+  const { result, rerender } = renderHook(
+    () => useReceiptResultForm(recognition),
+    { wrapper },
+  );
+  await act(async () => {
+    await result.current.submit();
+  });
+  await waitFor(() =>
+    expect(showAppToast).toHaveBeenCalledWith({
+      message:
+        "사진 분석 결과와 등록 대상이 달라요. 분석 당시 냉장고에서 다시 확인해 주세요",
+      variant: "error",
+    }),
+  );
+  expect(fetchMock).not.toHaveBeenCalled();
+  expect(result.current.form.getValues("drafts")).toEqual(recognition.drafts);
+  expect(result.current.completedResult).toBeNull();
+
+  fetchMock.mockResolvedValue(
+    Response.json({
+      code: "INGREDIENT-201-001",
+      message: "OK",
+      data: {
+        createdCount: 1,
+        mergedCount: 0,
+        ingredientsNum: 1,
+        refrigeratorCapacity: 1500,
+        mergedItems: [],
+      },
+    }),
+  );
+  currentFridge.id = "17";
+  rerender();
+  await act(async () => {
+    await result.current.submit();
+  });
+  await waitFor(() =>
+    expect(result.current.completedResult?.createdCount).toBe(1),
+  );
+  expect(fetchMock.mock.calls[0][0]).toBe(
+    "/api/v1/refrigerators/17/ingredients/from-analysis",
+  );
 });

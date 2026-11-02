@@ -1,6 +1,7 @@
 // @vitest-environment jsdom
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import {
+  act,
   cleanup,
   fireEvent,
   render,
@@ -136,5 +137,35 @@ it("on 412 closes the sheet, refreshes detail and uses a new key for the next co
   );
   await apply();
   await waitFor(() => expect(mocks.apply).toHaveBeenCalledTimes(2));
+  expect(mocks.apply.mock.calls[1][2]).not.toBe(mocks.apply.mock.calls[0][2]);
+});
+
+it("blocks applying after 412 until refreshed detail and its new ETag arrive", async () => {
+  mocks.apply.mockRejectedValue(
+    new ApiError(412, { code: "RECOMMEND-412-001", title: "Changed" }),
+  );
+  renderPage();
+  await screen.findByText("적용하기");
+  let finish!: (value: typeof recipe) => void;
+  mocks.get.mockImplementation(
+    () =>
+      new Promise((resolve) => {
+        finish = resolve;
+      }),
+  );
+  await apply();
+  await waitFor(() => expect(mocks.get).toHaveBeenCalledTimes(2));
+  expect(screen.queryByText("적용하기")).toBeNull();
+  expect(screen.queryByText("차감 확인")).toBeNull();
+  expect(mocks.apply).toHaveBeenCalledTimes(1);
+
+  const newEtag = `"${"b".repeat(64)}"`;
+  await act(async () =>
+    finish({ ...recipe, name: "변경된 요리", etag: newEtag }),
+  );
+  await screen.findByText("변경된 요리");
+  await apply();
+  await waitFor(() => expect(mocks.apply).toHaveBeenCalledTimes(2));
+  expect(mocks.apply.mock.calls[1][3]).toBe(newEtag);
   expect(mocks.apply.mock.calls[1][2]).not.toBe(mocks.apply.mock.calls[0][2]);
 });

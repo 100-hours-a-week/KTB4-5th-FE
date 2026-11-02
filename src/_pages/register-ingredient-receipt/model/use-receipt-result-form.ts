@@ -13,6 +13,7 @@ import { useFieldArray, useForm, useWatch } from "react-hook-form";
 
 import { useNotificationSessionScope } from "@/entities/notification";
 import { registerIngredientsFromAnalysis } from "@/entities/ingredient";
+import { ApiError } from "@/shared/api";
 import { showAppToast } from "@/shared/ui/app-toast";
 import {
   ingredientDraftFormSchema,
@@ -23,6 +24,7 @@ import {
 } from "@/widgets/ingredient-draft-form";
 
 import { toAnalysisRegistrationBody } from "./to-analysis-registration-body";
+import { useReceiptResultStore } from "./use-receipt-result-store";
 
 import {
   limitRecognitionResult,
@@ -44,6 +46,14 @@ export function useReceiptResultForm(
   const [origins, setOrigins] = useState(result.origins);
   const { register, isRegistering, completedResult } = useRegisterIngredients(
     async ({ refrigeratorId, items }) => {
+      const sourceRefrigeratorId =
+        useReceiptResultStore.getState().refrigeratorIds[result.analysisId];
+      if (sourceRefrigeratorId && sourceRefrigeratorId !== refrigeratorId) {
+        throw new ApiError(400, {
+          code: "IMAGE-400-002",
+          title: "분석 당시 냉장고와 다릅니다",
+        });
+      }
       const registered = await registerIngredientsFromAnalysis({
         refrigeratorId,
         body: toAnalysisRegistrationBody(result.analysisId, origins, items),

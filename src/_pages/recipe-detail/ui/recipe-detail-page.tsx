@@ -155,11 +155,12 @@ function RecipeDetailContent({
       if (error instanceof ApiError && error.status === 412) {
         requestKey.current = null;
         setIsConsumeSheetOpen(false);
-        void queryClient.invalidateQueries({
+        void queryClient.resetQueries({
           queryKey: recommendationQueries.detail(
             refrigeratorId,
             recipe.recipeId,
           ).queryKey,
+          exact: true,
         });
         showAppToast({
           message: "재료 정보가 바뀌었어요. 차감할 재료를 다시 확인해 주세요.",

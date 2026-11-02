@@ -15,7 +15,7 @@ export type ReceiptPhoto = {
   file: File;
 };
 
-/** 찍은 영수증 목록과 큰 미리보기에 띄울 사진 순번을 관리한다. */
+/** 찍은 사진 목록과 큰 미리보기에 띄울 사진 순번을 관리한다. */
 export function useReceiptPhotos() {
   const [photos, setPhotos] = useState<ReceiptPhoto[]>([]);
   const [viewIndex, setViewIndex] = useState(0);
