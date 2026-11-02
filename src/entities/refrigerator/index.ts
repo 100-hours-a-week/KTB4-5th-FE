@@ -3,6 +3,7 @@ export { refrigeratorQueries } from "./api/refrigerator.queries";
 export { formatRefrigeratorTitle } from "./lib/format-refrigerator";
 export {
   clearCurrentRefrigeratorId,
+  readCurrentRefrigeratorId,
   setCurrentRefrigeratorId,
   useCurrentRefrigeratorId,
   useCurrentRefrigeratorRecovery,

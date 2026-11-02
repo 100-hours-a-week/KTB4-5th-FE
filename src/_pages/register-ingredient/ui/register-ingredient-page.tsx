@@ -113,8 +113,8 @@ export function RegisterIngredientPage() {
           <RegisterMethodCard
             href={routes.registerIngredientReceipt}
             icon={Camera1Outlined}
-            title="영수증 촬영"
-            description="영수증을 찍으면 재료명과 수량을 자동으로 읽어요"
+            title="영수증 / 실물 촬영"
+            description="영수증이나 재료 실물을 찍으면 재료명과 수량을 자동으로 읽어요"
             disabled={capacity?.isLimitReached ?? false}
             onDisabledClick={showCapacityLimitToast}
           />

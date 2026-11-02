@@ -13,6 +13,7 @@ import {
   useRegisteredAnalyses,
 } from "@/entities/image";
 import { useNotificationSessionScope } from "@/entities/notification";
+import { readCurrentRefrigeratorId } from "@/entities/refrigerator";
 import { ApiError } from "@/shared/api";
 import { markAppNavigationIntent } from "@/shared/lib/navigation-history";
 import { routes } from "@/shared/routes";
@@ -47,11 +48,11 @@ function getSubmitErrorMessage(error: unknown) {
         }).format(new Date()),
       );
       return hour < 9 || hour >= 18
-        ? "영수증 인식 기능은 오전 9시부터 오후 6시까지만 사용할 수 있어요"
+        ? "사진 인식 기능은 오전 9시부터 오후 6시까지만 사용할 수 있어요"
         : "서버에 연결하지 못했어요. 잠시 후 다시 시도해 주세요";
     }
   }
-  return "영수증을 보내지 못했어요. 다시 시도해 주세요";
+  return "사진을 보내지 못했어요. 다시 시도해 주세요";
 }
 
 export type ReceiptAnalysisFailure = "FAILED" | null;
@@ -92,7 +93,14 @@ export function useReceiptAnalysis() {
       const objectKeys = await Promise.all(
         files.map((file) => uploadImage(file, "ANALYSIS")),
       );
-      return requestImageAnalysis(objectKeys);
+      const refrigeratorId = readCurrentRefrigeratorId();
+      const submission = await requestImageAnalysis(objectKeys);
+      if (refrigeratorId) {
+        useReceiptResultStore
+          .getState()
+          .rememberRefrigerator(submission.analysisId, refrigeratorId);
+      }
+      return submission;
     },
     onSuccess: (submission) => {
       setSubmittedId(submission.analysisId);

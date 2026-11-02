@@ -24,7 +24,7 @@ function readCookie(): string | null {
   return value ? decodeURIComponent(value) : null;
 }
 
-function readCurrentRefrigeratorId(): string | null {
+export function readCurrentRefrigeratorId(): string | null {
   const cookieId = readCookie();
   if (cookieId) return cookieId;
 

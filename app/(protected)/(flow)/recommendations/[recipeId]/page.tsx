@@ -10,7 +10,7 @@ export default async function Page({
   ]);
   return (
     <RecipeDetailPage
-      recipeId={recipeId}
+      recipeId={decodeURIComponent(recipeId)}
       recommendationId={
         typeof recommendationId === "string" ? recommendationId : null
       }
