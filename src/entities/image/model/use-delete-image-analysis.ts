@@ -11,9 +11,14 @@ export function useDeleteImageAnalysis() {
   return useMutation({
     meta: { monitoringOperation: "image.analysis.delete" },
     mutationFn: deleteImageAnalysis,
-    onSuccess: () =>
-      queryClient.invalidateQueries({
+    onSuccess: (_data, analysisId) => {
+      queryClient.removeQueries({
+        queryKey: imageAnalysisQueries.detail(analysisId).queryKey,
+        exact: true,
+      });
+      return queryClient.invalidateQueries({
         queryKey: imageAnalysisQueries.lists(),
-      }),
+      });
+    },
   });
 }
