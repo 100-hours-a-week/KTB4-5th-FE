@@ -99,16 +99,18 @@ export function IngredientEditForm({
   }, [isSubmitting, initialValues, form]);
   useIngredientRefreshToast(isDateStale, handleRefresh);
 
-  const detailHref = routes.ingredientDetail(ingredientId);
-
-  function leaveToDetail() {
+  function leaveToDetail(targetIngredientId = ingredientId) {
     setIsLeaving(true);
 
-    if ((readAppNavigationDepth() ?? 0) > 0) {
+    if (
+      targetIngredientId === ingredientId &&
+      (readAppNavigationDepth() ?? 0) > 0
+    ) {
       router.back();
       return;
     }
 
+    const detailHref = routes.ingredientDetail(targetIngredientId);
     markAppNavigationIntent("replace", detailHref);
     router.replace(detailHref);
   }
@@ -131,9 +133,15 @@ export function IngredientEditForm({
         etag,
         body: toUpdateIngredientBody(initialValues, values),
       });
-      queryClient.setQueryData(
-        ingredientQueries.detail(refrigeratorId, ingredientId).queryKey,
-        (previous) =>
+      const isSourceRemoved = result.ingredient.ingredientId !== ingredientId;
+      const sourceKey = ingredientQueries.detail(
+        refrigeratorId,
+        ingredientId,
+      ).queryKey;
+      if (isSourceRemoved) {
+        queryClient.removeQueries({ queryKey: sourceKey, exact: true });
+      } else {
+        queryClient.setQueryData(sourceKey, (previous) =>
           previous
             ? {
                 ...previous,
@@ -141,8 +149,13 @@ export function IngredientEditForm({
                 etag: result.etag,
               }
             : undefined,
+        );
+      }
+      void invalidateIngredients(
+        queryClient,
+        refrigeratorId,
+        isSourceRemoved ? ingredientId : undefined,
       );
-      void invalidateIngredients(queryClient, refrigeratorId);
       showAppToast({
         message:
           result.mergedItems.length > 0
@@ -150,7 +163,7 @@ export function IngredientEditForm({
             : SAVE_SUCCESS_MESSAGE,
         variant: "success",
       });
-      leaveToDetail();
+      leaveToDetail(result.ingredient.ingredientId);
     } catch (error) {
       setIsSubmitting(false);
       const message = getEditErrorMessage(error);
