@@ -1,18 +1,24 @@
 "use client";
 
 import { useEffect, useState, type ReactNode } from "react";
+import { useSearchParams } from "next/navigation";
 import { useCurrentRefrigeratorId } from "@/entities/refrigerator";
 import { IngredientRefrigeratorRequiredState } from "@/entities/ingredient";
 import { toTasteLabels, useTodayTaste } from "@/features/answer-taste-survey";
 import { useRecommendations } from "@/features/prepare-recommendations";
 import { ApiError } from "@/shared/api";
+import { markAppNavigationIntent } from "@/shared/lib/navigation-history";
 import { routes } from "@/shared/routes";
 import { AppLink } from "@/shared/ui/app-link";
 import {
   AsyncViewState,
   asyncViewActionClassName,
 } from "@/shared/ui/async-view-state";
-import { sortRecipes, type RecipeSort } from "../model/recipe-sort";
+import {
+  RECIPE_SORTS,
+  sortRecipes,
+  type RecipeSort,
+} from "../model/recipe-sort";
 import { RecipeSortFilter } from "./recipe-sort-filter";
 import { RecommendedRecipeCard } from "./recommended-recipe-card";
 
@@ -64,16 +70,30 @@ function PreparingState() {
 }
 
 export function RecommendationsPage() {
+  const searchParams = useSearchParams();
   const refrigeratorId = useCurrentRefrigeratorId();
   const { data, error, isFetching, refetch, job, switchJob, switchToNew } =
     useRecommendations(refrigeratorId);
-  const [sort, setSort] = useState<RecipeSort>("EXPIRING");
+  const sort =
+    RECIPE_SORTS.find((value) => value === searchParams.get("sort")) ??
+    "EXPIRING";
   const tasteIds = useTodayTaste();
   const generating = data?.status === "GENERATING" || job.isPending;
   const limitReached =
     !generating &&
     (data?.dailyGeneration.remaining === 0 ||
       (job.error instanceof ApiError && job.error.status === 429));
+
+  function changeSort(value: RecipeSort) {
+    const params = new URLSearchParams(searchParams.toString());
+    if (value === "EXPIRING") params.delete("sort");
+    else params.set("sort", value);
+    const href = params.size
+      ? `${routes.recommendations}?${params}`
+      : routes.recommendations;
+    markAppNavigationIntent("replace", href);
+    window.history.replaceState(null, "", href);
+  }
 
   if (refrigeratorId === null)
     return (
@@ -216,7 +236,7 @@ export function RecommendationsPage() {
               <p className="m-0 text-[12.5px] text-app-ink/55">
                 추천 요리 {data.recipes.length}개
               </p>
-              <RecipeSortFilter sort={sort} onSortChange={setSort} />
+              <RecipeSortFilter sort={sort} onSortChange={changeSort} />
             </div>
             <ul className="flex flex-col gap-2">
               {sortRecipes(data.recipes, sort).map((recipe) => (
