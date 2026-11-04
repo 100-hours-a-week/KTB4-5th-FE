@@ -454,6 +454,13 @@ history를 만들지 않는다.
 업무별 조건은 Tracker의 route 조건문으로 추가하지 않고, 공통 이동 API 또는
 뒤로가기 controller 계약으로 확장하고 테스트한다.
 
+작성 중 이탈 가드는 `shared/lib/navigation-guard`에서 브라우저 뒤로·앞으로가기도
+처리하며, `instrumentation-client.ts`에서 hydration 전에 설치한다.
+앱 내부 이동 깊이와 별개인 history index로 이동 거리를 기록하며,
+Next.js가 화면을 교체하기 전에 원래 항목으로 복귀한 뒤 기존 확인 모달을 연다.
+계속 작성하면 입력과 history를 유지하고, 나가기를 확인하면 원래 이동을 한 번만
+실행한다. 문서를 떠나는 이동·새로고침은 브라우저 기본 확인창을 사용한다.
+
 #### 주의 사항 1: 딥링크로 진입하면 앱 내부 스택이 비어 있다
 
 Serwist 푸시의 `notificationclick`이 새 탭을 열어 재고 상세 URL로 직접
