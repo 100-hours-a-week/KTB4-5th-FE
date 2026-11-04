@@ -9,8 +9,6 @@ import {
   type IngredientListQuery,
 } from "@/entities/ingredient";
 
-const PREFETCH_STALE_TIME_MS = 30_000;
-
 export function useIngredientListPrefetch(
   refrigeratorId: string | null | undefined,
   query: IngredientListQuery,
@@ -22,7 +20,7 @@ export function useIngredientListPrefetch(
       if (!refrigeratorId || query.keyword) return;
       void queryClient.prefetchInfiniteQuery({
         ...ingredientQueries.list(refrigeratorId, { ...query, ...patch }),
-        staleTime: PREFETCH_STALE_TIME_MS,
+        staleTime: Infinity,
       });
     },
     [queryClient, refrigeratorId, query],
