@@ -11,7 +11,7 @@ import { getTodayInSeoul } from "@/shared/lib/seoul-date";
 import { toHomeSummary } from "@/_pages/home/model/home-summary";
 import { useReceiptAnalysis } from "@/_pages/register-ingredient-receipt/model/use-receipt-analysis";
 import { useReceiptResultForm } from "@/_pages/register-ingredient-receipt/model/use-receipt-result-form";
-import { useReceiptResultStore } from "@/_pages/register-ingredient-receipt/model/use-receipt-result-store";
+import { toRecognitionResult } from "@/_pages/register-ingredient-receipt/model/receipt-recognition";
 import { getIngredientCapacity } from "@/entities/ingredient/model/ingredient-capacity";
 import { getIngredientList } from "@/entities/ingredient/api/get-ingredient-list";
 import { ingredientQueries } from "@/entities/ingredient/api/ingredient.queries";
@@ -50,7 +50,6 @@ beforeEach(() => {
   });
   document.cookie = "XSRF-TOKEN=csrf; path=/";
   document.cookie = "currentRefrigeratorId=17; path=/";
-  useReceiptResultStore.setState({ result: null });
   useRegisteredAnalyses.setState({ idsBySession: {} });
   fetchMock.mockReset();
   router.push.mockReset();
@@ -194,7 +193,11 @@ it.each([
         routes.imageAnalysisResult(job.analysisId),
       ),
     );
-    const recognition = useReceiptResultStore.getState().result!;
+    const recognition = toRecognitionResult(
+      client.getQueryData(
+        imageAnalysisQueries.detail(job.analysisId).queryKey,
+      )!,
+    );
     expect(recognition.drafts[0].expirationDate).toBe(isProduct ? today : "");
     expect(recognition.hints[0]).toBe(
       isProduct ? "AI_ESTIMATED" : "NEEDS_CHECK",

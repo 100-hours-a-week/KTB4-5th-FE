@@ -4,7 +4,7 @@ import { useReceiptResultStore } from "./use-receipt-result-store";
 
 afterEach(() => {
   vi.restoreAllMocks();
-  useReceiptResultStore.setState({ result: null, refrigeratorIds: {} });
+  useReceiptResultStore.setState({ refrigeratorIds: {} });
   sessionStorage.clear();
 });
 
@@ -20,7 +20,7 @@ it("새로고침 후 분석의 냉장고만 복원하고 인식한 재료는 저
   expect(useReceiptResultStore.getState().refrigeratorIds).toEqual({
     "job-1": "17",
   });
-  expect(useReceiptResultStore.getState().result).toBeNull();
+  expect(useReceiptResultStore.getState()).not.toHaveProperty("result");
 });
 
 it("브라우저 저장이 차단돼도 메모리에서 분석 냉장고를 확인한다", () => {

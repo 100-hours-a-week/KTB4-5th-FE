@@ -67,7 +67,6 @@ export function useReceiptAnalysis() {
   const [submittedId, setSubmittedId] = useState<string | null>(null);
   const [dismissedIds, setDismissedIds] = useState<string[]>([]);
   const [now] = useState(() => Date.now());
-  const setResult = useReceiptResultStore((state) => state.setResult);
   const list = useQuery({
     ...imageAnalysisQueries.list(userScope ?? ""),
     enabled: Boolean(userScope),
@@ -170,13 +169,12 @@ export function useReceiptAnalysis() {
   useEffect(() => {
     if (!result || failure === "FAILED") return;
 
-    setResult(result);
     if (failure === null) {
       const href = routes.imageAnalysisResult(result.analysisId);
       markAppNavigationIntent("push", href);
       router.push(href);
     }
-  }, [result, failure, router, setResult]);
+  }, [result, failure, router]);
 
   return {
     isAnalyzing,

@@ -33,7 +33,6 @@ import {
   getAnalysisFailureMessage,
 } from "../model/receipt-recognition";
 import { useReceiptResultForm } from "../model/use-receipt-result-form";
-import { useReceiptResultStore } from "../model/use-receipt-result-store";
 import { RecognitionStatusChip } from "./recognition-status-chip";
 
 const FORM_ID = "receipt-result-form";
@@ -45,7 +44,6 @@ export function RegisterIngredientReceiptResultPage({
   analysisId?: string;
 }) {
   const router = useRouter();
-  const storedResult = useReceiptResultStore((state) => state.result);
   const removeAnalysis = useDeleteImageAnalysis();
   const analysis = useQuery({
     ...imageAnalysisQueries.detail(analysisId ?? ""),
@@ -55,16 +53,13 @@ export function RegisterIngredientReceiptResultPage({
   });
   const result = useMemo(
     () =>
-      analysisId
-        ? analysis.data && toRecognitionResult(analysis.data)
-        : storedResult,
-    [analysisId, analysis.data, storedResult],
+      analysisId && analysis.data ? toRecognitionResult(analysis.data) : null,
+    [analysisId, analysis.data],
   );
 
   useEffect(() => {
-    if (!analysisId && !storedResult)
-      router.replace(routes.registerIngredientReceipt);
-  }, [analysisId, storedResult, router]);
+    if (!analysisId) router.replace(routes.registerIngredientReceipt);
+  }, [analysisId, router]);
 
   if (analysisId && !analysis.data) {
     if (analysis.isError) {

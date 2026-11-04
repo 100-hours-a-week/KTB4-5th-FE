@@ -1,11 +1,7 @@
 import { create } from "zustand";
 import { createJSONStorage, persist } from "zustand/middleware";
 
-import type { ReceiptRecognitionResult } from "./receipt-recognition";
-
 type ReceiptResultState = {
-  result: ReceiptRecognitionResult | null;
-  setResult: (result: ReceiptRecognitionResult) => void;
   refrigeratorIds: Record<string, string>;
   rememberRefrigerator: (analysisId: string, refrigeratorId: string) => void;
 };
@@ -13,8 +9,6 @@ type ReceiptResultState = {
 export const useReceiptResultStore = create<ReceiptResultState>()(
   persist(
     (set) => ({
-      result: null,
-      setResult: (result) => set({ result }),
       refrigeratorIds: {},
       rememberRefrigerator: (analysisId, refrigeratorId) =>
         set((state) => ({

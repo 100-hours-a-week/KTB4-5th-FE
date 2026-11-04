@@ -164,6 +164,21 @@ it("restores a directly opened result from its ID without relying on an in-memor
   expect(mocks.replace).not.toHaveBeenCalled();
 });
 
+it("returns an ID-less result URL to capture without restoring an old draft", async () => {
+  render(
+    <QueryClientProvider client={client}>
+      <RegisterIngredientReceiptResultPage />
+    </QueryClientProvider>,
+  );
+  await waitFor(() =>
+    expect(mocks.replace).toHaveBeenCalledWith(
+      "/refrigerator/register/receipt",
+    ),
+  );
+  expect(mocks.get).not.toHaveBeenCalled();
+  expect(mocks.form).not.toHaveBeenCalled();
+});
+
 it("shows in-progress jobs without prematurely creating an editable form", async () => {
   mocks.get.mockResolvedValue({
     ...completed,
