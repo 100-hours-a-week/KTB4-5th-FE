@@ -2,7 +2,7 @@
 
 import { useInfiniteQuery, useQueryClient } from "@tanstack/react-query";
 import { useSearchParams } from "next/navigation";
-import { useDeferredValue, useMemo } from "react";
+import { useMemo } from "react";
 
 import {
   ingredientQueries,
@@ -31,7 +31,6 @@ export function RefrigeratorPage({
     () => parseIngredientListQuery(Object.fromEntries(searchParams)),
     [searchParams],
   );
-  const deferredQuery = useDeferredValue(query);
   const storedRefrigeratorId = useCurrentRefrigeratorId();
   const refrigeratorId =
     storedRefrigeratorId === undefined
@@ -41,7 +40,7 @@ export function RefrigeratorPage({
   const options = useMemo(() => {
     const firstPageKey = ingredientQueries.firstPage(
       refrigeratorId ?? "",
-      deferredQuery,
+      query,
     ).queryKey;
 
     const getFirstPageState = () => {
@@ -50,7 +49,7 @@ export function RefrigeratorPage({
     };
 
     return {
-      ...ingredientQueries.list(refrigeratorId ?? "", deferredQuery),
+      ...ingredientQueries.list(refrigeratorId ?? "", query),
       enabled: Boolean(refrigeratorId),
       initialData: () => {
         const state = getFirstPageState();
@@ -60,7 +59,7 @@ export function RefrigeratorPage({
       },
       initialDataUpdatedAt: () => getFirstPageState()?.dataUpdatedAt,
     };
-  }, [queryClient, refrigeratorId, deferredQuery]);
+  }, [queryClient, refrigeratorId, query]);
   const {
     data,
     error,
@@ -95,7 +94,7 @@ export function RefrigeratorPage({
     [data],
   );
   const canDisposeExpired =
-    deferredQuery.filter === "EXPIRED" && (firstPage?.filteredCount ?? 0) > 0;
+    query.filter === "EXPIRED" && (firstPage?.filteredCount ?? 0) > 0;
 
   useIngredientRefreshToast(isDateStale);
 
@@ -122,7 +121,7 @@ export function RefrigeratorPage({
           <div className="pb-4">
             <IngredientDisposeBanner
               refrigeratorId={refrigeratorId}
-              query={deferredQuery}
+              query={query}
               expiredCount={firstPage.filteredCount}
               initialPage={{ ...firstPage, ingredients }}
             />
@@ -132,7 +131,7 @@ export function RefrigeratorPage({
           <IngredientRefrigeratorRequiredState />
         ) : (
           <IngredientListContainer
-            query={deferredQuery}
+            query={query}
             ingredients={ingredients}
             scrollContainerRef={scrollContainerRef}
             isPending={isPending}
