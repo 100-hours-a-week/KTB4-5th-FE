@@ -281,7 +281,7 @@ async function sample(browser, variant, dir) {
       };
     }, apiBefore);
     const profile = profileAll && traceFile ? profileBreakdown(traceFile) : {};
-    if (profileAll && !dir) fs.rmSync(traceFile, { force: true });
+    if (profileAll && !dir && !process.argv.includes("--keep-trace")) fs.rmSync(traceFile, { force: true });
     return { ...row, ...profile, apiRequestsCdp: reqs.size, apiUrls: urls, allUrls, cards, loaded: liveState ? cards : served, videoOffsetS: (row.clickWall - videoStart) / 1000 };
   } finally {
     if (liveState) { liveState = await context.storageState().catch(() => liveState); if (option("state", "")) fs.writeFileSync(option("state", ""), JSON.stringify(liveState)); }
@@ -304,7 +304,9 @@ function profileBreakdown(file) {
   const DELETE = ["commitDeletionEffectsOnFiber", "recursivelyTraverseDeletionEffects", "commitDeletionEffects"];
   const PASSIVE = ["commitPassiveUnmountEffectsInsideOfDeletedTree_begin", "commitPassiveUnmountEffectsInsideOfDeletedTree_complete", "commitPassiveUnmountInsideDeletedTreeOnFiber"];
   const RENDER = ["performUnitOfWork", "workLoopSync", "workLoopConcurrent", "workLoopConcurrentByScheduler", "renderRootSync", "renderRootConcurrent", "beginWork", "completeWork"];
-  const r = { unmountMutationMs: 0, unmountPassiveMs: 0, removeChildMs: 0, renderMs: 0, gcMs: 0, profiledMs: 0 };
+  const DOM = ["removeChild", "insertBefore", "appendChild", "replaceChild", "setAttribute", "removeAttribute", "set textContent", "set nodeValue", "set className"];
+  const MEASURE = ["measureElement", "_measureElement"];
+  const r = { unmountMutationMs: 0, unmountPassiveMs: 0, removeChildMs: 0, domMs: 0, domInDeleteMs: 0, measureMs: 0, renderMs: 0, gcMs: 0, profiledMs: 0, browserMs: 0 };
   for (let i = 0; i < samples.length; i++) {
     ts += deltas[i];
     if (!click || ts < click.ts || ts > click.ts + 1500e3) continue;
@@ -312,11 +314,22 @@ function profileBreakdown(file) {
     if (leaf === "(idle)" || leaf === "(program)") continue;
     r.profiledMs += dt;
     if (leaf === "(garbage collector)") r.gcMs += dt;
-    else if (has(id, DELETE)) { r.unmountMutationMs += dt; if (leaf === "removeChild") r.removeChildMs += dt; }
+    else if (has(id, MEASURE)) r.measureMs += dt;
+    else if (DOM.includes(leaf)) { r.domMs += dt; if (has(id, DELETE)) { r.unmountMutationMs += dt; r.domInDeleteMs += dt; if (leaf === "removeChild") r.removeChildMs += dt; } }
+    else if (has(id, DELETE)) r.unmountMutationMs += dt;
     else if (has(id, PASSIVE)) r.unmountPassiveMs += dt;
     else if (has(id, RENDER)) r.renderMs += dt;
   }
   r.unmountMs = r.unmountMutationMs + r.unmountPassiveMs;
+  r.unmountCleanupMs = r.unmountMs - r.domInDeleteMs;
+  if (click) {
+    const main = ev.filter((e) => e.pid === click.pid && e.tid === click.tid && e.ph === "X" && e.ts >= click.ts && e.ts <= click.ts + 1500e3);
+    const js = main.filter((e) => ["FunctionCall", "EventDispatch", "TimerFire", "FireAnimationFrame", "RunMicrotasks", "v8.callFunction", "EvaluateScript"].includes(e.name));
+    const inJs = (e) => js.some((j) => e.ts >= j.ts && e.ts < j.ts + j.dur);
+    r.browserMs = main.filter((e) => ["UpdateLayoutTree", "Layout", "PrePaint", "Paint", "Layerize"].includes(e.name) && !inJs(e)).reduce((t, e) => t + e.dur / 1000, 0);
+  }
+  r.otherJsMs = r.profiledMs - r.renderMs - r.domMs - r.unmountCleanupMs - r.measureMs - r.gcMs;
+  r.mainTotalMs = r.profiledMs + r.browserMs;
   r.profileFound = Boolean(click) && [...nodes.values()].some((n) => RENDER.includes(n.callFrame.functionName));
   return r;
 }
@@ -369,7 +382,7 @@ async function rapidClicks(page, cdp, dir, browser) {
   }, { finalId, interId: expectedFirstId("EXPIRING_SOON"), firstLabel, chipLabel });
 }
 
-const metrics = rapid ? ["gapMs", "interPaintMs", "listChanges", "chip1PaintMs", "chip2PaintMs", "finalPaintMs", "finalFromFirstMs", "inp1Ms", "inp2Ms", "longTaskMs", "maxLongTaskMs", "cards", "loaded"] : ["chipPaintMs", "listCommitMs", "listPaintMs", "finalPaintMs", "chipLeadMs", "inpMs", "longTaskMs", "maxLongTaskMs", "tbtMs", "longTaskCount", "apiAfterClick", "apiRequestsCdp", "targetDoneMs", "allApiDoneMs", "rscAfterClick", "rscDoneMs", "cards", "loaded", ...(profileAll ? ["unmountMs", "unmountMutationMs", "unmountPassiveMs", "removeChildMs", "renderMs", "gcMs", "profiledMs"] : [])];
+const metrics = rapid ? ["gapMs", "interPaintMs", "listChanges", "chip1PaintMs", "chip2PaintMs", "finalPaintMs", "finalFromFirstMs", "inp1Ms", "inp2Ms", "longTaskMs", "maxLongTaskMs", "cards", "loaded"] : ["chipPaintMs", "listCommitMs", "listPaintMs", "finalPaintMs", "chipLeadMs", "inpMs", "longTaskMs", "maxLongTaskMs", "tbtMs", "longTaskCount", "apiAfterClick", "apiRequestsCdp", "targetDoneMs", "allApiDoneMs", "rscAfterClick", "rscDoneMs", "cards", "loaded", ...(profileAll ? ["unmountMs", "unmountMutationMs", "unmountPassiveMs", "removeChildMs", "renderMs", "gcMs", "profiledMs", "domMs", "unmountCleanupMs", "measureMs", "browserMs", "otherJsMs", "mainTotalMs"] : [])];
 const browser = await chromium.launch({ channel: "chrome", headless: true });
 const rows = [];
 const recorded = {};

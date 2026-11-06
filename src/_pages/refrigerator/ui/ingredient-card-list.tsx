@@ -1,5 +1,5 @@
 import { useVirtualizer } from "@tanstack/react-virtual";
-import { memo, useLayoutEffect, useRef, useState } from "react";
+import { memo, useEffect, useRef, useState } from "react";
 
 import {
   formatIngredientAmount,
@@ -19,16 +19,20 @@ export const IngredientCardList = memo(function IngredientCardList({
   const listRef = useRef<HTMLUListElement>(null);
   const [scrollMargin, setScrollMargin] = useState(0);
 
-  useLayoutEffect(() => {
+  useEffect(() => {
     const list = listRef.current;
     const section = list?.closest("section");
     if (!list || !section) return;
-    setScrollMargin(
-      list.getBoundingClientRect().top -
-        section.getBoundingClientRect().top +
-        section.scrollTop,
+    const observer = new ResizeObserver(() =>
+      setScrollMargin(
+        list.getBoundingClientRect().top -
+          section.getBoundingClientRect().top +
+          section.scrollTop,
+      ),
     );
-  }, [ingredients]);
+    observer.observe(list);
+    return () => observer.disconnect();
+  }, []);
 
   const virtualizer = useVirtualizer({
     count: ingredients.length,

@@ -33,10 +33,6 @@ export function ChipScrollRow({
   }, []);
 
   useEffect(() => {
-    updateEdges();
-  });
-
-  useEffect(() => {
     const row = rowRef.current;
     if (!row) return;
     const observer = new ResizeObserver(updateEdges);
