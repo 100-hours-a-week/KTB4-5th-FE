@@ -9,12 +9,15 @@ import { ApiError, SessionExpiredError } from "@/shared/api";
 
 import { useNotificationSse } from "./use-notification-sse";
 
-const { refresh, session, recover } = vi.hoisted(() => ({
+const { refresh, session, recover, router } = vi.hoisted(() => ({
+  router: { push: vi.fn() },
   recover: vi.fn(),
   session: { loggingOut: false },
   refresh: vi.fn(() => Promise.resolve()),
 }));
 
+vi.mock("next/navigation", () => ({ useRouter: () => router }));
+vi.mock("@/shared/ui/app-toast", () => ({ showAppToast: vi.fn() }));
 vi.mock("@/features/recover-refrigerator-access", () => ({
   useRecoverRefrigeratorAccess: () => recover,
 }));
