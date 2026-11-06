@@ -3,6 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
+import { IngredientRefrigeratorRequiredState } from "@/entities/ingredient";
 import { useCurrentRefrigeratorId } from "@/entities/refrigerator";
 import {
   MAX_TASTE_TAGS,
@@ -24,7 +25,7 @@ export function RecommendationTastePage() {
   const router = useRouter();
   const refrigeratorId = useCurrentRefrigeratorId();
   const { data, job, regenerate } = useRecommendations(refrigeratorId);
-  const savedIds = useTodayTaste();
+  const savedIds = useTodayTaste(refrigeratorId);
   const [selected, setSelected] = useState<string[] | null>(null);
   const value = selected ?? savedIds ?? [];
   const limitReached =
@@ -37,11 +38,13 @@ export function RecommendationTastePage() {
     limitReached ||
     Boolean(data?.hasNewRecommendation);
 
+  if (refrigeratorId === null) return <IngredientRefrigeratorRequiredState />;
+
   function request(optionIds: string[]) {
     if (!refrigeratorId) return;
     regenerate(toRecommendationJobRequest(optionIds), {
       onSuccess: () => {
-        setTodayTaste(optionIds);
+        setTodayTaste(refrigeratorId, optionIds);
         markAppNavigationIntent("replace", routes.recommendations);
         router.replace(routes.recommendations);
       },

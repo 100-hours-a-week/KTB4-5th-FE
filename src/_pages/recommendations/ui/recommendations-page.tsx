@@ -83,7 +83,7 @@ export function RecommendationsPage() {
   const sort =
     RECIPE_SORTS.find((value) => value === searchParams.get("sort")) ??
     "EXPIRING";
-  const tasteIds = useTodayTaste();
+  const tasteIds = useTodayTaste(refrigeratorId);
   const generating = data?.status === "GENERATING" || job.isPending;
   const limitReached =
     !generating &&
