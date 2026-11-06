@@ -81,8 +81,7 @@ export function installBrowserBackGuard() {
   history.replaceState(history.state, "");
 
   function onPopState(event: PopStateEvent) {
-    const targetIndex = readHistoryIndex(event.state);
-    if (targetIndex === null) return;
+    const targetIndex = readHistoryIndex(event.state) ?? currentIndex - 1;
     if (targetIndex === allowedIndex) {
       allowedIndex = null;
       currentIndex = targetIndex;
