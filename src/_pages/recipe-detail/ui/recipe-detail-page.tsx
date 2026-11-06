@@ -107,7 +107,7 @@ export function RecipeDetailPage({
         />
       </main>
     );
-  if (!detail.data || !refrigeratorId)
+  if (!detail.data || !refrigeratorId || (!recommendationId && list.isPending))
     return (
       <main className="min-h-0 min-w-0 w-full flex-1 overflow-y-auto">
         <AsyncViewState status="loading" title="요리를 불러오는 중입니다" />
@@ -152,6 +152,12 @@ function RecipeDetailContent({
       );
     },
     onError: (error) => {
+      if (
+        error instanceof ApiError &&
+        (error.status === 400 || error.status === 422)
+      ) {
+        requestKey.current = null;
+      }
       if (error instanceof ApiError && error.status === 412) {
         requestKey.current = null;
         setIsConsumeSheetOpen(false);
@@ -335,7 +341,10 @@ function RecipeDetailContent({
             : consume.error instanceof ApiError &&
                 (consume.error.status === 403 || consume.error.status === 404)
               ? "추천 또는 냉장고에 접근할 수 없어요. 추천 목록을 다시 확인해 주세요."
-              : undefined
+              : consume.error instanceof ApiError &&
+                  (consume.error.status === 400 || consume.error.status === 422)
+                ? "요리를 적용할 수 없는 상태예요. 재료 정보를 확인한 뒤 다시 시도해 주세요."
+                : undefined
         }
         recipeName={recipe.name}
         rows={consumeRows}

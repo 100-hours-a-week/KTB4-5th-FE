@@ -33,19 +33,35 @@ function subscribe(onChange: () => void): () => void {
   };
 }
 
-export function setTodayTaste(optionIds: string[]): void {
-  const value = encodeURIComponent(optionIds.join(","));
-  document.cookie = `${COOKIE_NAME}=${value}; path=/; expires=${getNextTasteResetAt().toUTCString()}; samesite=lax`;
+function writeCookie(value: string, expires: Date): void {
+  document.cookie = `${COOKIE_NAME}=${encodeURIComponent(value)}; path=/; expires=${expires.toUTCString()}; samesite=lax`;
   window.dispatchEvent(new Event(CHANGE_EVENT));
 }
 
-export function useTodayTaste(): string[] | null | undefined {
-  const value = useSyncExternalStore(subscribe, readCookie, () => undefined);
-  return useMemo(
-    () =>
-      value === undefined || value === null
-        ? value
-        : value.split(",").filter(Boolean),
-    [value],
+export function setTodayTaste(
+  refrigeratorId: string,
+  optionIds: string[],
+): void {
+  writeCookie(
+    `${refrigeratorId}|${optionIds.join(",")}`,
+    getNextTasteResetAt(),
   );
+}
+
+export function clearTodayTaste(): void {
+  if (readCookie() !== null) writeCookie("", new Date(0));
+}
+
+export function useTodayTaste(
+  refrigeratorId: string | null | undefined,
+): string[] | null | undefined {
+  const value = useSyncExternalStore(subscribe, readCookie, () => undefined);
+  return useMemo(() => {
+    if (value === undefined || refrigeratorId === undefined) return undefined;
+    if (value === null || refrigeratorId === null) return null;
+    const [ownerId, optionIds = ""] = value.split("|");
+    return ownerId === refrigeratorId
+      ? optionIds.split(",").filter(Boolean)
+      : null;
+  }, [value, refrigeratorId]);
 }
