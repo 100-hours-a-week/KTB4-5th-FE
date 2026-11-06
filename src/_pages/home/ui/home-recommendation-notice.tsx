@@ -22,7 +22,7 @@ export function HomeRecommendationNotice() {
         >
           오늘의 추천 요리
         </h2>
-        <p className="mb-0 mt-1 text-[12.5px] text-app-ink/60">
+        <p className="mb-0 mt-1 min-w-0 wrap-anywhere text-[12.5px] text-app-ink/60">
           {data?.recipes[0]?.name ??
             (data?.status === "GENERATING"
               ? "보유 재료로 추천을 준비하고 있어요"

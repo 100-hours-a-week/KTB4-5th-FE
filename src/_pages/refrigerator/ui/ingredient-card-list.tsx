@@ -23,15 +23,25 @@ export const IngredientCardList = memo(function IngredientCardList({
     const list = listRef.current;
     const section = list?.closest("section");
     if (!list || !section) return;
-    const observer = new ResizeObserver(() =>
+    const resizeObserver = new ResizeObserver(() =>
       setScrollMargin(
         list.getBoundingClientRect().top -
           section.getBoundingClientRect().top +
           section.scrollTop,
       ),
     );
-    observer.observe(list);
-    return () => observer.disconnect();
+    const observeLayout = () => {
+      resizeObserver.disconnect();
+      resizeObserver.observe(section);
+      for (const child of section.children) resizeObserver.observe(child);
+    };
+    const mutationObserver = new MutationObserver(observeLayout);
+    observeLayout();
+    mutationObserver.observe(section, { childList: true });
+    return () => {
+      resizeObserver.disconnect();
+      mutationObserver.disconnect();
+    };
   }, []);
 
   const virtualizer = useVirtualizer({
