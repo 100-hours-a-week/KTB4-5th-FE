@@ -3,7 +3,7 @@ import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { afterEach, expect, it, vi } from "vitest";
 import { IngredientWeightInput } from "./ingredient-weight-input";
 afterEach(cleanup);
-it("소수점과 범위 초과 입력을 다른 수로 바꾸지 않고 검증 계층에 전달한다", () => {
+it("숫자와 소수 둘째 자리까지만 남기고 정수부는 다섯 자리로 자른다", () => {
   const onChange = vi.fn();
   render(
     <IngredientWeightInput
@@ -27,5 +27,9 @@ it("소수점과 범위 초과 입력을 다른 수로 바꾸지 않고 검증 �
   fireEvent.change(screen.getByRole("textbox"), {
     target: { value: "500001" },
   });
-  expect(onChange).toHaveBeenLastCalledWith("500001");
+  expect(onChange).toHaveBeenLastCalledWith("50000");
+  fireEvent.change(screen.getByRole("textbox"), {
+    target: { value: "가a-1.2.345" },
+  });
+  expect(onChange).toHaveBeenLastCalledWith("1.23");
 });

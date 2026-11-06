@@ -42,7 +42,7 @@ const DRAFT_ERROR_FIELDS = [
 
 const NAME_HINT = "한글·영문·숫자 1~10자";
 const QUANTITY_HINT = "수량은 1~100개";
-const WEIGHT_HINT = "무게는 선택 · 1~50,000 정수";
+const WEIGHT_HINT = "무게는 선택 · 0.01~50,000 (소수 둘째 자리)";
 const QUANTITY_DISABLED_HINT = "무게를 비우면 수량 입력 가능";
 const WEIGHT_DISABLED_HINT = "수량을 비우면 무게 입력 가능";
 const EXPIRATION_HINT = "기한은 4년 이내";

@@ -27,14 +27,15 @@ describe("ingredient weight validation", () => {
   });
 
   it.each([
-    ["1", 1],
+    ["0.01", 0.01],
+    ["150.5", 150.5],
     ["50000", 50_000],
   ])("accepts %s within the WEIGHT range", (input, expected) => {
     expect(ingredientWeightValueSchema.parse(input)).toBe(expected);
   });
 
-  it.each(["0", "1.5", "50001"])(
-    "rejects %s outside the WEIGHT integer range",
+  it.each(["0", "0.001", "1.234", "50001"])(
+    "rejects %s outside the WEIGHT range",
     (input) => {
       expect(ingredientWeightValueSchema.safeParse(input).success).toBe(false);
     },
