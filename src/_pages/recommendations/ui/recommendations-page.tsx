@@ -32,7 +32,7 @@ function PageLayout({ children }: { children: ReactNode }) {
   );
 }
 
-function PreparingState() {
+function PreparingState({ initialLoad = false }: { initialLoad?: boolean }) {
   const [showHint, setShowHint] = useState(false);
 
   useEffect(() => {
@@ -47,8 +47,14 @@ function PreparingState() {
     <>
       <AsyncViewState
         status="loading"
-        title="보유 재료로 요리를 찾고 있어요"
-        description={showHint ? "재료가 많으면 조금 더 걸려요" : undefined}
+        title={
+          initialLoad
+            ? "추천 요리를 불러오고 있어요"
+            : "보유 재료로 요리를 찾고 있어요"
+        }
+        description={
+          showHint && !initialLoad ? "재료가 많으면 조금 더 걸려요" : undefined
+        }
         className="px-0! py-4!"
       />
       <ul aria-hidden="true" className="flex flex-col gap-2">
@@ -132,7 +138,7 @@ export function RecommendationsPage() {
     return (
       <PageLayout>
         <div className="px-5 pb-20">
-          <PreparingState />
+          <PreparingState initialLoad />
         </div>
       </PageLayout>
     );

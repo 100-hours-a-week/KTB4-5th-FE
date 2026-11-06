@@ -27,7 +27,7 @@ export function MyStockSummary({
   overview: MypageOverview | undefined;
 }) {
   const format = (count: number | undefined) =>
-    count === undefined ? "-" : `${count}개`;
+    count === undefined ? "-" : `${count}종`;
 
   return (
     <div className="flex gap-3">

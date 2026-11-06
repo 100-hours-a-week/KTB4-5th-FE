@@ -8,7 +8,7 @@ type IngredientMemoNoteProps = {
 const memoMessages = {
   NORMAL: "유통기한까지 4일 이상 남아 여유로워요. D-3부터 알림에 올라와요.",
   EXPIRING_SOON: "임박(D-3 이내) 재료는 매일 오전 8시 알림에 올라와요.",
-  EXPIRED: "먹었거나 버렸다면 만료 처리로 정리해 주세요.",
+  EXPIRED: "먹었거나 버렸다면 폐기 처리로 정리해 주세요.",
 } satisfies Record<IngredientStatus, string>;
 
 export function IngredientMemoNote({ status }: IngredientMemoNoteProps) {
