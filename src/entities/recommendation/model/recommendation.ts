@@ -39,7 +39,7 @@ export type RecommendationJobRequest = {
 export const recommendationJobSchema = z.union([
   z.object({
     jobId: z.string(),
-    status: z.enum(["QUEUED", "RUNNING"]),
+    status: z.literal("QUEUED"),
     mode: z.enum(["INCLUDE_EXPIRED", "EXCLUDE_EXPIRED"]),
     pollAfterMs: z.number(),
     dailyGeneration,
@@ -62,7 +62,7 @@ export const recipeDetailSchema = z.object({
     z.object({
       recipeIngredientId: z.string().nullable(),
       name: z.string(),
-      requiredAmount: z.number().nonnegative().nullable(),
+      requiredAmount: z.number().nullable(),
       amountText: z.string().nullable(),
       unit: amountUnit.nullable(),
       stocks: z.array(

@@ -102,9 +102,12 @@ export function RecommendationTastePage() {
             {job.error instanceof ApiError &&
             job.error.code === "RECOMMEND-409-003"
               ? "이미 추천을 만들고 있어요. 완료되면 다시 시도해 주세요."
-              : isWithinAiServiceHours()
-                ? "새 추천을 만들지 못했어요. 잠시 후 다시 시도해 주세요."
-                : "추천 생성은 오전 9시부터 오후 6시까지만 할 수 있어요."}
+              : job.error instanceof ApiError &&
+                  job.error.code === "RECOMMEND-409-004"
+                ? "새 추천이 준비됐어요. 추천 목록에서 먼저 확인해 주세요."
+                : isWithinAiServiceHours()
+                  ? "새 추천을 만들지 못했어요. 잠시 후 다시 시도해 주세요."
+                  : "추천 생성은 오전 9시부터 오후 6시까지만 할 수 있어요."}
           </p>
         ) : null}
         <TasteOptionGroups value={value} onChange={setSelected} />

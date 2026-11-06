@@ -1,6 +1,7 @@
 "use client";
 
 import { useQueryClient } from "@tanstack/react-query";
+import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 
 import { imageAnalysisQueries } from "@/entities/image";
@@ -17,6 +18,9 @@ import {
   isIntentionalLogout,
   SessionExpiredError,
 } from "@/shared/api";
+import { markAppNavigationIntent } from "@/shared/lib/navigation-history";
+import { routes } from "@/shared/routes";
+import { showAppToast } from "@/shared/ui/app-toast";
 
 const RETRY_BASE_MS = 1000;
 const RETRY_MAX_MS = 30_000;
@@ -27,6 +31,7 @@ export function useNotificationSse(userScope: string, refrigeratorId: string) {
     userScope,
     refrigeratorId,
   );
+  const router = useRouter();
 
   useEffect(() => {
     if (typeof EventSource === "undefined") {
@@ -118,6 +123,24 @@ export function useNotificationSse(userScope: string, refrigeratorId: string) {
               payload.generationStatus === "FAILED")
           ) {
             refreshRecommendations();
+            if (
+              "generationTrigger" in payload &&
+              payload.generationTrigger === "SCHEDULED" &&
+              payload.generationStatus === "COMPLETED"
+            ) {
+              showAppToast({
+                message: "오늘의 추천 요리가 준비됐어요",
+                variant: "success",
+                dedupeKey: "scheduled-recommendation",
+                action: {
+                  label: "보기",
+                  onClick: () => {
+                    markAppNavigationIntent("push", routes.recommendations);
+                    router.push(routes.recommendations);
+                  },
+                },
+              });
+            }
           }
         } catch {
           return;
@@ -225,5 +248,11 @@ export function useNotificationSse(userScope: string, refrigeratorId: string) {
       document.removeEventListener("visibilitychange", onVisibilityChange);
       window.removeEventListener("online", onOnline);
     };
-  }, [queryClient, userScope, refrigeratorId, recoverRefrigeratorAccess]);
+  }, [
+    queryClient,
+    userScope,
+    refrigeratorId,
+    recoverRefrigeratorAccess,
+    router,
+  ]);
 }
