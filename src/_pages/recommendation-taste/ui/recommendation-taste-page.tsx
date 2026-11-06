@@ -14,6 +14,7 @@ import {
 import { useRecommendations } from "@/features/prepare-recommendations";
 import { ApiError } from "@/shared/api";
 import { markAppNavigationIntent } from "@/shared/lib/navigation-history";
+import { isWithinAiServiceHours } from "@/shared/lib/seoul-date";
 import { AppLink } from "@/shared/ui/app-link";
 import { routes } from "@/shared/routes";
 import { FooterButton } from "@/shared/ui/footer-button";
@@ -98,7 +99,9 @@ export function RecommendationTastePage() {
             {job.error instanceof ApiError &&
             job.error.code === "RECOMMEND-409-003"
               ? "이미 추천을 만들고 있어요. 완료되면 다시 시도해 주세요."
-              : "새 추천을 만들지 못했어요. 잠시 후 다시 시도해 주세요."}
+              : isWithinAiServiceHours()
+                ? "새 추천을 만들지 못했어요. 잠시 후 다시 시도해 주세요."
+                : "추천 생성은 오전 9시부터 오후 6시까지만 할 수 있어요."}
           </p>
         ) : null}
         <TasteOptionGroups value={value} onChange={setSelected} />
