@@ -1,3 +1,5 @@
+import { safeDecodeURIComponent } from "../decode-uri-component";
+
 export function getCookieValue(name: string): string | null {
   if (typeof document === "undefined") {
     return null;
@@ -12,5 +14,5 @@ export function getCookieValue(name: string): string | null {
     return null;
   }
 
-  return decodeURIComponent(cookie.slice(prefix.length));
+  return safeDecodeURIComponent(cookie.slice(prefix.length));
 }

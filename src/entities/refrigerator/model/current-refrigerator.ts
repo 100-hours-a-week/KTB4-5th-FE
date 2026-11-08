@@ -2,6 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useEffect, useSyncExternalStore } from "react";
 
 import { SessionExpiredError } from "@/shared/api";
+import { getCookieValue } from "@/shared/lib/cookie";
 
 import { refrigeratorQueries } from "../api/refrigerator.queries";
 import { CURRENT_REFRIGERATOR_COOKIE_NAME } from "./current-refrigerator-cookie";
@@ -16,12 +17,7 @@ function writeCookie(refrigeratorId: string | null): void {
 }
 
 function readCookie(): string | null {
-  const prefix = `${CURRENT_REFRIGERATOR_COOKIE_NAME}=`;
-  const value = document.cookie
-    .split("; ")
-    .find((cookie) => cookie.startsWith(prefix))
-    ?.slice(prefix.length);
-  return value ? decodeURIComponent(value) : null;
+  return getCookieValue(CURRENT_REFRIGERATOR_COOKIE_NAME) || null;
 }
 
 export function readCurrentRefrigeratorId(): string | null {

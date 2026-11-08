@@ -1,4 +1,5 @@
 import { routes } from "@/shared/routes";
+import { safeDecodeURIComponent } from "@/shared/lib/decode-uri-component";
 
 export type RouteHeaderMode = "tabs" | "flow";
 
@@ -129,12 +130,14 @@ function getFlowHeaderPolicy(pathname: string): RouteHeaderPolicy {
   );
 
   if (ingredientEditMatch) {
-    const ingredientId = decodeURIComponent(ingredientEditMatch[1]);
+    const ingredientId = safeDecodeURIComponent(ingredientEditMatch[1]);
 
     return {
       kind: "flow",
       title: "재고 수정",
-      backFallbackHref: routes.ingredientDetail(ingredientId),
+      backFallbackHref: ingredientId
+        ? routes.ingredientDetail(ingredientId)
+        : routes.refrigerator,
     };
   }
 

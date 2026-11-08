@@ -4,8 +4,7 @@ import { Lineicons } from "@lineiconshq/react-lineicons";
 import { routes } from "@/shared/routes";
 import { AppLink } from "@/shared/ui/app-link";
 
-import type { RecommendedRecipe } from "@/entities/recommendation";
-import Image from "next/image";
+import { RecipeImage, type RecommendedRecipe } from "@/entities/recommendation";
 
 function RecipeImagePlaceholder({ className }: { className: string }) {
   return (
@@ -36,18 +35,14 @@ export function RecommendedRecipeCard({
       prefetch={false}
       className="flex items-center gap-3 rounded-[4px] bg-white px-4 py-3 no-underline shadow-app-sm hover:bg-app-neutral-100 active:bg-app-neutral-200"
     >
-      {recipe.imageUrl ? (
-        <Image
-          unoptimized
-          src={recipe.imageUrl}
-          alt=""
-          width={60}
-          height={60}
-          className="size-15 flex-none rounded-[4px] object-cover"
-        />
-      ) : (
-        <RecipeImagePlaceholder className="size-15 rounded-[4px]" />
-      )}
+      <RecipeImage
+        src={recipe.imageUrl}
+        alt=""
+        width={60}
+        height={60}
+        className="size-15 flex-none rounded-[4px] object-cover"
+        fallback={<RecipeImagePlaceholder className="size-15 rounded-[4px]" />}
+      />
       <span className="min-w-0 flex-1">
         <span className="block truncate font-app-heading text-[16px] font-black leading-tight text-app-ink">
           {recipe.name}

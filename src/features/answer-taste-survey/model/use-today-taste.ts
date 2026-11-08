@@ -2,11 +2,13 @@
 
 import { useMemo, useSyncExternalStore } from "react";
 
+import { getCookieValue } from "@/shared/lib/cookie";
+
 const COOKIE_NAME = "todayTaste";
 const CHANGE_EVENT = "dameokja:today-taste-change";
 const HOUR_MS = 60 * 60 * 1000;
 const KST_OFFSET_MS = 9 * HOUR_MS;
-const RESET_HOUR_KST = 8;
+const RESET_HOUR_KST = 7;
 
 function getNextTasteResetAt(now = Date.now()): Date {
   const kstDayStart =
@@ -16,12 +18,7 @@ function getNextTasteResetAt(now = Date.now()): Date {
 }
 
 function readCookie(): string | null {
-  const prefix = `${COOKIE_NAME}=`;
-  const value = document.cookie
-    .split("; ")
-    .find((cookie) => cookie.startsWith(prefix))
-    ?.slice(prefix.length);
-  return value === undefined ? null : decodeURIComponent(value);
+  return getCookieValue(COOKIE_NAME);
 }
 
 function subscribe(onChange: () => void): () => void {
@@ -49,7 +46,9 @@ export function setTodayTaste(
 }
 
 export function clearTodayTaste(): void {
-  if (readCookie() !== null) writeCookie("", new Date(0));
+  if (document.cookie.includes(`${COOKIE_NAME}=`)) {
+    writeCookie("", new Date(0));
+  }
 }
 
 export function useTodayTaste(

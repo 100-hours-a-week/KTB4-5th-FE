@@ -77,7 +77,7 @@ export function RecommendationTastePage() {
             오늘은 어떤 요리가 끌리세요?
           </h2>
           <p className="mb-0 mt-1.5 break-keep text-[13px] leading-[1.5] text-app-ink/60">
-            고른 취향과 지금 재고로 새 추천을 만들어요. 취향은 내일 오전 8시까지
+            고른 취향과 지금 재고로 새 추천을 만들어요. 취향은 내일 오전 7시까지
             유지돼요. 취향은 인분 수를 제외하고 최대 {MAX_TASTE_TAGS}개까지
             선택할 수 있어요.
             {data && !limitReached
@@ -102,9 +102,11 @@ export function RecommendationTastePage() {
             {job.error instanceof ApiError &&
             job.error.code === "RECOMMEND-409-003"
               ? "이미 추천을 만들고 있어요. 완료되면 다시 시도해 주세요."
-              : isWithinAiServiceHours()
-                ? "새 추천을 만들지 못했어요. 잠시 후 다시 시도해 주세요."
-                : "추천 생성은 오전 9시부터 오후 6시까지만 할 수 있어요."}
+              : job.error instanceof ApiError &&
+                  job.error.status === 503 &&
+                  !isWithinAiServiceHours()
+                ? "추천 생성은 오전 9시부터 오후 6시까지만 할 수 있어요."
+                : "새 추천을 만들지 못했어요. 잠시 후 다시 시도해 주세요."}
           </p>
         ) : null}
         <TasteOptionGroups value={value} onChange={setSelected} />

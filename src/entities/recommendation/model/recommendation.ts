@@ -9,7 +9,10 @@ const dailyGeneration = z.object({
 export const recommendedRecipeSchema = z.object({
   recipeId: z.string(),
   name: z.string(),
-  imageUrl: z.string().nullable(),
+  imageUrl: z
+    .url({ protocol: /^https?$/ })
+    .nullable()
+    .catch(null),
   cookingTimeMinutes: z.number().nullable(),
   ingredientCounts: z.object({
     total: z.number().int().nonnegative().nullable(),
@@ -54,7 +57,10 @@ export const recommendationJobSchema = z.union([
 export const recipeDetailSchema = z.object({
   recipeId: z.string(),
   name: z.string(),
-  imageUrl: z.string().nullable(),
+  imageUrl: z
+    .url({ protocol: /^https?$/ })
+    .nullable()
+    .catch(null),
   cookingTimeMinutes: z.number().nullable(),
   targetServings: z.number().nullable(),
   expiringIngredientCount: z.number().int().nonnegative().nullable(),

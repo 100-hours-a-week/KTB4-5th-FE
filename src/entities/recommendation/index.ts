@@ -1,4 +1,5 @@
 export { RecommendationLimitHelpButton } from "./ui/recommendation-limit-help-button";
+export { RecipeImage } from "./ui/recipe-image";
 export {
   getRecommendations,
   getRecipeDetail,

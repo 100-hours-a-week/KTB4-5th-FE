@@ -31,8 +31,13 @@ export async function RefrigeratorServerPage({
   queryParams,
 }: RefrigeratorServerPageProps) {
   const cookieStore = await cookies();
+  const rawRefrigeratorId = cookieStore.get(
+    CURRENT_REFRIGERATOR_COOKIE_NAME,
+  )?.value;
   const refrigeratorId =
-    cookieStore.get(CURRENT_REFRIGERATOR_COOKIE_NAME)?.value || undefined;
+    rawRefrigeratorId && /^\d+$/.test(rawRefrigeratorId)
+      ? rawRefrigeratorId
+      : undefined;
   const queryClient = new QueryClient();
   const query = parseIngredientListQuery(queryParams);
   const hasSession = cookieStore.has(ACCESS_TOKEN_COOKIE_NAME);
