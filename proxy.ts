@@ -11,6 +11,8 @@ import {
   routes,
 } from "@/shared/routes";
 
+const OAUTH_ERROR_PARAM = "error";
+
 const PUBLIC_PATHS: ReadonlySet<string> = new Set([
   routes.login,
   routes.localLogin,
@@ -36,12 +38,19 @@ export function proxy(request: NextRequest) {
   }
 
   const { pathname, searchParams } = request.nextUrl;
-  if (
-    (pathname === routes.login || pathname === routes.localLogin) &&
-    hasSessionCookie(request) &&
-    !searchParams.has(LOGIN_REDIRECT_REASON_PARAM)
-  ) {
-    return NextResponse.redirect(new URL(routes.home, request.nextUrl));
+  if (pathname === routes.login || pathname === routes.localLogin) {
+    if (
+      searchParams.has(LOGIN_REDIRECT_REASON_PARAM) ||
+      searchParams.has(OAUTH_ERROR_PARAM)
+    ) {
+      const response = NextResponse.next();
+      response.cookies.delete(ACCESS_TOKEN_COOKIE_NAME);
+      response.cookies.delete(REFRESH_TOKEN_COOKIE_NAME);
+      return response;
+    }
+    if (hasSessionCookie(request)) {
+      return NextResponse.redirect(new URL(routes.home, request.nextUrl));
+    }
   }
 
   if (PUBLIC_PATHS.has(request.nextUrl.pathname) || hasSessionCookie(request)) {

@@ -24,6 +24,7 @@ function changesAuthentication(path: string, method: string): boolean {
 }
 
 function isAuthEndpoint(path: string, method: string): boolean {
+  if (path === "/auth/sessions" && method === "DELETE") return false;
   return path.startsWith("/auth/") || isSignupRequest(path, method);
 }
 
