@@ -8,8 +8,6 @@ import {
 } from "@/entities/ingredient";
 import { INGREDIENT_WEIGHT_MAX, INGREDIENT_WEIGHT_MIN } from "@/shared/config";
 
-import { sanitizeDecimalInput } from "../lib/sanitize-decimal-input";
-
 type IngredientWeightUnitOption = Exclude<IngredientWeightUnit, "NONE">;
 
 interface IngredientWeightInputProps {
@@ -85,9 +83,7 @@ export function IngredientWeightInput({
         max={INGREDIENT_WEIGHT_MAX}
         placeholder={disabled ? "입력 불가" : "선택"}
         value={value}
-        onChange={(event) =>
-          onValueChange(sanitizeDecimalInput(event.target.value))
-        }
+        onChange={(event) => onValueChange(event.target.value)}
         onBlur={onBlur}
         aria-invalid={invalid || undefined}
         aria-describedby={describedBy}

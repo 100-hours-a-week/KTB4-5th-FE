@@ -13,6 +13,7 @@ import {
   ingredientWeightValueSchema,
 } from "@/features/ingredient-form";
 import { ingredientExpirationDateSchema } from "@/features/select-expiration-date";
+import { INGREDIENT_WEIGHT_MAX } from "@/shared/config";
 
 export const EDIT_WEIGHT_UNITS = ["G", "ML"] as const;
 
@@ -30,9 +31,31 @@ const baseSchema = z.object({
 export function createIngredientEditFormSchema(
   initialExpirationDate: string,
   initialName: string,
+  initialWeightValue: string,
 ) {
   return baseSchema
     .extend({
+      weightValue: z
+        .string()
+        .superRefine((value, ctx) => {
+          const weight = Number(value);
+          if (
+            value === initialWeightValue &&
+            value !== "" &&
+            Number.isFinite(weight) &&
+            weight > 0 &&
+            weight <= INGREDIENT_WEIGHT_MAX
+          )
+            return;
+          const result = ingredientWeightValueSchema.safeParse(value);
+          if (!result.success)
+            ctx.addIssue({
+              code: "custom",
+              message:
+                result.error.issues[0]?.message ?? "측정값을 확인해 주세요",
+            });
+        })
+        .transform((value) => (value === "" ? null : Number(value))),
       name: z
         .string()
         .superRefine((name, ctx) => {
@@ -78,7 +101,11 @@ export function createIngredientEditFormSchema(
     }));
 }
 
-export const ingredientEditFormSchema = createIngredientEditFormSchema("", "");
+export const ingredientEditFormSchema = createIngredientEditFormSchema(
+  "",
+  "",
+  "",
+);
 
 export type IngredientEditFormInput = z.input<typeof ingredientEditFormSchema>;
 export type IngredientEditFormValues = z.output<
