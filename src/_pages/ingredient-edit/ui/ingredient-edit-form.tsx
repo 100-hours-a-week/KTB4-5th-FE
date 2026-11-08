@@ -73,6 +73,7 @@ export function IngredientEditForm({
       createIngredientEditFormSchema(
         initialValues.expirationDate,
         initialValues.name,
+        initialValues.weightValue,
       ),
     ),
     mode: "onChange",
