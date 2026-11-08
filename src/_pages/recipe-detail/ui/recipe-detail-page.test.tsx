@@ -23,6 +23,7 @@ const mocks = vi.hoisted(() => ({
 }));
 vi.mock("@/entities/recommendation", () => ({
   applyRecipe: (...args: unknown[]) => mocks.apply(...args),
+  RecipeImage: () => null,
   recommendationQueries: {
     detail: (id: string, recipeId: string) => ({
       queryKey: ["refrigerators", id, "recipes", recipeId],

@@ -3,10 +3,10 @@
 import { HatChef3Outlined } from "@lineiconshq/free-icons";
 import { Lineicons } from "@lineiconshq/react-lineicons";
 import { useRef, useState } from "react";
-import Image from "next/image";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   applyRecipe,
+  RecipeImage,
   recommendationQueries,
   type RecipeDetail,
 } from "@/entities/recommendation";
@@ -219,28 +219,26 @@ function RecipeDetailContent({
       }
     >
       <div className="flex flex-col gap-4 px-5 pt-2 pb-20">
-        {recipe.imageUrl ? (
-          <Image
-            unoptimized
-            src={recipe.imageUrl}
-            alt={recipe.name}
-            width={600}
-            height={360}
-            className="h-[180px] w-full rounded-[4px] object-cover"
-          />
-        ) : (
-          <span
-            aria-hidden="true"
-            className="grid h-[180px] place-items-center rounded-[4px] bg-app-neutral-100 text-app-neutral-400"
-          >
-            <Lineicons
-              icon={HatChef3Outlined}
-              size={40}
-              strokeWidth={1.4}
-              focusable="false"
-            />
-          </span>
-        )}
+        <RecipeImage
+          src={recipe.imageUrl}
+          alt={recipe.name}
+          width={600}
+          height={360}
+          className="h-[180px] w-full rounded-[4px] object-cover"
+          fallback={
+            <span
+              aria-hidden="true"
+              className="grid h-[180px] place-items-center rounded-[4px] bg-app-neutral-100 text-app-neutral-400"
+            >
+              <Lineicons
+                icon={HatChef3Outlined}
+                size={40}
+                strokeWidth={1.4}
+                focusable="false"
+              />
+            </span>
+          }
+        />
 
         <div>
           <h2 className="m-0 wrap-anywhere font-app-heading text-[22px] font-black leading-tight text-app-ink">
@@ -315,7 +313,7 @@ function RecipeDetailContent({
                 <span className="grid size-[26px] flex-none place-items-center rounded-full bg-app-ink text-[13px] font-bold text-white">
                   {step.stepNo}
                 </span>
-                <span className="min-w-0 flex-1 pt-0.5 text-[14.5px] leading-[1.5] text-app-ink">
+                <span className="min-w-0 flex-1 pt-0.5 wrap-anywhere text-[14.5px] leading-[1.5] text-app-ink">
                   {step.instruction}
                 </span>
               </li>
