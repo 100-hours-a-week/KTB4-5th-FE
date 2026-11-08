@@ -73,11 +73,8 @@ export const ingredientWeightValueSchema = z
 
     const weight = Number(value);
 
-    if (!/^\d+(\.\d{1,2})?$/.test(value) || weight < INGREDIENT_WEIGHT_MIN) {
-      ctx.addIssue({
-        code: "custom",
-        message: "0.01 이상, 소수 둘째 자리까지 입력해주세요",
-      });
+    if (!Number.isInteger(weight) || weight < INGREDIENT_WEIGHT_MIN) {
+      ctx.addIssue({ code: "custom", message: "1 이상 정수로 입력해주세요" });
       return;
     }
 

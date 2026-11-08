@@ -6,7 +6,7 @@ export const INGREDIENT_QUANTITY_MAX = 100;
 export const INGREDIENT_QUANTITY_MIN = 1;
 
 export const INGREDIENT_WEIGHT_MAX = 50_000;
-export const INGREDIENT_WEIGHT_MIN = 0.01;
+export const INGREDIENT_WEIGHT_MIN = 1;
 
 /** 유통기한으로 고를 수 있는 미래 범위. 오늘부터 이 햇수 이내만 선택한다. */
 export const EXPIRATION_MAX_YEARS = 4;

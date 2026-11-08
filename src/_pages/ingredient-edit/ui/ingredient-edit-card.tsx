@@ -25,7 +25,7 @@ type IngredientEditCardProps = {
 
 const NAME_HINT = "한글·영문·숫자 1~10자";
 const QUANTITY_HINT = "1~100개 사이에서 수정할 수 있어요";
-const WEIGHT_HINT = "0.01~50,000 사이에서 수정할 수 있어요";
+const WEIGHT_HINT = "1~50,000 사이에서 수정할 수 있어요";
 const EXPIRATION_HINT = "기한은 4년 이내";
 const FROZEN_STORAGE_WARNING = "변경 시 유통기간이 정확하지 않을 수 있습니다.";
 
