@@ -29,6 +29,7 @@ vi.mock("@/features/answer-taste-survey", () => ({
   toTasteLabels: () => [],
 }));
 vi.mock("@/features/prepare-recommendations", () => ({
+  useInventoryEmpty: () => false,
   useRecommendations: () => ({
     data: {
       recommendationId: "rec-1",

@@ -5,7 +5,10 @@ import { useSearchParams } from "next/navigation";
 import { useCurrentRefrigeratorId } from "@/entities/refrigerator";
 import { IngredientRefrigeratorRequiredState } from "@/entities/ingredient";
 import { toTasteLabels, useTodayTaste } from "@/features/answer-taste-survey";
-import { useRecommendations } from "@/features/prepare-recommendations";
+import {
+  useInventoryEmpty,
+  useRecommendations,
+} from "@/features/prepare-recommendations";
 import { ApiError } from "@/shared/api";
 import { markAppNavigationIntent } from "@/shared/lib/navigation-history";
 import { routes } from "@/shared/routes";
@@ -84,6 +87,7 @@ export function RecommendationsPage() {
     RECIPE_SORTS.find((value) => value === searchParams.get("sort")) ??
     "EXPIRING";
   const tasteIds = useTodayTaste(refrigeratorId);
+  const inventoryEmpty = useInventoryEmpty(refrigeratorId);
   const generating = data?.status === "GENERATING" || job.isPending;
   const limitReached =
     !generating &&
@@ -164,7 +168,7 @@ export function RecommendationsPage() {
                     : "상관없어요"}
                 </span>
               </p>
-              {generating || limitReached ? null : (
+              {generating || limitReached || inventoryEmpty ? null : (
                 <AppLink
                   href={routes.recommendationTaste}
                   className="flex-none text-[12.5px] font-black text-app-ink underline"
@@ -175,7 +179,10 @@ export function RecommendationsPage() {
             </div>
           ) : null}
         </section>
-        {tasteIds === null && !generating && !limitReached ? (
+        {tasteIds === null &&
+        !generating &&
+        !limitReached &&
+        !inventoryEmpty ? (
           <AppLink
             href={routes.recommendationTaste}
             className="flex items-center justify-between gap-3 rounded-[4px] bg-app-ink px-4 py-3.5 text-white no-underline shadow-app-sm"
@@ -255,6 +262,20 @@ export function RecommendationsPage() {
               ))}
             </ul>
           </section>
+        ) : inventoryEmpty && !generating ? (
+          <AsyncViewState
+            status="empty"
+            title="재료를 먼저 등록해주세요"
+            description="보유 재료가 있어야 요리를 추천받을 수 있어요"
+            action={
+              <AppLink
+                href={routes.registerIngredient}
+                className={asyncViewActionClassName}
+              >
+                재료 등록하기
+              </AppLink>
+            }
+          />
         ) : (job.isError || data.generationStatus === "FAILED") &&
           !limitReached ? (
           <AsyncViewState
