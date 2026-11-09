@@ -162,6 +162,7 @@ export function createRecommendationHandlers() {
             nickname: "추천 테스트",
             email: null,
             profileImageUrl: null,
+            cookingCount: 0,
           })
         : passthrough(),
     ),
