@@ -5,6 +5,7 @@ type MeDto = {
   nickname: string;
   email?: string | null;
   profileImageUrl?: string | null;
+  cookingCount: number;
 };
 
 export type Me = {
@@ -12,6 +13,7 @@ export type Me = {
   nickname: string;
   email: string | null;
   profileImageUrl: string | null;
+  cookingCount: number;
 };
 
 export async function getMe(signal?: AbortSignal): Promise<Me> {
@@ -22,5 +24,6 @@ export async function getMe(signal?: AbortSignal): Promise<Me> {
     nickname: data.nickname,
     email: data.email ?? null,
     profileImageUrl: data.profileImageUrl ?? null,
+    cookingCount: data.cookingCount,
   };
 }

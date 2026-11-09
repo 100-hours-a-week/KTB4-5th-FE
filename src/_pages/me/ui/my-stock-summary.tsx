@@ -23,8 +23,10 @@ const tileClassName =
 
 export function MyStockSummary({
   overview: data,
+  cookingCount,
 }: {
   overview: MypageOverview | undefined;
+  cookingCount: number | undefined;
 }) {
   const format = (count: number | undefined) =>
     count === undefined ? "-" : `${count}종`;
@@ -46,6 +48,12 @@ export function MyStockSummary({
         </span>
         <span className="text-[12px] text-app-ink/55">이번 달 만료</span>
       </AppLink>
+      <div className={tileClassName}>
+        <span className="font-app-heading text-[17px] font-black text-app-ink">
+          {cookingCount === undefined ? "-" : `${cookingCount}회`}
+        </span>
+        <span className="text-[12px] text-app-ink/55">만든 요리 수</span>
+      </div>
     </div>
   );
 }
