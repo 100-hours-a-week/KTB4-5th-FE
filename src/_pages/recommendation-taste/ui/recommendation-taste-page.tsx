@@ -12,7 +12,10 @@ import {
   toRecommendationJobRequest,
   useTodayTaste,
 } from "@/features/answer-taste-survey";
-import { useRecommendations } from "@/features/prepare-recommendations";
+import {
+  useInventoryEmpty,
+  useRecommendations,
+} from "@/features/prepare-recommendations";
 import { ApiError } from "@/shared/api";
 import { markAppNavigationIntent } from "@/shared/lib/navigation-history";
 import { isWithinAiServiceHours } from "@/shared/lib/seoul-date";
@@ -26,6 +29,7 @@ export function RecommendationTastePage() {
   const refrigeratorId = useCurrentRefrigeratorId();
   const { data, job, regenerate } = useRecommendations(refrigeratorId);
   const savedIds = useTodayTaste(refrigeratorId);
+  const inventoryEmpty = useInventoryEmpty(refrigeratorId);
   const [selected, setSelected] = useState<string[] | null>(null);
   const value = selected ?? savedIds ?? [];
   const limitReached =
@@ -36,6 +40,7 @@ export function RecommendationTastePage() {
     job.isPending ||
     data?.status === "GENERATING" ||
     limitReached ||
+    inventoryEmpty ||
     Boolean(data?.hasNewRecommendation);
 
   if (refrigeratorId === null) return <IngredientRefrigeratorRequiredState />;
@@ -97,6 +102,13 @@ export function RecommendationTastePage() {
           >
             오늘의 추천 생성을 모두 사용했어요. 내일 새로 받을 수 있어요.
           </p>
+        ) : inventoryEmpty ? (
+          <AppLink
+            href={routes.registerIngredient}
+            className="m-0 rounded-[4px] bg-app-warning/15 px-4 py-2.5 text-[12.5px] font-bold text-app-ink"
+          >
+            재료를 먼저 등록해주세요
+          </AppLink>
         ) : job.isError ? (
           <p role="alert" className="m-0 text-[13px] text-app-primary">
             {job.error instanceof ApiError &&
