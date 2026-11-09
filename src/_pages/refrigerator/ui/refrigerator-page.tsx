@@ -135,7 +135,7 @@ export function RefrigeratorPage({
             ingredients={ingredients}
             scrollContainerRef={scrollContainerRef}
             isPending={isPending}
-            isInitialError={isError && !data}
+            isInitialError={isError && !isFetchNextPageError}
             isFetchingNextPage={isFetchingNextPage}
             isFetchNextPageError={isFetchNextPageError}
             hasNextPage={Boolean(hasNextPage)}
