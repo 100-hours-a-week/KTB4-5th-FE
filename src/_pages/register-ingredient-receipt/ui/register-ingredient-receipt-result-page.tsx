@@ -132,11 +132,17 @@ export function RegisterIngredientReceiptResultPage({
     return (
       <AsyncViewState
         className="flex-1 justify-center"
-        status="empty"
-        title="인식한 재료가 없어요"
+        status={analysis.data?.status === "FAILED" ? "error" : "empty"}
+        title={
+          analysis.data?.status === "FAILED"
+            ? "사진을 인식하지 못했어요"
+            : "인식한 재료가 없어요"
+        }
         description={
           (analysis.data && getAnalysisFailureMessage(analysis.data)) ??
-          "사진을 다시 촬영하거나 직접 입력해 주세요."
+          (analysis.data?.status === "FAILED"
+            ? "잠시 후 다시 시도하거나 직접 입력해 주세요."
+            : "사진을 다시 촬영하거나 직접 입력해 주세요.")
         }
         action={
           <button

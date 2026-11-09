@@ -20,6 +20,7 @@ import {
   formatDaysUntilExpiration,
 } from "@/entities/ingredient";
 import { ApiError } from "@/shared/api";
+import { userQueries } from "@/entities/user";
 import {
   AsyncViewState,
   asyncViewActionClassName,
@@ -177,6 +178,9 @@ function RecipeDetailContent({
     onSuccess: () => {
       requestKey.current = null;
       setIsConsumeSheetOpen(false);
+      void queryClient.invalidateQueries({
+        queryKey: userQueries.me().queryKey,
+      });
       void queryClient.invalidateQueries({
         queryKey: recommendationQueries.list(refrigeratorId).queryKey,
       });

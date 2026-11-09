@@ -15,6 +15,13 @@ import { consumeAppNavigationIntent } from "@/shared/lib/navigation-history";
 
 import { RecommendationsPage } from "./recommendations-page";
 
+const state = vi.hoisted(() => ({
+  emptyRecipes: false,
+  inventoryEmpty: false,
+  status: "READY",
+  hasNewRecommendation: false,
+}));
+
 vi.mock("next/navigation", () => ({
   useSearchParams: () => new URLSearchParams(window.location.search),
 }));
@@ -29,11 +36,13 @@ vi.mock("@/features/answer-taste-survey", () => ({
   toTasteLabels: () => [],
 }));
 vi.mock("@/features/prepare-recommendations", () => ({
-  useInventoryEmpty: () => false,
+  useInventoryEmpty: () => state.inventoryEmpty,
   useRecommendations: () => ({
     data: {
       recommendationId: "rec-1",
-      recipes,
+      recipes: state.emptyRecipes ? [] : recipes,
+      status: state.status,
+      hasNewRecommendation: state.hasNewRecommendation,
       dailyGeneration: { remaining: 5 },
     },
     job: {},
@@ -75,7 +84,43 @@ const recipes: RecommendedRecipe[] = [
   },
 ];
 
-afterEach(cleanup);
+afterEach(() => {
+  cleanup();
+  Object.assign(state, {
+    emptyRecipes: false,
+    inventoryEmpty: false,
+    status: "READY",
+    hasNewRecommendation: false,
+  });
+});
+
+it("재고가 있지만 추천 결과가 없으면 재등록 대신 취향 변경을 안내한다", () => {
+  state.emptyRecipes = true;
+  render(<RecommendationsPage />);
+  expect(
+    screen.getByText(/현재 재료와 취향에 맞는 요리를 찾지 못했어요/),
+  ).toBeTruthy();
+  expect(screen.queryByRole("link", { name: "재료 등록하기" })).toBeNull();
+});
+
+it("새 추천 전환을 기다릴 때 빈 이전 목록의 등록 안내를 숨긴다", () => {
+  Object.assign(state, {
+    emptyRecipes: true,
+    hasNewRecommendation: true,
+    status: "STALE",
+  });
+  render(<RecommendationsPage />);
+  expect(screen.getByRole("button", { name: "새 추천 보기" })).toBeTruthy();
+  expect(screen.queryByText("추천할 요리를 찾지 못했어요")).toBeNull();
+  expect(screen.queryByRole("link", { name: "재료 등록하기" })).toBeNull();
+});
+
+it("실제로 재고가 비었을 때는 등록 안내를 유지한다", () => {
+  Object.assign(state, { emptyRecipes: true, inventoryEmpty: true });
+  render(<RecommendationsPage />);
+  expect(screen.getByText("재료를 먼저 등록해주세요")).toBeTruthy();
+  expect(screen.getByRole("link", { name: "재료 등록하기" })).toBeTruthy();
+});
 
 function order() {
   return within(screen.getByRole("region", { name: "추천 요리 목록" }))

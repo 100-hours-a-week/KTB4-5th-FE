@@ -262,7 +262,7 @@ export function RecommendationsPage() {
               ))}
             </ul>
           </section>
-        ) : inventoryEmpty && !generating ? (
+        ) : data.hasNewRecommendation ? null : inventoryEmpty && !generating ? (
           <AsyncViewState
             status="empty"
             title="재료를 먼저 등록해주세요"
@@ -318,14 +318,14 @@ export function RecommendationsPage() {
             description={
               limitReached
                 ? "내일 새로 받을 수 있어요"
-                : "재료를 등록하면 새로운 추천을 받을 수 있어요"
+                : "현재 재료와 취향에 맞는 요리를 찾지 못했어요. 취향을 바꿔 다시 추천받아 보세요"
             }
             action={
               <AppLink
-                href={limitReached ? routes.home : routes.registerIngredient}
+                href={limitReached ? routes.home : routes.recommendationTaste}
                 className={asyncViewActionClassName}
               >
-                {limitReached ? "홈으로 이동" : "재료 등록하기"}
+                {limitReached ? "홈으로 이동" : "취향 바꿔 다시 추천"}
               </AppLink>
             }
           />

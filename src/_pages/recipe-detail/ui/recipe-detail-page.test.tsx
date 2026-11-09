@@ -101,6 +101,18 @@ async function apply() {
   fireEvent.click(await screen.findByText("적용하기"));
   fireEvent.click(screen.getByText("차감 확인"));
 }
+it("invalidates the cached cooking count after saving a cooking record", async () => {
+  mocks.apply.mockResolvedValue(undefined);
+  renderPage();
+  client.setQueryData(["users", "me"], { cookingCount: 3 });
+  expect(client.getQueryState(["users", "me"])?.isInvalidated).toBe(false);
+
+  await apply();
+
+  await waitFor(() =>
+    expect(client.getQueryState(["users", "me"])?.isInvalidated).toBe(true),
+  );
+});
 it("retains the key and original ETag after a lost response, even after detail refetch", async () => {
   mocks.apply.mockRejectedValue(new TypeError("Failed to fetch"));
   renderPage();
