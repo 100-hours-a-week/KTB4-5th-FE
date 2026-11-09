@@ -4,7 +4,6 @@ import {
   QueryClient,
 } from "@tanstack/react-query";
 import { cookies } from "next/headers";
-import { preload } from "react-dom";
 
 import {
   INGREDIENT_LIST_FILTERS,
@@ -19,7 +18,7 @@ import {
   getIngredientListOnServer,
 } from "@/entities/ingredient/index.server";
 import { CURRENT_REFRIGERATOR_COOKIE_NAME } from "@/entities/refrigerator/index.server";
-import { ACCESS_TOKEN_COOKIE_NAME, API_BASE_PATH } from "@/shared/api";
+import { ACCESS_TOKEN_COOKIE_NAME } from "@/shared/api";
 
 import { IngredientListEarlyFetch } from "./ingredient-list-early-fetch";
 import { RefrigeratorPage } from "./refrigerator-page";
@@ -32,8 +31,13 @@ export async function RefrigeratorServerPage({
   queryParams,
 }: RefrigeratorServerPageProps) {
   const cookieStore = await cookies();
+  const rawRefrigeratorId = cookieStore.get(
+    CURRENT_REFRIGERATOR_COOKIE_NAME,
+  )?.value;
   const refrigeratorId =
-    cookieStore.get(CURRENT_REFRIGERATOR_COOKIE_NAME)?.value || undefined;
+    rawRefrigeratorId && /^\d+$/.test(rawRefrigeratorId)
+      ? rawRefrigeratorId
+      : undefined;
   const queryClient = new QueryClient();
   const query = parseIngredientListQuery(queryParams);
   const hasSession = cookieStore.has(ACCESS_TOKEN_COOKIE_NAME);
@@ -45,14 +49,6 @@ export async function RefrigeratorServerPage({
             toIngredientListPath(refrigeratorId, { ...query, filter }),
           )
       : [];
-
-  for (const path of earlyFetchPaths) {
-    preload(`${API_BASE_PATH}${path}`, {
-      as: "fetch",
-      crossOrigin: "use-credentials",
-      fetchPriority: "low",
-    });
-  }
 
   if (refrigeratorId && hasSession && canGetIngredientListOnServer()) {
     await queryClient.prefetchInfiniteQuery({

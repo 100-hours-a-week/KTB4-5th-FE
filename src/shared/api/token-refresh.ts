@@ -24,6 +24,7 @@ async function performRefresh(): Promise<SessionRefreshResult> {
   }
 
   try {
+    const signal = AbortSignal.timeout(15_000);
     const csrfToken = await ensureCsrfToken();
     if (!csrfToken) {
       return "failed";
@@ -33,6 +34,7 @@ async function performRefresh(): Promise<SessionRefreshResult> {
       method: "POST",
       credentials: "include",
       headers: { [CSRF_HEADER_NAME]: csrfToken },
+      signal,
     });
 
     if (response.ok) {

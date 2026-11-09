@@ -1,12 +1,31 @@
-import { expect, it, vi } from "vitest";
+import { afterEach, expect, it, vi } from "vitest";
 vi.mock("@lineiconshq/free-icons", () => ({ CalendarDaysOutlined: {} }));
 vi.mock("@lineiconshq/react-lineicons", () => ({ Lineicons: () => null }));
-import { analysisFixture } from "@/entities/image/api/image-analysis.test-fixtures";
+import {
+  analysisFixture,
+  productAnalysisFixture,
+} from "@/entities/image/api/image-analysis.test-fixtures";
 import { getTodayInSeoul } from "@/shared/lib/seoul-date";
 import {
   getRecognitionStatus,
   toRecognitionResult,
 } from "./receipt-recognition";
+
+afterEach(() => vi.useRealTimers());
+
+it("실물 사진의 예상 기한과 AI 예상 상태를 등록 폼에 전달한다", () => {
+  vi.setSystemTime(new Date("2026-11-02T00:00:00+09:00"));
+  const result = toRecognitionResult(productAnalysisFixture);
+  expect(result.drafts[0].expirationDate).toBe("2026-11-03");
+  expect(result.expirationNotes[0]).toBe("AI 예상 11.03~11.07");
+  expect(result.hints[0]).toBe("AI_ESTIMATED");
+  expect(getRecognitionStatus(result.drafts[0], result.hints[0])).toBe(
+    "AI_ESTIMATED",
+  );
+  expect(result.origins).toEqual([
+    { imageObjectKey: "product.jpg", itemId: "item_001" },
+  ]);
+});
 
 it("OCR 이름을 입력 규칙에 맞추고 변환한 항목은 확인 필요로 표시한다", () => {
   const analysis = structuredClone(analysisFixture);

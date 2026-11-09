@@ -33,7 +33,6 @@ import {
   getAnalysisFailureMessage,
 } from "../model/receipt-recognition";
 import { useReceiptResultForm } from "../model/use-receipt-result-form";
-import { useReceiptResultStore } from "../model/use-receipt-result-store";
 import { RecognitionStatusChip } from "./recognition-status-chip";
 
 const FORM_ID = "receipt-result-form";
@@ -45,7 +44,6 @@ export function RegisterIngredientReceiptResultPage({
   analysisId?: string;
 }) {
   const router = useRouter();
-  const storedResult = useReceiptResultStore((state) => state.result);
   const removeAnalysis = useDeleteImageAnalysis();
   const analysis = useQuery({
     ...imageAnalysisQueries.detail(analysisId ?? ""),
@@ -55,16 +53,13 @@ export function RegisterIngredientReceiptResultPage({
   });
   const result = useMemo(
     () =>
-      analysisId
-        ? analysis.data && toRecognitionResult(analysis.data)
-        : storedResult,
-    [analysisId, analysis.data, storedResult],
+      analysisId && analysis.data ? toRecognitionResult(analysis.data) : null,
+    [analysisId, analysis.data],
   );
 
   useEffect(() => {
-    if (!analysisId && !storedResult)
-      router.replace(routes.registerIngredientReceipt);
-  }, [analysisId, storedResult, router]);
+    if (!analysisId) router.replace(routes.registerIngredientReceipt);
+  }, [analysisId, router]);
 
   if (analysisId && !analysis.data) {
     if (analysis.isError) {
@@ -230,7 +225,7 @@ function ReceiptResultForm({
             ) : null}
             {hasUncertain ? (
               <p className="m-0 mt-3 rounded-[3px] bg-app-ink/5 px-4 py-3 text-[13px] leading-normal text-app-ink/60">
-                영수증 {photoCount}장에서 인식했어요.{" "}
+                사진 {photoCount}장에서 인식했어요.{" "}
                 {hasUnsetExpiration
                   ? "유통기한은 직접 지정해 주세요."
                   : "AI 인식 결과를 확인한 후 등록해 주세요."}

@@ -89,7 +89,7 @@ export function IngredientEditCard({
                     htmlFor={`${idPrefix}-quantity`}
                     className={FIELD_LABEL_CLASS_NAME}
                   >
-                    개수
+                    수량
                   </label>
                   <EditQuantityField
                     id={`${idPrefix}-quantity`}

@@ -5,6 +5,7 @@ import { Lineicons } from "@lineiconshq/react-lineicons";
 import { usePathname, useRouter } from "next/navigation";
 
 import { NotificationBell } from "@/entities/notification";
+import { RecommendationLimitHelpButton } from "@/entities/recommendation";
 import { ReadAllNotificationsButton } from "@/features/read-all-notifications";
 import { runAppBackGuard } from "@/shared/lib/navigation-guard";
 import {
@@ -41,8 +42,15 @@ export function RouteHeader({ mode }: RouteHeaderProps) {
           )
         }
         actions={
-          policy.showNotifications ? (
-            <NotificationBell unreadCount={unreadNotificationCount} />
+          policy.showRecommendationHelp || policy.showNotifications ? (
+            <>
+              {policy.showRecommendationHelp ? (
+                <RecommendationLimitHelpButton />
+              ) : null}
+              {policy.showNotifications ? (
+                <NotificationBell unreadCount={unreadNotificationCount} />
+              ) : null}
+            </>
           ) : undefined
         }
       />

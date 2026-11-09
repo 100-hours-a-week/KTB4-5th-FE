@@ -9,12 +9,15 @@ import { ApiError, SessionExpiredError } from "@/shared/api";
 
 import { useNotificationSse } from "./use-notification-sse";
 
-const { refresh, session, recover } = vi.hoisted(() => ({
+const { refresh, session, recover, router } = vi.hoisted(() => ({
+  router: { push: vi.fn() },
   recover: vi.fn(),
   session: { loggingOut: false },
   refresh: vi.fn(() => Promise.resolve()),
 }));
 
+vi.mock("next/navigation", () => ({ useRouter: () => router }));
+vi.mock("@/shared/ui/app-toast", () => ({ showAppToast: vi.fn() }));
 vi.mock("@/features/recover-refrigerator-access", () => ({
   useRecoverRefrigeratorAccess: () => recover,
 }));
@@ -49,6 +52,13 @@ vi.mock("@/entities/image", () => ({
   },
 }));
 
+vi.mock("@/entities/recommendation", () => ({
+  recommendationQueries: {
+    list: (id: string) => ({
+      queryKey: ["refrigerators", id, "recommendations"],
+    }),
+  },
+}));
 class FakeEventSource {
   static CLOSED = 2;
   static instances: FakeEventSource[] = [];
@@ -407,3 +417,30 @@ it("online 이벤트에서 닫힌 연결만 바로 다시 열고 예약된 재�
   await advance(30_000);
   expect(FakeEventSource.instances).toHaveLength(2);
 });
+
+it.each(["COMPLETED", "FAILED"])(
+  "backend recommendation %s signal refreshes the current refrigerator without a refrigeratorId payload",
+  (generationStatus) => {
+    const invalidate = vi.spyOn(queryClient, "invalidateQueries");
+    renderHook(() => useNotificationSse("user", "17"), { wrapper });
+    const source = FakeEventSource.instances[0];
+    for (const payload of [
+      "invalid",
+      "null",
+      "[]",
+      '{"generationStatus":"QUEUED"}',
+    ]) {
+      act(() => source.emit("recommendation", payload));
+    }
+    expect(invalidate).not.toHaveBeenCalled();
+    act(() =>
+      source.emit(
+        "recommendation",
+        JSON.stringify({ generationTrigger: "USER", generationStatus }),
+      ),
+    );
+    expect(invalidate).toHaveBeenCalledWith({
+      queryKey: ["refrigerators", "17", "recommendations"],
+    });
+  },
+);

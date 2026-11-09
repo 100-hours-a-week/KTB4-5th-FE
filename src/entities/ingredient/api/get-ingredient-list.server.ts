@@ -2,14 +2,19 @@ import "server-only";
 
 import { API_BASE_PATH, ApiError, readProblem } from "@/shared/api";
 import type { ApiResponse } from "@/shared/api";
+import { STOCK_TYPE_LIMIT } from "@/shared/config";
 
 import type { IngredientListQuery } from "../model/ingredient-list-query";
 import {
   type IngredientListPage,
   type IngredientListResponseDto,
   toIngredientListPage,
+  INGREDIENT_LIST_PAGE_SIZE,
   toIngredientListSearchParams,
 } from "./get-ingredient-list";
+
+const MAX_INGREDIENT_LIST_PAGES =
+  Math.ceil(STOCK_TYPE_LIMIT / INGREDIENT_LIST_PAGE_SIZE) + 1;
 
 const BACKEND_ORIGIN =
   process.env.BACKEND_ORIGIN ??
@@ -78,6 +83,9 @@ export async function getAllIngredientListOnServer(
   let cursor = first.data.nextCursor;
 
   while (cursor !== null) {
+    if (seenCursors.size >= MAX_INGREDIENT_LIST_PAGES) {
+      throw new TypeError("재고 목록의 페이지 수가 상한을 넘었습니다.");
+    }
     if (seenCursors.has(cursor)) {
       throw new TypeError("재고 목록의 페이지 커서가 반복되었습니다.");
     }

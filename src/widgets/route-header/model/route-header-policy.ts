@@ -1,4 +1,5 @@
 import { routes } from "@/shared/routes";
+import { safeDecodeURIComponent } from "@/shared/lib/decode-uri-component";
 
 export type RouteHeaderMode = "tabs" | "flow";
 
@@ -8,6 +9,7 @@ export type RouteHeaderPolicy =
       title: string;
       showNotifications: boolean;
       showRefrigeratorName: boolean;
+      showRecommendationHelp: boolean;
     }
   | {
       kind: "flow";
@@ -20,6 +22,7 @@ const tabHeaderTitles: Record<string, string> = {
   [routes.home]: "홈",
   [routes.refrigerator]: "냉장고",
   [routes.me]: "MY",
+  [routes.recommendations]: "추천 요리",
 };
 
 function getTabHeaderPolicy(pathname: string): RouteHeaderPolicy {
@@ -28,6 +31,7 @@ function getTabHeaderPolicy(pathname: string): RouteHeaderPolicy {
     title: tabHeaderTitles[pathname] ?? "다먹자",
     showNotifications: true,
     showRefrigeratorName: pathname === routes.home,
+    showRecommendationHelp: pathname === routes.recommendations,
   };
 }
 
@@ -100,7 +104,7 @@ function getFlowHeaderPolicy(pathname: string): RouteHeaderPolicy {
   if (pathname === routes.registerIngredientReceipt) {
     return {
       kind: "flow",
-      title: "영수증 촬영",
+      title: "영수증 / 실물 촬영",
       backFallbackHref: routes.registerIngredient,
     };
   }
@@ -126,12 +130,14 @@ function getFlowHeaderPolicy(pathname: string): RouteHeaderPolicy {
   );
 
   if (ingredientEditMatch) {
-    const ingredientId = decodeURIComponent(ingredientEditMatch[1]);
+    const ingredientId = safeDecodeURIComponent(ingredientEditMatch[1]);
 
     return {
       kind: "flow",
       title: "재고 수정",
-      backFallbackHref: routes.ingredientDetail(ingredientId),
+      backFallbackHref: ingredientId
+        ? routes.ingredientDetail(ingredientId)
+        : routes.refrigerator,
     };
   }
 
@@ -140,6 +146,22 @@ function getFlowHeaderPolicy(pathname: string): RouteHeaderPolicy {
       kind: "flow",
       title: "재고 상세",
       backFallbackHref: routes.refrigerator,
+    };
+  }
+
+  if (pathname === routes.recommendationTaste) {
+    return {
+      kind: "flow",
+      title: "오늘의 취향",
+      backFallbackHref: routes.recommendations,
+    };
+  }
+
+  if (/^\/recommendations\/[^/]+$/.test(pathname)) {
+    return {
+      kind: "flow",
+      title: "요리 상세",
+      backFallbackHref: routes.recommendations,
     };
   }
 

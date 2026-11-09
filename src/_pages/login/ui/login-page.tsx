@@ -7,11 +7,13 @@ import stackedLogo from "@/shared/assets/logo/logo-stacked.webp";
 import { routes } from "@/shared/routes";
 import { PageActionLayout } from "@/shared/ui/page-action-layout";
 
+import { ClearPreviousSession } from "./clear-previous-session";
 import { LoginRedirectNotice } from "./login-redirect-notice";
 
 export function LoginPage() {
   return (
     <>
+      <ClearPreviousSession />
       <Suspense fallback={null}>
         <LoginRedirectNotice />
       </Suspense>

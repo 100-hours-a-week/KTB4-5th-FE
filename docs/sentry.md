@@ -89,6 +89,27 @@ Query의 공통 캐시 콜백에서 재시도 종료 후 한 번 보고하며, �
 - 알림 규칙은 실제 발생량을 확인한 뒤 `production`의 새로운 이슈와 반복되는
   재고 등록·푸시 구독 실패를 구분해 설정한다.
 
+## OAuth 로그인 관측
+
+브라우저에서 Sentry Logs를 사용한다. 오류가 없는 OAuth 이동도 기록하며,
+`oauth.click` → `oauth.prepared` → `oauth.navigate` → `oauth.entry` 순서로 확인한다.
+`oauth.entry`는 일반 앱 시작 때도 기록되며, `oauth_pending`은 같은 탭에 남은
+OAuth 시작 표시일 뿐 인증 성공이나 자동 로그인 여부를 확정하지 않는다.
+
+- `oauth.click`: 브라우저가 신뢰한 클릭인지 나타내는 `trusted`.
+- `oauth.prepared`, `oauth.navigate`: 클릭 후 경과 시간 `elapsed_ms`.
+- `oauth.entry`: `login`·`signup`·`app` 분류, `oauth_pending`, standalone 여부와 visibility.
+- `oauth.pageshow`: 로그인 화면의 뒤로가기 캐시 복원 여부 `persisted`와 버튼의 `pending` 상태.
+- `oauth.resume`: 로그인 화면이 다시 visible 상태가 됐을 때 버튼의 `pending` 상태.
+- `oauth.prepare` 오류: `lookup`·`disable` 단계, 경과 시간과 타임아웃 여부.
+
+직접 추가하는 기록에는 URL·쿼리·쿠키·토큰·스토리지 값·원본 오류 메시지를 넣지 않는다.
+`trusted: false`는 프로그램 방식 클릭의 단서이며, 키보드·접근성 도구와 브라우저
+동작도 고려해야 한다. 로그 누락도 가능하므로 클릭 기록이 없다는 사실만으로
+자동 OAuth를 확정하지 않는다. 로그는 문서 이동 전에 브라우저가 hidden 상태로
+바뀔 때 SDK가 flush하며, 로그 전송을 기다리느라 OAuth 이동을 지연시키지 않는다.
+배포 후 Sentry Logs 수신과 실제 설치 PWA 재실행·백그라운드 복귀를 별도로 확인한다.
+
 ## 참고
 
 - [Sentry Next.js 공식 설정](https://docs.sentry.io/platforms/javascript/guides/nextjs/manual-setup/)

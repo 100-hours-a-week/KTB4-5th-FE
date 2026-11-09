@@ -1,2 +1,6 @@
-export { registerAppBackGuard, runAppBackGuard } from "./app-back-guard";
+export {
+  installBrowserBackGuard,
+  registerAppBackGuard,
+  runAppBackGuard,
+} from "./app-back-guard";
 export type { AppBackGuard } from "./app-back-guard";

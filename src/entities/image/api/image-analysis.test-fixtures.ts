@@ -58,3 +58,41 @@ export const analysisFixture: ImageAnalysis & ImageAnalysisListItem = {
   ],
   error: null,
 };
+
+export const productAnalysisFixture: ImageAnalysis & ImageAnalysisListItem = {
+  ...analysisFixture,
+  analysisId: "product-analysis-1",
+  status: "COMPLETED",
+  totalImageCount: 1,
+  completedImageCount: 1,
+  failedImageCount: 0,
+  images: [
+    { imageObjectKey: "product.jpg", status: "COMPLETED", itemCount: 1 },
+  ],
+  results: [
+    {
+      ...analysisFixture.results[0],
+      imageObjectKey: "product.jpg",
+      documentType: "PRODUCT",
+      recognitionStatus: "AI_ESTIMATED",
+      items: [
+        {
+          ...analysisFixture.results[0].items[0],
+          displayStatus: "AI_ESTIMATED",
+          expiration: {
+            date: null,
+            dateType: "ESTIMATED_CONSUMPTION_WINDOW",
+            estimatedRange: { from: "2026-11-03", to: "2026-11-07" },
+          },
+          reviewReasons: [
+            {
+              field: "EXPIRATION",
+              code: "EXPIRATION_ESTIMATED",
+              messages: ["보관 조건에 따른 예상 기한입니다."],
+            },
+          ],
+        },
+      ],
+    },
+  ],
+};

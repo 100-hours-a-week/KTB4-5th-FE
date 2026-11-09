@@ -9,10 +9,8 @@ import {
 } from "@lineiconshq/free-icons";
 import { Lineicons } from "@lineiconshq/react-lineicons";
 import { usePathname } from "next/navigation";
-import { useState } from "react";
 
 import { routes } from "@/shared/routes";
-import { AppDialog } from "@/shared/ui/app-dialog";
 import { AppLink } from "@/shared/ui/app-link";
 
 function isActiveRoute(pathname: string, href: string) {
@@ -23,13 +21,8 @@ function isActiveRoute(pathname: string, href: string) {
   return pathname === href || pathname.startsWith(`${href}/`);
 }
 
-const TAB_ITEM_CLASS_NAME =
-  "flex min-h-[var(--tabbar-h)] w-full min-w-0 flex-col items-center justify-center gap-[3px] border-t-[3px] border-transparent bg-transparent px-[2px] pt-[7px] pb-[6px] text-center text-[11px] font-bold leading-none text-app-neutral-600 no-underline transition-colors duration-[140ms] ease-linear hover:text-app-text aria-[current=page]:border-t-app-primary aria-[current=page]:text-app-primary";
-
 export function BottomTabNavigation() {
   const pathname = usePathname();
-  const [isRecommendationNoticeOpen, setIsRecommendationNoticeOpen] =
-    useState(false);
 
   return (
     <nav
@@ -94,10 +87,19 @@ export function BottomTabNavigation() {
           </AppLink>
         </li>
         <li>
-          <button
-            type="button"
-            className={TAB_ITEM_CLASS_NAME}
-            onClick={() => setIsRecommendationNoticeOpen(true)}
+          <AppLink
+            className="flex min-h-[var(--tabbar-h)] min-w-0 flex-col items-center justify-center gap-[3px] border-t-[3px] border-transparent px-[2px] pt-[7px] pb-[6px] text-center text-[11px] font-bold leading-none text-app-neutral-600 no-underline transition-colors duration-[140ms] ease-linear hover:text-app-text aria-[current=page]:border-t-app-primary aria-[current=page]:text-app-primary"
+            href={routes.recommendations}
+            aria-current={
+              pathname === routes.recommendations ? "page" : undefined
+            }
+            onClick={(event) => {
+              if (pathname !== routes.recommendations) return;
+              event.preventDefault();
+              document
+                .querySelector("main")
+                ?.scrollTo({ top: 0, behavior: "smooth" });
+            }}
           >
             <Lineicons
               icon={ServiceBell1Outlined}
@@ -107,7 +109,7 @@ export function BottomTabNavigation() {
               focusable="false"
             />
             <span>추천</span>
-          </button>
+          </AppLink>
         </li>
         <li>
           <AppLink
@@ -128,16 +130,6 @@ export function BottomTabNavigation() {
           </AppLink>
         </li>
       </ul>
-
-      <AppDialog
-        open={isRecommendationNoticeOpen}
-        title="추천은 다음 버전에서 만나요."
-        description="지금 가진 재료로 만들 수 있는 요리를 준비하고 있어요. 먼저 냉장고와 알림을 써 보세요!"
-        primaryAction={{
-          label: "알겠어요",
-          onClick: () => setIsRecommendationNoticeOpen(false),
-        }}
-      />
     </nav>
   );
 }

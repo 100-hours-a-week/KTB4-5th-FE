@@ -5,7 +5,13 @@ import {
   REFRESH_TOKEN_COOKIE_NAME,
   REGISTRATION_TOKEN_COOKIE_NAME,
 } from "@/shared/api";
-import { loginRedirectReasons, routes } from "@/shared/routes";
+import {
+  LOGIN_REDIRECT_REASON_PARAM,
+  loginRedirectReasons,
+  routes,
+} from "@/shared/routes";
+
+const OAUTH_ERROR_PARAM = "error";
 
 const PUBLIC_PATHS: ReadonlySet<string> = new Set([
   routes.login,
@@ -29,6 +35,22 @@ export function proxy(request: NextRequest) {
     return request.cookies.has(REGISTRATION_TOKEN_COOKIE_NAME)
       ? NextResponse.next()
       : NextResponse.redirect(new URL(routes.login, request.nextUrl));
+  }
+
+  const { pathname, searchParams } = request.nextUrl;
+  if (pathname === routes.login || pathname === routes.localLogin) {
+    if (
+      searchParams.has(LOGIN_REDIRECT_REASON_PARAM) ||
+      searchParams.has(OAUTH_ERROR_PARAM)
+    ) {
+      const response = NextResponse.next();
+      response.cookies.delete(ACCESS_TOKEN_COOKIE_NAME);
+      response.cookies.delete(REFRESH_TOKEN_COOKIE_NAME);
+      return response;
+    }
+    if (hasSessionCookie(request)) {
+      return NextResponse.redirect(new URL(routes.home, request.nextUrl));
+    }
   }
 
   if (PUBLIC_PATHS.has(request.nextUrl.pathname) || hasSessionCookie(request)) {

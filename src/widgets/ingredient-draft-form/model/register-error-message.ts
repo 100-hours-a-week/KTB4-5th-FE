@@ -18,6 +18,9 @@ export function getRegisterErrorMessage(error: unknown): string | null {
   }
 
   if (error instanceof ApiError) {
+    if (error.code === "IMAGE-400-002") {
+      return "사진 분석 결과와 등록 대상이 달라요. 분석 당시 냉장고에서 다시 확인해 주세요";
+    }
     if (error.code === "IMAGE-404-001") {
       return "분석 결과가 만료되었거나 이미 등록됐어요. 다시 촬영해 주세요";
     }

@@ -16,7 +16,7 @@ it("sends PATCH with the detail ETag and parses the new ETag", async () => {
         code: "INGREDIENT-200-004",
         message: "재고 수정 성공",
         data: {
-          ingredientId: "1",
+          ingredientId: "2",
           name: "두부",
           category: "TOFU_BEAN",
           storageType: "REFRIGERATED",
@@ -30,7 +30,7 @@ it("sends PATCH with the detail ETag and parses the new ETag", async () => {
           daysUntilExpiration: -1,
           mergedItems: [
             {
-              ingredientId: 1,
+              ingredientId: 2,
               name: "두부",
               measureType: "WEIGHT",
               previousQuantity: null,
@@ -61,13 +61,13 @@ it("sends PATCH with the detail ETag and parses the new ETag", async () => {
   );
   expect(result.etag).toBe('"sha256-new"');
   expect(result.ingredient).toMatchObject({
-    ingredientId: "1",
+    ingredientId: "2",
     weightValue: 550,
   });
   expect(result.ingredient).not.toHaveProperty("mergedItems");
   expect(result.mergedItems).toEqual([
     expect.objectContaining({
-      ingredientId: 1,
+      ingredientId: 2,
       previousWeightValue: 250,
       addedWeightValue: 300,
       totalWeightValue: 550,

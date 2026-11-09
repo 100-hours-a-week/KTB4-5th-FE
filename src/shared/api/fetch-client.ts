@@ -24,6 +24,7 @@ function changesAuthentication(path: string, method: string): boolean {
 }
 
 function isAuthEndpoint(path: string, method: string): boolean {
+  if (path === "/auth/sessions" && method === "DELETE") return false;
   return path.startsWith("/auth/") || isSignupRequest(path, method);
 }
 
@@ -109,6 +110,11 @@ async function sendRequest(
     const refreshed = await refreshSession();
     if (refreshed === "renewed") {
       return sendRequest(path, options, { ...retryState, authRetried: true });
+    }
+    if (refreshed === "failed") {
+      throw new Error(
+        "로그인 상태를 확인하지 못했어요. 잠시 후 다시 시도해 주세요.",
+      );
     }
     throw new SessionExpiredError();
   }

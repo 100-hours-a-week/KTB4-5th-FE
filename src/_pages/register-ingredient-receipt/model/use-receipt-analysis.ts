@@ -13,8 +13,10 @@ import {
   useRegisteredAnalyses,
 } from "@/entities/image";
 import { useNotificationSessionScope } from "@/entities/notification";
+import { readCurrentRefrigeratorId } from "@/entities/refrigerator";
 import { ApiError } from "@/shared/api";
 import { markAppNavigationIntent } from "@/shared/lib/navigation-history";
+import { isWithinAiServiceHours } from "@/shared/lib/seoul-date";
 import { routes } from "@/shared/routes";
 import { showAppToast } from "@/shared/ui/app-toast";
 import { selectAnalysisBanner } from "@/widgets/route-header";
@@ -39,19 +41,12 @@ function getSubmitErrorMessage(error: unknown) {
     }
     if (error.code === "IMAGE-503-001") {
       // shortcut: 접수 장애와 운영시간 제한이 같은 코드이므로, 백엔드가 사유 코드를 제공하면 시간 추정을 대체한다.
-      const hour = Number(
-        new Intl.DateTimeFormat("en-GB", {
-          timeZone: "Asia/Seoul",
-          hour: "2-digit",
-          hourCycle: "h23",
-        }).format(new Date()),
-      );
-      return hour < 9 || hour >= 18
-        ? "영수증 인식 기능은 오전 9시부터 오후 6시까지만 사용할 수 있어요"
+      return !isWithinAiServiceHours()
+        ? "사진 인식 기능은 오전 9시부터 오후 6시까지만 사용할 수 있어요"
         : "서버에 연결하지 못했어요. 잠시 후 다시 시도해 주세요";
     }
   }
-  return "영수증을 보내지 못했어요. 다시 시도해 주세요";
+  return "사진을 보내지 못했어요. 다시 시도해 주세요";
 }
 
 export type ReceiptAnalysisFailure = "FAILED" | null;
@@ -66,7 +61,6 @@ export function useReceiptAnalysis() {
   const [submittedId, setSubmittedId] = useState<string | null>(null);
   const [dismissedIds, setDismissedIds] = useState<string[]>([]);
   const [now] = useState(() => Date.now());
-  const setResult = useReceiptResultStore((state) => state.setResult);
   const list = useQuery({
     ...imageAnalysisQueries.list(userScope ?? ""),
     enabled: Boolean(userScope),
@@ -92,7 +86,14 @@ export function useReceiptAnalysis() {
       const objectKeys = await Promise.all(
         files.map((file) => uploadImage(file, "ANALYSIS")),
       );
-      return requestImageAnalysis(objectKeys);
+      const refrigeratorId = readCurrentRefrigeratorId();
+      const submission = await requestImageAnalysis(objectKeys);
+      if (refrigeratorId) {
+        useReceiptResultStore
+          .getState()
+          .rememberRefrigerator(submission.analysisId, refrigeratorId);
+      }
+      return submission;
     },
     onSuccess: (submission) => {
       setSubmittedId(submission.analysisId);
@@ -162,13 +163,12 @@ export function useReceiptAnalysis() {
   useEffect(() => {
     if (!result || failure === "FAILED") return;
 
-    setResult(result);
     if (failure === null) {
       const href = routes.imageAnalysisResult(result.analysisId);
       markAppNavigationIntent("push", href);
       router.push(href);
     }
-  }, [result, failure, router, setResult]);
+  }, [result, failure, router]);
 
   return {
     isAnalyzing,

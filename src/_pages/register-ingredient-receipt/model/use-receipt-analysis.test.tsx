@@ -9,6 +9,7 @@ import { ApiError } from "@/shared/api";
 import { showAppToast } from "@/shared/ui/app-toast";
 
 import { useReceiptAnalysis } from "./use-receipt-analysis";
+import { useReceiptResultStore } from "./use-receipt-result-store";
 
 const mocks = vi.hoisted(() => ({
   upload: vi.fn(),
@@ -58,6 +59,7 @@ it("여러 사진을 업로드해 하나의 분석을 요청하고 목록을 무
   const listKey = ["image-analyses", "list", "session"];
   client.setQueryData(listKey, { analyses: [] });
   mocks.upload.mockImplementation(async (file: File) => `images/${file.name}`);
+  document.cookie = "currentRefrigeratorId=17; path=/";
   mocks.submit.mockResolvedValue({
     analysisId: "job-1",
     status: "QUEUED",
@@ -83,6 +85,7 @@ it("여러 사진을 업로드해 하나의 분석을 요청하고 목록을 무
   expect(mocks.upload).toHaveBeenCalledWith(files[0], "ANALYSIS");
   expect(mocks.upload).toHaveBeenCalledWith(files[1], "ANALYSIS");
   expect(mocks.submit).toHaveBeenCalledWith(["images/a.jpg", "images/b.jpg"]);
+  expect(useReceiptResultStore.getState().refrigeratorIds["job-1"]).toBe("17");
   await waitFor(() => expect(mocks.list).toHaveBeenCalledTimes(2));
   expect(result.current.isAnalyzing).toBe(true);
   unmount();
@@ -102,7 +105,7 @@ it.each([
   [
     "IMAGE-503-001",
     "2026-10-17T23:59:00Z",
-    "영수증 인식 기능은 오전 9시부터 오후 6시까지만 사용할 수 있어요",
+    "사진 인식 기능은 오전 9시부터 오후 6시까지만 사용할 수 있어요",
   ],
   [
     "IMAGE-503-001",
@@ -117,7 +120,7 @@ it.each([
   [
     "IMAGE-503-001",
     "2026-10-17T09:00:00Z",
-    "영수증 인식 기능은 오전 9시부터 오후 6시까지만 사용할 수 있어요",
+    "사진 인식 기능은 오전 9시부터 오후 6시까지만 사용할 수 있어요",
   ],
 ])(
   "%s 접수 실패를 한국 시간 %s에 맞게 안내한다",

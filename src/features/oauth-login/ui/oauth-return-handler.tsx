@@ -1,6 +1,7 @@
 "use client";
 
 import { useMutation } from "@tanstack/react-query";
+import * as Sentry from "@sentry/nextjs";
 import { useEffect } from "react";
 
 import { resubscribePushNotificationsIfEnabled } from "@/features/manage-push-notifications";
@@ -16,13 +17,24 @@ export function OAuthReturnHandler() {
   });
 
   useEffect(() => {
-    if (!consumeOAuthLoginStarted()) {
+    const oauthPending = consumeOAuthLoginStarted();
+    const entry = window.location.pathname.startsWith(routes.login)
+      ? "login"
+      : window.location.pathname.startsWith(routes.signup)
+        ? "signup"
+        : "app";
+    Sentry.logger.info("oauth.entry", {
+      entry,
+      oauth_pending: oauthPending,
+      standalone:
+        window.matchMedia?.("(display-mode: standalone)").matches ?? false,
+      visibility: document.visibilityState,
+    });
+    if (!oauthPending) {
       return;
     }
 
-    const isSignedIn =
-      !window.location.pathname.startsWith(routes.login) &&
-      !window.location.pathname.startsWith(routes.signup);
+    const isSignedIn = entry === "app";
 
     void refreshCsrfToken()
       .catch(() => null)

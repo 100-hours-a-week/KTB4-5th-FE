@@ -11,12 +11,15 @@ import { getTodayInSeoul } from "@/shared/lib/seoul-date";
 import { toHomeSummary } from "@/_pages/home/model/home-summary";
 import { useReceiptAnalysis } from "@/_pages/register-ingredient-receipt/model/use-receipt-analysis";
 import { useReceiptResultForm } from "@/_pages/register-ingredient-receipt/model/use-receipt-result-form";
-import { useReceiptResultStore } from "@/_pages/register-ingredient-receipt/model/use-receipt-result-store";
+import { toRecognitionResult } from "@/_pages/register-ingredient-receipt/model/receipt-recognition";
 import { getIngredientCapacity } from "@/entities/ingredient/model/ingredient-capacity";
 import { getIngredientList } from "@/entities/ingredient/api/get-ingredient-list";
 import { ingredientQueries } from "@/entities/ingredient/api/ingredient.queries";
 import { imageAnalysisQueries, useRegisteredAnalyses } from "@/entities/image";
-import { analysisFixture } from "@/entities/image/api/image-analysis.test-fixtures";
+import {
+  analysisFixture,
+  productAnalysisFixture,
+} from "@/entities/image/api/image-analysis.test-fixtures";
 import {
   getCurrentRefrigerators,
   refrigeratorQueries,
@@ -47,7 +50,6 @@ beforeEach(() => {
   });
   document.cookie = "XSRF-TOKEN=csrf; path=/";
   document.cookie = "currentRefrigeratorId=17; path=/";
-  useReceiptResultStore.setState({ result: null });
   useRegisteredAnalyses.setState({ idsBySession: {} });
   fetchMock.mockReset();
   router.push.mockReset();
@@ -125,97 +127,128 @@ it("VAPID 공개키와 마이페이지·홈의 최신 응답 및 1,500종 경계
   ).toMatchObject({ remainingSlots: 1, isLimitReached: false });
 });
 
-it("영수증 업로드 → AI 인식 → 누락 유통기한 수정 → 등록 → 홈·마이페이지 캐시 갱신을 연결한다", async () => {
-  vi.stubGlobal("crypto", webcrypto);
-  const job = {
-    ...analysisFixture,
-    status: "COMPLETED" as const,
-    results: [analysisFixture.results[0]],
-  };
-  const registered = {
-    createdCount: 1,
-    mergedCount: 0,
-    ingredientsNum: 1500,
-    refrigeratorCapacity: 1500,
-    mergedItems: [],
-  };
-  fetchMock.mockImplementation(async (url: string, init?: RequestInit) => {
-    if (url.endsWith("/presigned-url"))
-      return ok({
-        objectKey: "receipt.jpg",
-        uploadUrl: "https://storage.example/receipt.jpg",
-        method: "PUT",
-        headers: { "Content-Type": "image/jpeg" },
-      });
-    if (url.startsWith("https://storage.example/"))
-      return new Response(null, { status: 200 });
-    if (url === "/api/v1/image-analyses" && init?.method !== "POST")
-      return ok({ analyses: [] });
-    if (url === "/api/v1/image-analyses")
-      return ok({
-        analysisId: job.analysisId,
-        status: "QUEUED",
-        pollAfterMs: 1000,
-      });
-    if (url === `/api/v1/image-analyses/${job.analysisId}`) return ok(job);
-    if (url.endsWith("/ingredients/from-analysis")) return ok(registered);
-    throw new Error(`Unexpected request: ${url}`);
-  });
-  const listKey = imageAnalysisQueries.list("session").queryKey;
-  const ingredientKey = [...ingredientQueries.byRefrigerator("17"), "test"];
-  const mypageKey = refrigeratorQueries.mypage("17").queryKey;
-  client.setQueryData(listKey, { analyses: [job] });
-  client.setQueryData(ingredientKey, {});
-  client.setQueryData([...mypageKey], {});
-  const analysis = renderHook(() => useReceiptAnalysis(), { wrapper });
-  const file = new File(["receipt"], "receipt.jpg", { type: "image/jpeg" });
-  Object.defineProperty(file, "arrayBuffer", {
-    value: async () => new TextEncoder().encode("receipt").buffer,
-  });
-  act(() => analysis.result.current.analyze([file]));
-  await waitFor(() =>
-    expect(router.push).toHaveBeenCalledWith(
-      routes.imageAnalysisResult(job.analysisId),
-    ),
-  );
-  const recognition = useReceiptResultStore.getState().result!;
-  expect(recognition.drafts[0].expirationDate).toBe("");
-  analysis.unmount();
-  const form = renderHook(() => useReceiptResultForm(recognition), { wrapper });
-  await act(async () => {
-    form.result.current.form.setValue("drafts.0.expirationDate", today);
-    await form.result.current.submit();
-  });
-  await waitFor(() =>
-    expect(form.result.current.completedResult).toEqual(registered),
-  );
-  const [, request] = fetchMock.mock.calls.find(([url]) =>
-    url.endsWith("/ingredients/from-analysis"),
-  )!;
-  expect(new Headers(request.headers).get("X-XSRF-TOKEN")).toBe("csrf");
-  expect(JSON.parse(request.body)).toEqual({
-    analysisId: job.analysisId,
-    images: [
-      {
-        imageObjectKey: "receipt.jpg",
-        items: [
-          {
-            itemId: "item_001",
-            name: "우유",
-            category: "DAIRY",
-            storageType: "REFRIGERATED",
-            measureType: "WEIGHT",
-            quantity: null,
-            weight: { value: 1000, unit: "ML" },
-            expiration: today,
-          },
-        ],
-      },
-    ],
-  });
-  expect(client.getQueryState(ingredientKey)?.isInvalidated).toBe(true);
-  expect(client.getQueryState(mypageKey)?.isInvalidated).toBe(true);
-  expect(useRegisteredAnalyses.getState().idsBySession.session).toEqual([
-    job.analysisId,
-  ]);
-});
+it.each([
+  ["영수증", analysisFixture],
+  ["실물 사진", productAnalysisFixture],
+] as const)(
+  "%s 업로드 → AI 인식 → 결과 확인 → 등록 → 캐시 갱신을 연결한다",
+  async (_, source) => {
+    vi.stubGlobal("crypto", webcrypto);
+    const job = {
+      ...structuredClone(source),
+      status: "COMPLETED" as const,
+      results: [structuredClone(source.results[0])],
+    };
+    const imageObjectKey = job.results[0].imageObjectKey;
+    const isProduct = job.results[0].documentType === "PRODUCT";
+    if (isProduct)
+      job.results[0].items[0].expiration = {
+        date: null,
+        dateType: "ESTIMATED_CONSUMPTION_WINDOW",
+        estimatedRange: { from: today, to: today },
+      };
+    const registered = {
+      createdCount: 1,
+      mergedCount: 0,
+      ingredientsNum: 1500,
+      refrigeratorCapacity: 1500,
+      mergedItems: [],
+    };
+    fetchMock.mockImplementation(async (url: string, init?: RequestInit) => {
+      if (url.endsWith("/presigned-url"))
+        return ok({
+          objectKey: imageObjectKey,
+          uploadUrl: "https://storage.example/receipt.jpg",
+          method: "PUT",
+          headers: { "Content-Type": "image/jpeg" },
+        });
+      if (url.startsWith("https://storage.example/"))
+        return new Response(null, { status: 200 });
+      if (url === "/api/v1/image-analyses" && init?.method !== "POST")
+        return ok({ analyses: [] });
+      if (url === "/api/v1/image-analyses")
+        return ok({
+          analysisId: job.analysisId,
+          status: "QUEUED",
+          pollAfterMs: 1000,
+        });
+      if (url === `/api/v1/image-analyses/${job.analysisId}`) return ok(job);
+      if (url.endsWith("/ingredients/from-analysis")) return ok(registered);
+      throw new Error(`Unexpected request: ${url}`);
+    });
+    const listKey = imageAnalysisQueries.list("session").queryKey;
+    const ingredientKey = [...ingredientQueries.byRefrigerator("17"), "test"];
+    const mypageKey = refrigeratorQueries.mypage("17").queryKey;
+    client.setQueryData(listKey, { analyses: [job] });
+    client.setQueryData(ingredientKey, {});
+    client.setQueryData([...mypageKey], {});
+    const analysis = renderHook(() => useReceiptAnalysis(), { wrapper });
+    const file = new File(["receipt"], "receipt.jpg", { type: "image/jpeg" });
+    Object.defineProperty(file, "arrayBuffer", {
+      value: async () => new TextEncoder().encode("receipt").buffer,
+    });
+    act(() => analysis.result.current.analyze([file]));
+    await waitFor(() =>
+      expect(router.push).toHaveBeenCalledWith(
+        routes.imageAnalysisResult(job.analysisId),
+      ),
+    );
+    const recognition = toRecognitionResult(
+      client.getQueryData(
+        imageAnalysisQueries.detail(job.analysisId).queryKey,
+      )!,
+    );
+    expect(recognition.drafts[0].expirationDate).toBe(isProduct ? today : "");
+    expect(recognition.hints[0]).toBe(
+      isProduct ? "AI_ESTIMATED" : "NEEDS_CHECK",
+    );
+    const [, submission] = fetchMock.mock.calls.find(
+      ([url, init]) =>
+        url === "/api/v1/image-analyses" && init?.method === "POST",
+    )!;
+    expect(JSON.parse(submission.body)).toEqual({
+      imageObjectKeys: [imageObjectKey],
+      inputHint: "AUTO",
+    });
+    analysis.unmount();
+    const form = renderHook(() => useReceiptResultForm(recognition), {
+      wrapper,
+    });
+    await act(async () => {
+      form.result.current.form.setValue("drafts.0.expirationDate", today);
+      await form.result.current.submit();
+    });
+    await waitFor(() =>
+      expect(form.result.current.completedResult).toEqual(registered),
+    );
+    const [, request] = fetchMock.mock.calls.find(([url]) =>
+      url.endsWith("/ingredients/from-analysis"),
+    )!;
+    expect(new Headers(request.headers).get("X-XSRF-TOKEN")).toBe("csrf");
+    expect(JSON.parse(request.body)).toEqual({
+      analysisId: job.analysisId,
+      images: [
+        {
+          imageObjectKey,
+          items: [
+            {
+              itemId: "item_001",
+              name: "우유",
+              category: "DAIRY",
+              storageType: "REFRIGERATED",
+              measureType: "WEIGHT",
+              quantity: null,
+              weight: { value: 1000, unit: "ML" },
+              expiration: today,
+            },
+          ],
+        },
+      ],
+    });
+    expect(client.getQueryState(ingredientKey)?.isInvalidated).toBe(true);
+    expect(client.getQueryState(mypageKey)?.isInvalidated).toBe(true);
+    expect(useRegisteredAnalyses.getState().idsBySession.session).toEqual([
+      job.analysisId,
+    ]);
+  },
+);

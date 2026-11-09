@@ -1,7 +1,7 @@
 "use client";
 
 import * as Sentry from "@sentry/nextjs";
-import { useEffect, useState } from "react";
+import { useEffect, useState, type MouseEvent } from "react";
 
 import { showAppToast } from "@/shared/ui/app-toast";
 
@@ -14,34 +14,88 @@ export function KakaoLoginButton() {
 
   useEffect(() => {
     const restoreButton = (event: PageTransitionEvent) => {
+      Sentry.logger.info("oauth.pageshow", {
+        persisted: event.persisted,
+        pending: isPending,
+      });
       if (event.persisted) setIsPending(false);
+    };
+    const reportResume = () => {
+      if (document.visibilityState === "visible") {
+        Sentry.logger.info("oauth.resume", { pending: isPending });
+      }
     };
 
     window.addEventListener("pageshow", restoreButton);
-    return () => window.removeEventListener("pageshow", restoreButton);
-  }, []);
+    document.addEventListener("visibilitychange", reportResume);
+    return () => {
+      window.removeEventListener("pageshow", restoreButton);
+      document.removeEventListener("visibilitychange", reportResume);
+    };
+  }, [isPending]);
 
-  async function handleClick() {
+  async function handleClick(event: MouseEvent<HTMLButtonElement>) {
     if (isPending) return;
 
+    const startedAt = performance.now();
+    let stage: "lookup" | "disable" = "lookup";
+    Sentry.logger.info("oauth.click", { trusted: event.isTrusted });
     setIsPending(true);
+    let timeoutId: ReturnType<typeof setTimeout> | undefined;
     try {
-      const registration = await navigator.serviceWorker?.getRegistration();
-      if (registration?.active) {
-        await registration.navigationPreload?.disable();
-      }
+      await Promise.race([
+        (async () => {
+          const registration = await navigator.serviceWorker?.getRegistration();
+          if (registration?.active) {
+            stage = "disable";
+            await registration.navigationPreload?.disable();
+          }
+        })(),
+        new Promise<never>((_, reject) => {
+          timeoutId = setTimeout(
+            () =>
+              reject(
+                new DOMException(
+                  "Service worker preparation timed out",
+                  "TimeoutError",
+                ),
+              ),
+            5_000,
+          );
+        }),
+      ]);
 
+      Sentry.logger.info("oauth.prepared", {
+        elapsed_ms: Math.round(performance.now() - startedAt),
+      });
       markOAuthLoginStarted();
       requestAnimationFrame(() => {
-        requestAnimationFrame(() => window.location.assign(authorizationPath));
+        requestAnimationFrame(() => {
+          Sentry.logger.info("oauth.navigate", {
+            elapsed_ms: Math.round(performance.now() - startedAt),
+          });
+          window.location.assign(authorizationPath);
+        });
       });
     } catch (error) {
-      Sentry.captureException(error, { tags: { operation: "oauth.prepare" } });
+      Sentry.captureException(new Error("OAuth preparation failed"), {
+        tags: { operation: "oauth.prepare" },
+        contexts: {
+          oauth: {
+            stage,
+            elapsed_ms: Math.round(performance.now() - startedAt),
+            timed_out:
+              error instanceof DOMException && error.name === "TimeoutError",
+          },
+        },
+      });
       setIsPending(false);
       showAppToast({
         message: "잠시 후 다시 시도해 주세요",
         variant: "error",
       });
+    } finally {
+      clearTimeout(timeoutId);
     }
   }
 

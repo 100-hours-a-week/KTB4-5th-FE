@@ -80,20 +80,16 @@ const serwist = new Serwist({
       ? []
       : [
           {
-            matcher: ({ sameOrigin, url: { pathname } }) =>
+            matcher: ({ sameOrigin, request, url: { pathname } }) =>
               sameOrigin &&
-              pathname.startsWith("/api/v2/refrigerators/") &&
-              pathname.endsWith("/notifications/stream"),
+              (pathname.startsWith("/api/") ||
+                pathname.startsWith("/_next/data/") ||
+                request.mode === "navigate" ||
+                request.headers.has("RSC") ||
+                (pathname.startsWith("/refrigerators/") &&
+                  pathname.endsWith("/expired-ingredients"))),
             method: "GET",
-            handler: new NetworkOnly(),
-          },
-          {
-            matcher: ({ sameOrigin, url: { pathname } }) =>
-              sameOrigin &&
-              pathname.startsWith("/refrigerators/") &&
-              pathname.endsWith("/expired-ingredients"),
-            method: "GET",
-            handler: new NetworkOnly(),
+            handler: new NetworkOnly({ fetchOptions: { cache: "no-store" } }),
           },
           ...defaultCache,
         ],
@@ -105,6 +101,22 @@ const serwist = new Serwist({
       },
     ],
   },
+});
+
+self.addEventListener("activate", (event) => {
+  // 이전 워커가 저장한 사용자 응답은 새 캐시 정책만으로 제거되지 않는다.
+  event.waitUntil(
+    Promise.all(
+      [
+        "apis",
+        "pages",
+        "pages-rsc",
+        "pages-rsc-prefetch",
+        "next-data",
+        "others",
+      ].map((name) => caches.delete(name)),
+    ),
+  );
 });
 
 self.addEventListener("push", (event) => {
