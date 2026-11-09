@@ -45,9 +45,20 @@ vi.mock("@/shared/ui/app-link", () => ({
   ),
 }));
 vi.mock("@/shared/ui/async-view-state", () => ({
-  AsyncViewState: ({ title, action }: { title: string; action: ReactNode }) => (
-    <div>
-      {title}
+  AsyncViewState: ({
+    title,
+    description,
+    status,
+    action,
+  }: {
+    title: string;
+    description?: string;
+    status: string;
+    action: ReactNode;
+  }) => (
+    <div role={status === "error" ? "alert" : undefined}>
+      <p>{title}</p>
+      <p>{description}</p>
       {action}
     </div>
   ),
@@ -148,6 +159,35 @@ function openResult() {
     </QueryClientProvider>,
   );
 }
+
+it.each([
+  [
+    "ANALYSIS_UNAVAILABLE",
+    "AI 서버의 일시적인 오류로 인식하지 못했어요. 잠시 후 다시 시도해 주세요.",
+  ],
+  ["ANALYSIS_EXPIRED", "분석 시간이 초과됐어요. 잠시 후 다시 시도해 주세요."],
+])("%s는 정상 결과 0건과 구분해 오류로 표시한다", async (code, message) => {
+  mocks.get.mockResolvedValue({
+    ...completed,
+    status: "FAILED",
+    error: { code, message: "failed", retryable: true, retryAfterMs: null },
+    results: [{ ...completed.results[0], status: "FAILED", items: [] }],
+  });
+  openResult();
+  await screen.findByText("사진을 인식하지 못했어요");
+  expect(screen.getByRole("alert").textContent).toContain(message);
+  expect(screen.queryByText("인식한 재료가 없어요")).toBeNull();
+});
+
+it("정상 분석 결과가 0건이면 오류 대신 빈 결과를 안내한다", async () => {
+  mocks.get.mockResolvedValue({
+    ...completed,
+    results: [{ ...completed.results[0], items: [] }],
+  });
+  openResult();
+  await screen.findByText("인식한 재료가 없어요");
+  expect(screen.queryByRole("alert")).toBeNull();
+});
 
 it("restores a directly opened result from its ID without relying on an in-memory draft", async () => {
   mocks.get.mockResolvedValue(completed);
