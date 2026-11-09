@@ -39,6 +39,22 @@ it("reconstructs existing expiration dates from the response base date", () => {
   expect(getRegisterCapacity(page).existingStockKeys).toContain(
     "두부|REFRIGERATED|2026-09-15|NONE",
   );
+  expect(getRegisterCapacity(page).isEstimate).toBe(true);
+});
+
+it("빈 냉장고는 기존 재고와 합산할 수 없으므로 신규 품목 수를 확정한다", () => {
+  expect(
+    getRegisterCapacity({
+      baseDate: "2026-11-09",
+      outdated: false,
+      ingredientsNum: 0,
+      filteredCount: 0,
+      refrigeratorCapacity: 1500,
+      refrigeratorName: "빈 냉장고",
+      nextCursor: null,
+      ingredients: [],
+    }).isEstimate,
+  ).toBe(false);
 });
 
 it("합산 후보가 일부만 로드됐어도 서버 전체 개수를 사용하고 추정임을 명시한다", () => {

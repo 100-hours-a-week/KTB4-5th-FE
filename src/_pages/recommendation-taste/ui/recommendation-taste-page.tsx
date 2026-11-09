@@ -24,6 +24,9 @@ import { routes } from "@/shared/routes";
 import { FooterButton } from "@/shared/ui/footer-button";
 import { PageActionLayout } from "@/shared/ui/page-action-layout";
 
+// shortcut: 서버의 무제한 표시값. API가 무제한 여부를 제공하면 이 비교를 대체한다.
+const UNLIMITED_GENERATION_LIMIT = 2_147_483_647;
+
 export function RecommendationTastePage() {
   const router = useRouter();
   const refrigeratorId = useCurrentRefrigeratorId();
@@ -85,7 +88,9 @@ export function RecommendationTastePage() {
             고른 취향과 지금 재고로 새 추천을 만들어요. 취향은 내일 오전 7시까지
             유지돼요. 취향은 인분 수를 제외하고 최대 {MAX_TASTE_TAGS}개까지
             선택할 수 있어요.
-            {data && !limitReached
+            {data &&
+            !limitReached &&
+            data.dailyGeneration.limit !== UNLIMITED_GENERATION_LIMIT
               ? ` 오늘 ${data.dailyGeneration.remaining}번 더 받을 수 있어요.`
               : null}
           </p>
