@@ -6,7 +6,11 @@ import { useEffect, useState, type ReactNode } from "react";
 import { routes } from "@/shared/routes";
 import { AsyncViewState } from "@/shared/ui/async-view-state";
 
-import { isMswActive, isMswEnabled } from "../../mocks/enabled";
+import {
+  isMswActive,
+  isMswEnabled,
+  isMswFullEnabled,
+} from "../../mocks/enabled";
 
 let startPromise: Promise<unknown> | undefined;
 
@@ -19,7 +23,20 @@ export function MswProvider({ children }: { children: ReactNode }) {
 
     startPromise ??= isMswActive()
       ? import("../../mocks/browser")
-          .then(({ worker }) => worker.start({ onUnhandledRequest: "bypass" }))
+          .then(({ worker }) =>
+            worker.start({
+              onUnhandledRequest: isMswFullEnabled()
+                ? (request, print) => {
+                    const { origin, pathname } = new URL(request.url);
+                    if (
+                      origin === location.origin &&
+                      /^\/(api\/|bug-reports|refrigerators\/)/.test(pathname)
+                    )
+                      print.warning();
+                  }
+                : "bypass",
+            }),
+          )
           .catch((error: unknown) => {
             startPromise = undefined;
             console.error("MSW 시작 실패", error);

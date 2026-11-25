@@ -22,7 +22,7 @@ type State = {
   >;
 };
 
-export function createRecommendationHandlers() {
+export function createRecommendationHandlers({ mockAll = false } = {}) {
   const states = new Map<string, State>();
   const records = new Map<string, { signature: string }>();
   const streams = new Set<ReadableStreamDefaultController<Uint8Array>>();
@@ -110,12 +110,12 @@ export function createRecommendationHandlers() {
   };
   return [
     http.get("*/api/v1/image-analyses", ({ cookies }) =>
-      cookies.recommendationMock
+      mockAll || cookies.recommendationMock
         ? mockSuccess("IMAGE-200-001", { analyses: [] })
         : passthrough(),
     ),
     http.get("*/api/v1/auth/csrf", ({ cookies }) =>
-      cookies.recommendationMock
+      mockAll || cookies.recommendationMock
         ? new HttpResponse(null, {
             status: 204,
             headers: {
@@ -125,7 +125,7 @@ export function createRecommendationHandlers() {
         : passthrough(),
     ),
     http.get("*/api/v1/refrigerators/current", ({ cookies }) =>
-      cookies.recommendationMock
+      mockAll || cookies.recommendationMock
         ? mockSuccess("REFRIGERATOR-200-001", [
             {
               refrigeratorId: cookies.recommendationMock === "403" ? 2 : 1,
@@ -137,7 +137,7 @@ export function createRecommendationHandlers() {
         : passthrough(),
     ),
     http.get(`${root}/notifications/unread-count`, ({ params, cookies }) =>
-      cookies.recommendationMock
+      mockAll || cookies.recommendationMock
         ? mockSuccess("NOTIFICATION-200-001", {
             refrigeratorId: params.refrigeratorId,
             unreadCount: 0,
@@ -145,7 +145,7 @@ export function createRecommendationHandlers() {
         : passthrough(),
     ),
     http.get(`${root}/members`, ({ cookies }) =>
-      cookies.recommendationMock
+      mockAll || cookies.recommendationMock
         ? mockSuccess("REFRIGERATOR-200-001", {
             currentUserId: "1",
             refrigeratorName: "추천 테스트 냉장고",
@@ -156,7 +156,7 @@ export function createRecommendationHandlers() {
         : passthrough(),
     ),
     http.get("*/api/v1/users/me", ({ cookies }) =>
-      cookies.recommendationMock
+      mockAll || cookies.recommendationMock
         ? mockSuccess("USER-200-001", {
             userId: "1",
             nickname: "추천 테스트",
@@ -169,7 +169,7 @@ export function createRecommendationHandlers() {
     http.get(
       "*/api/v2/refrigerators/:refrigeratorId/notifications/stream",
       ({ cookies }) =>
-        cookies.recommendationMock
+        mockAll || cookies.recommendationMock
           ? new HttpResponse(
               new ReadableStream({
                 start(controller) {
@@ -182,7 +182,7 @@ export function createRecommendationHandlers() {
           : passthrough(),
     ),
     http.get(`${root}/ingredients`, ({ params, cookies }) => {
-      if (!cookies.recommendationMock) return passthrough();
+      if (!mockAll && !cookies.recommendationMock) return passthrough();
       const value = state(
         String(params.refrigeratorId),
         cookies.recommendationMock,
@@ -196,7 +196,7 @@ export function createRecommendationHandlers() {
           return {
             ingredientId: stock.ingredientId,
             name: ingredient.name,
-            category: "ETC",
+            category: "OTHER",
             quantity: stock.unit === "EA" ? stock.ownedAmount : 1,
             weightValue: stock.unit === "EA" ? null : String(stock.ownedAmount),
             weightUnit: stock.unit === "EA" ? "NONE" : stock.unit,
@@ -206,7 +206,7 @@ export function createRecommendationHandlers() {
               daysUntilExpiration < 0
                 ? "EXPIRED"
                 : daysUntilExpiration <= 3
-                  ? "EXPIRING"
+                  ? "EXPIRING_SOON"
                   : "NORMAL",
             daysUntilExpiration,
           };
@@ -301,9 +301,11 @@ export function createRecommendationHandlers() {
             generationStatus: "COMPLETED",
             hasNewRecommendation: true,
           };
-          emit("recommendation.finished", {
+          emit("recommendation", {
             refrigeratorId,
             recommendationId: value.pending.recommendationId,
+            generationTrigger: "USER",
+            generationStatus: "COMPLETED",
           });
         }, 2_000);
         return mockSuccess(
@@ -350,11 +352,21 @@ export function createRecommendationHandlers() {
         String(params.refrigeratorId),
         cookies.recommendationMock,
       );
-      return mockSuccess("RECOMMEND-200-002", {
+      const data = {
         ...value.recipe,
         recipeId,
         name: createMockRecipe(recipeId).name,
-      });
+      };
+      const response = mockSuccess("RECOMMEND-200-002", data);
+      const digest = await crypto.subtle.digest(
+        "SHA-256",
+        new TextEncoder().encode(JSON.stringify(data)),
+      );
+      response.headers.set(
+        "ETag",
+        `"${Array.from(new Uint8Array(digest), (byte) => byte.toString(16).padStart(2, "0")).join("")}"`,
+      );
+      return response;
     }),
     http.post(
       `${root}/cooking-records`,
