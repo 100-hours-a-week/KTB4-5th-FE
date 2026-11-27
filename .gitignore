@@ -51,3 +51,7 @@ public/swe-worker*
 
 # Perf measurement output
 scripts/perf/out/
+
+/.claude/
+*storybook.log
+storybook-static
