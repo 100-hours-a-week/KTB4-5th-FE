@@ -15,8 +15,27 @@ concurrency:
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
+  test:
+    name: 린트 및 테스트
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+      - uses: pnpm/action-setup@v6
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm exec playwright-core install --with-deps chromium
+      - run: pnpm lint
+      - run: pnpm test
+
   build:
     name: 검증 및 이미지 빌드
+    needs: test
     # 모든 환경의 이미지를 AMD64로 한 번만 빌드한다.
     runs-on: ubuntu-24.04
     timeout-minutes: 30
