@@ -27,7 +27,9 @@ export function PageActionLayout({
     <main
       className={`flex h-dvh max-h-full min-h-0 w-full flex-col overflow-hidden ${toneClasses[tone].page} ${pageClassName}`}
     >
-      <div className="min-h-0 flex-1 overflow-y-auto">{children}</div>
+      <div tabIndex={0} className="min-h-0 flex-1 overflow-y-auto">
+        {children}
+      </div>
       <footer
         data-page-action-footer
         className={`flex-none px-5 pt-3 pb-[calc(20px+var(--safe-bottom))] ${toneClasses[tone].footer} ${footerClassName}`}
