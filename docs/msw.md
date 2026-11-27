@@ -8,6 +8,7 @@ MSW는 브라우저의 API 요청을 가로챈다. `src/_app/mocks/handlers.ts`�
 | ----------------------- | ------------------------------------------------------------------------------------------------------------------------------ |
 | 로컬 `pnpm dev`         | 꺼짐. `.env.local`에 `NEXT_PUBLIC_MSW=true`가 있으면 켜짐                                                                      |
 | 로컬 `pnpm dev:msw`     | 켜짐. `?msw=off`로 접속하면 해당 브라우저에서 끄고 Serwist를 등록                                                              |
+| 로컬 `pnpm dev:msw:full` | `dev:msw`에 더해 프론트가 호출하는 모든 API를 모의(`NEXT_PUBLIC_MSW_FULL=true`). 아래 [전체 모의 모드](#전체-모의-모드) 참고 |
 | 로컬 `pnpm build:start` | 켜지지 않음. 운영과 같은 Serwist 캐싱으로 동작하고, `/api/v1`은 `BACKEND_ORIGIN`(기본 `http://localhost:8080`)으로 전달        |
 | 로컬 `pnpm build:start:msw` | MSW를 포함해 빌드. `/recommendations?msw=on`으로 접속하면 추천 API를 모의하고, 등록하지 않은 요청(로그인·토큰 갱신 포함)은 실제 백엔드로 전달 |
 | `dev` 브랜치 배포       | 기본 꺼짐(Serwist 등록). `?msw=on`으로 접속하면 해당 브라우저에서 켜지고 `?msw=off`로 되돌림                                   |
@@ -86,15 +87,32 @@ API 오류는 서비스 코드가 포함된 RFC 9457 Problem Details로 응답�
 홈과 추천 진입만으로는 생성 요청을 보내지 않는다. `STALE`이면 기존 목록과
 [다시 추천], `EMPTY`이면 [추천 받기]를 보여주고 사용자가 누를 때만 생성한다.
 생성 요청 후 목록을 다시 조회하고(`GENERATING`), 알림 SSE 스트림의
-`recommendation.finished` 이벤트를 받으면 목록을 다시 조회해 반영한다. SSE
+`recommendation` 이벤트(`generationStatus: COMPLETED`)를 받으면 목록을 다시 조회해 반영한다. SSE
 재연결과 앱 복귀 때도 목록을 다시 조회해 놓친 이벤트를 메운다. 요리 적용 직후에는 재고·상세·MY 캐시만 갱신하며 추천 생성은 하지 않는다.
 응답을 받지 못한 적용 재시도는 열린 상세 화면에서 같은 멱등 키를 유지한다.
 
 모의 데이터는 페이지 런타임 메모리에 저장되므로 새로고침하면 초기화된다.
 생성 작업은 요청 2초 뒤 완료되고, 모의 알림 SSE 스트림으로
-`recommendation.finished` 이벤트(`{ refrigeratorId, recommendationId }`)를 보낸다.
+`recommendation` 이벤트(`{ refrigeratorId, recommendationId, generationTrigger, generationStatus }`)를 보낸다.
 실제 AI 호출·공유 냉장고 동시성·서버 멱등 보존 기간을 검증하는 모의 구현은 아니다.
 차감 순서와 전량 소진 처리는 미확정이므로 모의 구현은 비만료 재고를 만료일순으로
 차감하고 0 수량 재고를 제거한다. `EXCLUDE_EXPIRED` 요청은 핸들러에서 지원하지만
 수동 생성·모드 변경 버튼은 추가하지 않았다. 향후 모드 변경 UI를 추가할 때는
 명세대로 확인 모달을 먼저 거쳐야 한다.
+
+## 전체 모의 모드
+
+`pnpm dev:msw:full`은 백엔드 없이 앱 전체를 띄울 때 쓴다. 기본 `dev:msw`와 달리
+`src/_app/mocks/full/handlers.ts`와 추천 핸들러를 쿠키 조건 없이 등록하고, 등록되지
+않은 `/api/`·`/bug-reports`·`/refrigerators/` 요청은 콘솔에 MSW 경고로 표시한다.
+
+- `/login/local`에서 아무 값으로 로그인하면 MSW 전용 `accessToken`·`refreshToken`
+  쿠키(`local-msw-only`)를 심어 `proxy.ts` 세션 검사를 통과한다. 카카오 OAuth는
+  외부 이동이라 모의하지 않는다.
+- 이미지 업로드는 presigned URL을 같은 출처의 `/mock-storage/*`로 돌려 모의한다.
+- 모의 데이터는 페이지 메모리에 있어 새로고침하면 초기화된다.
+- 서버에서 직접 호출하는 요청(냉장고 SSR 재고 조회, `expired-ingredients`·SSE·버그 리포트
+  route handler의 백엔드 호출)은 브라우저 워커가 가로채지 못한다. 브라우저가 부르는
+  `expired-ingredients`·SSE·`/bug-reports` 경로 자체는 모의한다.
+- 쿠키는 포트와 무관하게 `localhost`에 저장되므로, 같은 브라우저에서 실제 백엔드에
+  연결한 다른 포트의 앱과 함께 쓰면 세션·CSRF 쿠키가 서로 덮어쓴다.

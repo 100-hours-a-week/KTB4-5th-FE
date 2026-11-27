@@ -7,6 +7,10 @@ export function isMswEnabled() {
   );
 }
 
+export function isMswFullEnabled() {
+  return process.env.NEXT_PUBLIC_MSW_FULL === "true";
+}
+
 const MSW_PREFERENCE_KEY = "msw";
 
 export function isMswActive() {
